@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scotri Developer Portal</title>
+<meta name="description" content="Build on Scotri's engagement engine over HTTP or MCP: authentication, job lifecycle, endpoint and tool reference, and a live console.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='11' fill='%2312151A'/%3E%3Cpath d='M14.5 16.2 Q 27 7.5 41 24' fill='none' stroke='%23F6F4EF' stroke-width='5.2' stroke-linecap='round'/%3E%3Cpath d='M33.5 31.8 Q 21 40.5 7 24' fill='none' stroke='%23F6F4EF' stroke-width='5.2' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='24' r='4.6' fill='%235FB3A6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Brand: docs/brand/README.md. Ink on paper is the identity; the teal accent marks only what is
+   verified or live (a 2xx response, the connected state), never decoration. */
+:root {
+  --bg: #F6F4EF;
+  --surface: #FFFFFF;
+  --sunken: #EEEBE4;
+  --fg: #12151A;
+  --muted: #5E636B;
+  --line: #DAD6CD;
+  --accent: #2A6F66;
+  --accent-tint: #E1EEEB;
+  --warn: #9A5B0C;
+  --warn-tint: #F7EBD8;
+  --stop: #A23A3A;
+  --stop-tint: #F6E4E2;
+  --code-bg: #12151A;
+  --code-fg: #E9E6DF;
+  --code-muted: #8D939B;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --radius: 8px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151A; --surface: #191D23; --sunken: #0D1013; --fg: #ECEAE4; --muted: #9BA1A8;
+    --line: #2B3038; --accent: #5FB3A6; --accent-tint: #163430; --warn: #E0A452; --warn-tint: #33270F;
+    --stop: #E58A86; --stop-tint: #3A1E1D; --code-bg: #0B0D10; --code-fg: #E9E6DF; --code-muted: #7E858D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151A; --surface: #191D23; --sunken: #0D1013; --fg: #ECEAE4; --muted: #9BA1A8;
+  --line: #2B3038; --accent: #5FB3A6; --accent-tint: #163430; --warn: #E0A452; --warn-tint: #33270F;
+  --stop: #E58A86; --stop-tint: #3A1E1D; --code-bg: #0B0D10; --code-fg: #E9E6DF; --code-muted: #7E858D;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 4.4vw, 2.9rem); letter-spacing: -0.02em; }
+h2 { font-size: 1.6rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.12rem; }
+h4 { font-size: 0.98rem; font-weight: 500; }
+p { margin: 0 0 0.9em; }
+a { color: var(--accent); text-underline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 0.87em; background: var(--sunken); padding: 0.08em 0.36em; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.muted { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+
+/* ---------- top bar ---------- */
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; height: 60px;
+  display: flex; align-items: center; gap: 14px; padding: 0 20px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; }
+.brand svg { width: 28px; height: 28px; }
+.brand b { font-family: var(--font-display); font-weight: 600; font-size: 1.12rem; letter-spacing: -0.01em; }
+.brand span { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+.top .spacer { flex: 1; }
+.top-links { display: flex; gap: 4px; }
+.top-links a, .icon-btn {
+  font-size: 0.88rem; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 6px;
+  background: none; border: 0; cursor: pointer; font-family: inherit;
+}
+.top-links a:hover, .icon-btn:hover { color: var(--fg); background: var(--sunken); }
+.menu-btn { display: none; }
+
+/* ---------- layout ---------- */
+.layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); max-width: 1320px; margin: 0 auto; }
+aside.side {
+  position: sticky; top: 60px; align-self: start; height: calc(100vh - 60px); overflow-y: auto;
+  padding: 26px 14px 40px 20px; border-right: 1px solid var(--line);
+}
+.side h5 { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 20px 8px 6px; }
+.side h5:first-child { margin-top: 0; }
+.side a {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px;
+  color: var(--fg); text-decoration: none; font-size: 0.9rem; line-height: 1.35;
+}
+.side a:hover { background: var(--sunken); }
+.side a.active { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
+.side a .verb { font-family: var(--font-mono); font-size: 0.64rem; font-weight: 500; width: 34px; flex: none; color: var(--muted); }
+.side a.active .verb { color: inherit; }
+main { padding: 40px 48px 120px; min-width: 0; }
+section.doc { max-width: 880px; padding: 34px 0 10px; border-top: 1px solid var(--line); }
+section.doc:first-of-type { border-top: 0; padding-top: 0; }
+section.doc > h2 { margin-bottom: 12px; }
+section.doc > .lede { font-size: 1.04rem; color: var(--muted); max-width: 68ch; }
+
+/* ---------- hero ---------- */
+.hero { max-width: 880px; padding-bottom: 30px; }
+.hero h1 { margin: 10px 0 14px; }
+.hero p.lede { font-size: 1.12rem; color: var(--muted); max-width: 62ch; }
+.transports { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 26px; }
+.transport {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 18px 16px;
+  text-decoration: none; color: inherit; display: block; transition: border-color .15s;
+}
+.transport:hover { border-color: var(--fg); }
+.transport h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.transport p { color: var(--muted); font-size: 0.92rem; margin-bottom: 10px; }
+.transport .endpoint { font-family: var(--font-mono); font-size: 0.8rem; color: var(--fg); background: var(--sunken); padding: 4px 8px; border-radius: 5px; display: inline-block; }
+
+/* ---------- connection panel ---------- */
+.conn {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px; margin-top: 22px; display: grid; gap: 12px;
+  grid-template-columns: 1fr 1fr 1.3fr auto; align-items: end;
+}
+.conn label, .field label { display: block; font-size: 0.76rem; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+input[type=text], input[type=password], input[type=url], textarea, select {
+  width: 100%; font: inherit; font-size: 0.88rem; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px;
+}
+input.mono, textarea { font-family: var(--font-mono); font-size: 0.8rem; }
+textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.conn .status { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--muted); white-space: nowrap; padding-bottom: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.dot.ok { background: var(--accent); }
+.dot.bad { background: var(--stop); }
+.conn .note { grid-column: 1 / -1; font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+button.btn {
+  font: inherit; font-size: 0.86rem; font-weight: 500; cursor: pointer; border-radius: 6px; padding: 7px 14px;
+  border: 1px solid var(--fg); background: var(--fg); color: var(--bg);
+}
+button.btn:hover { opacity: 0.88; }
+button.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+button.btn.ghost:hover { border-color: var(--fg); opacity: 1; }
+button.btn:disabled { opacity: 0.5; cursor: progress; }
+
+/* ---------- callouts ---------- */
+.callout { border-left: 3px solid var(--accent); background: var(--accent-tint); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.93rem; }
+.callout.warn { border-color: var(--warn); background: var(--warn-tint); }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { font-weight: 600; }
+
+/* ---------- tables ---------- */
+.tbl { overflow-x: auto; margin: 12px 0 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: 0.76rem; letter-spacing: 0.03em; padding: 9px 14px; border-bottom: 1px solid var(--line); background: var(--sunken); }
+td { padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.req { font-family: var(--font-mono); font-size: 0.68rem; color: var(--warn); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---------- code blocks ---------- */
+.code { position: relative; margin: 12px 0 18px; border-radius: var(--radius); background: var(--code-bg); overflow: hidden; }
+.code .bar { display: flex; align-items: center; gap: 2px; padding: 0 6px 0 4px; border-bottom: 1px solid #262B32; min-height: 38px; overflow-x: auto; }
+.code .bar > * { white-space: nowrap; flex: none; }
+.code .bar .lang { font-family: var(--font-mono); font-size: 0.72rem; color: var(--code-muted); padding: 0 10px; }
+.code .bar .tab {
+  font-family: var(--font-mono); font-size: 0.74rem; color: var(--code-muted); background: none; border: 0;
+  padding: 10px 10px 9px; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.code .bar .tab[aria-selected=true] { color: var(--code-fg); border-bottom-color: #5FB3A6; }
+.code .bar .copy {
+  margin-left: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--code-muted); background: none;
+  border: 1px solid #2F353D; border-radius: 5px; padding: 3px 9px; cursor: pointer;
+}
+.code .bar .copy:hover { color: var(--code-fg); border-color: var(--code-muted); }
+.code pre { margin: 0; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; color: var(--code-fg); }
+.code pre[hidden] { display: none; }
+.tok-c { color: var(--code-muted); }
+.tok-s { color: #A9D7CB; }
+.tok-k { color: #E6C38F; }
+
+/* ---------- lifecycle diagram ---------- */
+.lifecycle { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin: 14px 0 18px; }
+.lifecycle svg { width: 100%; height: auto; display: block; }
+.lifecycle .lbl { font-family: var(--font-mono); font-size: 12px; fill: var(--fg); }
+.lifecycle .sub { font-family: var(--font-body); font-size: 11px; fill: var(--muted); }
+.lifecycle .box { fill: var(--bg); stroke: var(--line); }
+.lifecycle .box.term { fill: var(--sunken); }
+.lifecycle .box.good { stroke: var(--accent); }
+.lifecycle .edge { stroke: var(--muted); fill: none; stroke-width: 1.3; }
+.lifecycle .head { fill: var(--muted); }
+
+/* ---------- endpoint cards ---------- */
+.ep { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin: 18px 0; scroll-margin-top: 76px; }
+.ep > header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.ep > header h3 { font-family: var(--font-mono); font-size: 0.92rem; font-weight: 500; word-break: break-all; }
+.ep > header .what { color: var(--muted); font-size: 0.88rem; flex-basis: 100%; }
+.ep .body { padding: 14px 18px 4px; }
+.ep .body > p { font-size: 0.93rem; }
+.verb-pill { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; padding: 2px 8px; border-radius: 4px; border: 1px solid currentColor; letter-spacing: 0.04em; }
+.verb-pill.get { color: var(--accent); }
+.verb-pill.post { color: var(--warn); }
+.verb-pill.tool { color: var(--fg); }
+.access { margin-left: auto; font-size: 0.76rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.access svg { width: 12px; height: 12px; }
+
+details.try { border-top: 1px solid var(--line); }
+details.try > summary {
+  list-style: none; cursor: pointer; padding: 11px 18px; font-size: 0.86rem; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+}
+details.try > summary::-webkit-details-marker { display: none; }
+details.try > summary::before { content: "▸"; font-size: 0.7rem; color: var(--muted); transition: transform .15s; }
+details.try[open] > summary::before { transform: rotate(90deg); }
+details.try > summary:hover { background: var(--sunken); }
+.try-body { padding: 4px 18px 18px; display: grid; gap: 12px; }
+.try-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.try-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.try-url { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); word-break: break-all; }
+.resp { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.resp .resp-head { display: flex; gap: 10px; align-items: center; font-family: var(--font-mono); font-size: 0.76rem; padding: 6px 12px; background: var(--sunken); border-bottom: 1px solid var(--line); }
+.resp .code-status.ok { color: var(--accent); font-weight: 500; }
+.resp .code-status.err { color: var(--stop); font-weight: 500; }
+.resp pre { margin: 0; padding: 12px; max-height: 360px; overflow: auto; font-family: var(--font-mono); font-size: 0.78rem; background: var(--surface); white-space: pre-wrap; word-break: break-word; }
+
+/* ---------- MCP tools ---------- */
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.tool { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.tool h4 { font-family: var(--font-mono); font-size: 0.9rem; margin-bottom: 6px; }
+.tool p { font-size: 0.88rem; color: var(--muted); margin-bottom: 8px; }
+.tool .sig { font-family: var(--font-mono); font-size: 0.76rem; background: var(--sunken); padding: 7px 9px; border-radius: 5px; line-height: 1.55; }
+.tool .mirrors { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; margin: 14px 0; }
+.steps > li { counter-increment: step; position: relative; padding-left: 40px; margin-bottom: 16px; }
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); font-family: var(--font-mono); font-size: 0.76rem;
+  display: grid; place-items: center; color: var(--muted);
+}
+.steps > li > h4 { margin-bottom: 4px; padding-top: 2px; }
+.steps > li > p { font-size: 0.93rem; }
+
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.card h4 { margin-bottom: 6px; }
+.card p, .card li { font-size: 0.9rem; }
+.card ul { margin: 0; padding-left: 18px; }
+
+footer.foot { max-width: 880px; margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  aside.side {
+    position: fixed; top: 60px; left: 0; bottom: 0; width: min(300px, 86vw); height: auto; z-index: 15;
+    background: var(--bg); transform: translateX(-102%); transition: transform .2s; box-shadow: 0 0 0 100vmax transparent;
+  }
+  body.nav-open aside.side { transform: none; box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.35); }
+  .menu-btn { display: inline-flex; }
+  main { padding: 28px 16px 90px; }
+  .conn { grid-template-columns: 1fr; }
+  .conn .status { padding-bottom: 0; }
+  .transports, .tool-grid, .cols2 { grid-template-columns: 1fr; }
+  .top-links a.hide-sm { display: none; }
+  .brand span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle navigation" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <a class="brand" href="#top" aria-label="Scotri Developer Portal home">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14.5 16.2 Q 27 7.5 41 24" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/><path d="M33.5 31.8 Q 21 40.5 7 24" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/><circle cx="24" cy="24" r="4.1" fill="currentColor"/></svg>
+    <b>Scotri</b><span>developers · v1</span>
+  </a>
+  <div class="spacer"></div>
+  <nav class="top-links" aria-label="External references">
+    <a class="hide-sm" href="#" data-href="{{API}}/docs" target="_blank" rel="noopener">Swagger UI</a>
+    <a class="hide-sm" href="#" data-href="{{API}}/openapi.json" target="_blank" rel="noopener">OpenAPI JSON</a>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle colour theme">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>
+    </button>
+  </nav>
+</header>
+
+<div class="layout">
+<aside class="side" id="side" aria-label="Sections">
+  <h5>Start here</h5>
+  <a href="#top">Overview</a>
+  <a href="#quickstart">Quickstart</a>
+  <a href="#auth">Authentication</a>
+  <a href="#lifecycle">Job lifecycle</a>
+  <a href="#progress">Progress</a>
+  <a href="#diagrams">Diagrams</a>
+  <a href="#errors">Errors</a>
+  <h5>HTTP API</h5>
+  <a href="#ep-health"><span class="verb">GET</span>/health</a>
+  <a href="#ep-chat"><span class="verb">POST</span>/v1/chat</a>
+  <a href="#ep-chat-get"><span class="verb">GET</span>/v1/chat/{id}</a>
+  <a href="#ep-engagements"><span class="verb">POST</span>/v1/engagements</a>
+  <a href="#ep-engagement-get"><span class="verb">GET</span>/v1/engagements/{id}</a>
+  <a href="#ep-cancel"><span class="verb">POST</span>…/cancel</a>
+  <a href="#ep-steps"><span class="verb">GET</span>…/steps</a>
+  <a href="#ep-files"><span class="verb">GET</span>…/files</a>
+  <a href="#ep-file"><span class="verb">GET</span>…/files/{path}</a>
+  <a href="#ep-uploads"><span class="verb">POST</span>/v1/uploads</a>
+  <a href="#ep-review-post"><span class="verb">POST</span>…/review</a>
+  <a href="#ep-review-get"><span class="verb">GET</span>…/review</a>
+  <a href="#ep-history"><span class="verb">GET</span>/v1/history</a>
+  <a href="#ep-conv"><span class="verb">GET</span>/v1/conversations/{id}</a>
+  <a href="#ep-conv-files"><span class="verb">GET</span>…/{id}/files</a>
+  <h5>MCP server</h5>
+  <a href="#mcp">Connect a client</a>
+  <a href="#mcp-tools">Tool reference</a>
+  <a href="#mcp-flow">Agent workflow</a>
+  <h5>Reference</h5>
+  <a href="#access">Access control</a>
+  <a href="#guardrails">What Scotri won't do</a>
+  <a href="#ops">Running the services</a>
+</aside>
+
+<main>
+
+<!-- ================= Overview ================= -->
+<div class="hero" id="top">
+  <div class="eyebrow">Developer portal</div>
+  <h1>Build on Scotri</h1>
+  <p class="lede">Scotri is a read-only analysis agent for an ADF → Databricks → Power BI/Fabric platform. Send it a Jira key or a question. It traces the problem across every product repo and the live data, and returns a verdict, an impact analysis and a handoff document. You can reach the same engine over HTTP or over MCP.</p>
+
+  <div class="transports">
+    <a class="transport" href="#ep-chat">
+      <h3><span class="verb-pill get">HTTP</span> REST / JSON</h3>
+      <p>For web, Teams and Slack frontends and for scripts. Covers the full surface: conversations, uploads, history, step traces and verdict reviews.</p>
+      <span class="endpoint" data-text="{{API}}">http://localhost:8000</span>
+    </a>
+    <a class="transport" href="#mcp">
+      <h3><span class="verb-pill tool">MCP</span> Streamable HTTP</h3>
+      <p>For Claude Desktop, Claude Code or another agent. It exposes five tools: upload a file, start a run, poll it, list its files and read one.</p>
+      <span class="endpoint" data-text="{{MCP}}/mcp">http://localhost:8100/mcp</span>
+    </a>
+  </div>
+
+  <form class="conn" id="conn" autocomplete="off" onsubmit="return false">
+    <div>
+      <label for="apiBase">HTTP base URL</label>
+      <input id="apiBase" class="mono" type="url" spellcheck="false">
+    </div>
+    <div>
+      <label for="mcpBase">MCP base URL</label>
+      <input id="mcpBase" class="mono" type="url" spellcheck="false">
+    </div>
+    <div>
+      <label for="token">Bearer token <span class="muted">(held in this tab only)</span></label>
+      <input id="token" class="mono" type="password" placeholder="eyJ0eXAiOiJKV1Qi…" spellcheck="false">
+    </div>
+    <div class="status" id="healthStatus" role="status"><span class="dot"></span><span>Not checked</span></div>
+    <p class="note">The URLs fill in every snippet on this page. The console sends requests from your browser. That works when this page is served by the API at <code>/portal</code>. From any other origin the API needs CORS enabled. The token stays in page memory: it isn't stored, and it's cleared when you close the tab.</p>
+  </form>
+</div>
+
+<!-- ================= Quickstart ================= -->
+<section class="doc" id="quickstart">
+  <h2>Quickstart</h2>
+  <p class="lede">You start a run, poll it until it finishes, then fetch what it wrote. A run can take several minutes, because Scotri reads the ticket, traces lineage and runs governed queries before it answers.</p>
+
+  <div class="code" data-tabs>
+    <div class="bar" role="tablist">
+      <button class="tab" role="tab" aria-selected="true">curl</button>
+      <button class="tab" role="tab" aria-selected="false">Python</button>
+      <button class="tab" role="tab" aria-selected="false">MCP (Python)</button>
+      <button class="copy">Copy</button>
+    </div>
+<pre data-tpl><span class="tok-c"># 1. Start an engagement from a Jira ticket</span>
+JOB=$(curl -s -X POST {{API}}/v1/engagements \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"ticket_key":"PROJ-2041"}' | jq -r .job_id)
+
+<span class="tok-c"># 2. Poll until status is terminal (succeeded | failed | cancelled | incomplete)</span>
+curl -s {{API}}/v1/engagements/$JOB -H "Authorization: Bearer $TOKEN" | jq .status
+
+<span class="tok-c"># 3. List the deliverables and read the handoff document</span>
+curl -s {{API}}/v1/engagements/$JOB/files -H "Authorization: Bearer $TOKEN" | jq -r '.files[].path'
+curl -s {{API}}/v1/engagements/$JOB/files/scratch/PROJ-2041-handoff.md -H "Authorization: Bearer $TOKEN"</pre>
+<pre data-tpl hidden><span class="tok-k">import</span> os, time, requests
+
+API = <span class="tok-s">"{{API}}"</span>
+H = {<span class="tok-s">"Authorization"</span>: f<span class="tok-s">"Bearer {os.environ['SCOTRI_TOKEN']}"</span>}
+TERMINAL = {<span class="tok-s">"succeeded"</span>, <span class="tok-s">"failed"</span>, <span class="tok-s">"cancelled"</span>, <span class="tok-s">"incomplete"</span>}
+
+job = requests.post(f<span class="tok-s">"{API}/v1/chat"</span>, headers=H,
+                    json={<span class="tok-s">"prompt"</span>: <span class="tok-s">"Why is Store Sales for HO down 4% vs. last month?"</span>}).json()
+
+<span class="tok-k">while</span> (run := requests.get(f<span class="tok-s">"{API}/v1/chat/{job['job_id']}"</span>, headers=H).json())[<span class="tok-s">"status"</span>] <span class="tok-k">not in</span> TERMINAL:
+    time.sleep(10)
+
+print(run[<span class="tok-s">"status"</span>], run[<span class="tok-s">"result"</span>] <span class="tok-k">or</span> run[<span class="tok-s">"error"</span>])
+<span class="tok-k">for</span> f <span class="tok-k">in</span> requests.get(f<span class="tok-s">"{API}/v1/chat/{job['job_id']}/files"</span>, headers=H).json()[<span class="tok-s">"files"</span>]:
+    print(f[<span class="tok-s">"path"</span>], f[<span class="tok-s">"url"</span>])
+
+<span class="tok-c"># Follow-up turn in the same conversation, with the agent's session resumed</span>
+requests.post(f<span class="tok-s">"{API}/v1/chat"</span>, headers=H, json={
+    <span class="tok-s">"prompt"</span>: <span class="tok-s">"Now check the Field model too."</span>,
+    <span class="tok-s">"resume_job_id"</span>: job[<span class="tok-s">"job_id"</span>], <span class="tok-s">"conversation_id"</span>: job[<span class="tok-s">"conversation_id"</span>]})</pre>
+<pre data-tpl hidden><span class="tok-k">import</span> asyncio, os
+<span class="tok-k">import</span> httpx2
+<span class="tok-k">from</span> mcp <span class="tok-k">import</span> ClientSession
+<span class="tok-k">from</span> mcp.client.streamable_http <span class="tok-k">import</span> streamable_http_client
+
+<span class="tok-k">async def</span> main():
+    http = httpx2.AsyncClient(headers={<span class="tok-s">"Authorization"</span>: f<span class="tok-s">"Bearer {os.environ['SCOTRI_TOKEN']}"</span>})
+    <span class="tok-k">async with</span> streamable_http_client(<span class="tok-s">"{{MCP}}/mcp"</span>, http_client=http) <span class="tok-k">as</span> (read, write), \
+               ClientSession(read, write) <span class="tok-k">as</span> session:
+        <span class="tok-k">await</span> session.initialize()
+        started = <span class="tok-k">await</span> session.call_tool(<span class="tok-s">"scotri_start"</span>, {<span class="tok-s">"prompt"</span>: <span class="tok-s">"PROJ-2041"</span>})
+        print(started.structuredContent)          <span class="tok-c"># {"job_id": "…"}</span>
+        job_id = started.structuredContent[<span class="tok-s">"job_id"</span>]
+        <span class="tok-k">while True</span>:
+            s = (<span class="tok-k">await</span> session.call_tool(<span class="tok-s">"scotri_status"</span>, {<span class="tok-s">"job_id"</span>: job_id})).structuredContent
+            <span class="tok-k">if</span> s[<span class="tok-s">"status"</span>] <span class="tok-k">not in</span> (<span class="tok-s">"queued"</span>, <span class="tok-s">"running"</span>):
+                <span class="tok-k">break</span>
+            <span class="tok-k">await</span> asyncio.sleep(10)
+        print(s[<span class="tok-s">"result"</span>] <span class="tok-k">or</span> s[<span class="tok-s">"error"</span>])
+
+asyncio.run(main())</pre>
+  </div>
+
+  <div class="callout">
+    <p><strong>There's no endpoint per capability.</strong> Bug triage, impact analysis, "is this number right?" and change scoping all go through the same prompt. Scotri decides what to do by reading it, the same way an interactive session would. <code>/v1/engagements</code> only narrows the input to a bare ticket key, and adds a duplicate-work check.</p>
+  </div>
+</section>
+
+<!-- ================= Auth ================= -->
+<section class="doc" id="auth">
+  <h2>Authentication</h2>
+  <p class="lede">Every HTTP endpoint except <code>GET /health</code> needs an Azure AD bearer token, and so does every MCP tool call. The validated token becomes a <em>principal</em> (<code>subject</code>, <code>platform</code>, <code>roles</code>). Ownership and role checks use that principal, and nothing in a request body can override it.</p>
+  <div class="code"><div class="bar"><span class="lang">http</span><button class="copy">Copy</button></div><pre>Authorization: Bearer &lt;token&gt;</pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Case</th><th>HTTP</th><th>MCP</th></tr></thead>
+    <tbody>
+      <tr><td>Header missing or not <code>Bearer …</code></td><td><code>401 {"detail": "Missing Bearer token"}</code></td><td>Tool error: <code>Missing Bearer token</code></td></tr>
+      <tr><td>Token rejected by the identity provider</td><td><code>401</code> with category <code>credential</code></td><td>Tool error with the same message</td></tr>
+      <tr><td>stdio transport (no headers at all)</td><td>n/a</td><td>Always refused. stdio can't authenticate, so connect over Streamable HTTP.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><p><strong>Use a service-to-service token.</strong> Scotri runs headless and never completes a browser sign-in. Get the token in your own frontend or service, then pass it on.</p></div>
+</section>
+
+<!-- ================= Lifecycle ================= -->
+<section class="doc" id="lifecycle">
+  <h2>Job lifecycle</h2>
+  <p class="lede">Creating a run returns <code>202</code> with a <code>job_id</code> straight away. The agent runs in the background. Poll every 5 to 15 seconds until the status is terminal.</p>
+  <div class="lifecycle">
+    <svg viewBox="0 0 760 190" role="img" aria-label="queued moves to running; running ends as succeeded, failed, cancelled or incomplete. queued can also be cancelled.">
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="head"/></marker></defs>
+      <rect class="box" x="10" y="70" width="120" height="50" rx="8"/>
+      <text class="lbl" x="70" y="93" text-anchor="middle">queued</text>
+      <text class="sub" x="70" y="109" text-anchor="middle">accepted</text>
+      <rect class="box" x="200" y="70" width="130" height="50" rx="8"/>
+      <text class="lbl" x="265" y="93" text-anchor="middle">running</text>
+      <text class="sub" x="265" y="109" text-anchor="middle">agent working</text>
+      <path class="edge" d="M130 95 H196" marker-end="url(#arr)"/>
+      <rect class="box term good" x="440" y="6" width="150" height="40" rx="8"/>
+      <text class="lbl" x="515" y="31" text-anchor="middle">succeeded</text>
+      <rect class="box term" x="440" y="54" width="150" height="40" rx="8"/>
+      <text class="lbl" x="515" y="79" text-anchor="middle">incomplete</text>
+      <rect class="box term" x="440" y="102" width="150" height="40" rx="8"/>
+      <text class="lbl" x="515" y="127" text-anchor="middle">failed</text>
+      <rect class="box term" x="440" y="150" width="150" height="34" rx="8"/>
+      <text class="lbl" x="515" y="172" text-anchor="middle">cancelled</text>
+      <path class="edge" d="M330 88 C 385 88, 385 26, 436 26" marker-end="url(#arr)"/>
+      <path class="edge" d="M330 92 C 385 92, 385 74, 436 74" marker-end="url(#arr)"/>
+      <path class="edge" d="M330 100 C 385 100, 385 122, 436 122" marker-end="url(#arr)"/>
+      <path class="edge" d="M330 108 C 385 108, 385 167, 436 167" marker-end="url(#arr)"/>
+      <path class="edge" d="M70 120 C 70 175, 300 175, 436 172" marker-end="url(#arr)" stroke-dasharray="4 4"/>
+      <text class="sub" x="612" y="31">result populated</text>
+      <text class="sub" x="612" y="79">ended without a full result</text>
+      <text class="sub" x="612" y="127">error populated, or restart</text>
+      <text class="sub" x="612" y="172">owner called …/cancel</text>
+    </svg>
+  </div>
+  <div class="cols2">
+    <div class="card"><h4>Retention</h4><p>The live job store keeps a job for 24 hours. After that, read <code>/v1/history</code> and <code>/v1/conversations/{id}</code>, which are durable. Deliverable files are copied when a run ends and aren't changed by later runs.</p></div>
+    <div class="card"><h4>Restarts</h4><p>A job that was running when the service restarted ends as <code>failed</code>. It isn't resumed automatically, because an unattended resume could repeat work, including a Jira write. To pick up from where it stopped, send a follow-up with <code>resume_job_id</code> set to the failed job.</p></div>
+  </div>
+
+  <h3 id="progress" style="margin:26px 0 8px">Progress while it runs</h3>
+  <p>Polling is how you track progress: there's no push or SSE stream, and no completion notification. Once a job is <code>running</code>, every poll response includes a <code>progress</code> object. While the job is queued, <code>progress</code> is <code>null</code>.</p>
+  <div class="code"><div class="bar"><span class="lang">json</span><button class="copy">Copy</button></div><pre>"progress": {
+  "phase": "verdict",
+  "phase_label": "Investigating the reported problem",
+  "phases_seen": ["starting", "intake", "verdict"],
+  "tool_calls": 23,
+  "started_at": "2026-10-04T09:00:02+00:00",
+  "last_activity_at": "2026-10-04T09:03:41+00:00",
+  "elapsed_seconds": 225
+}</pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th><code>phase</code></th><th><code>phase_label</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>starting</code></td><td>Starting</td></tr>
+      <tr><td><code>working</code></td><td>Working. Used for a run outside the ticket lifecycle, such as a debugging question.</td></tr>
+      <tr><td><code>intake</code></td><td>Reading the request</td></tr>
+      <tr><td><code>verdict</code></td><td>Investigating the reported problem</td></tr>
+      <tr><td><code>impact</code></td><td>Analysing impact</td></tr>
+      <tr><td><code>plan</code></td><td>Writing the implementation plan</td></tr>
+      <tr><td><code>testing</code></td><td>Running test queries</td></tr>
+      <tr><td><code>proposal</code></td><td>Drafting a proposed change</td></tr>
+      <tr><td><code>handoff</code></td><td>Writing the handoff document</td></tr>
+      <tr><td><code>jira_update</code></td><td>Preparing a Jira update</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cols2">
+    <div class="card"><h4>Rendering it</h4><p>Phases can be skipped: a "not a bug" verdict ends after <code>verdict</code>. New phases may be added later. Show <code>phase_label</code> exactly as sent, and treat an unknown <code>phase</code> as "Working".</p></div>
+    <div class="card"><h4>Spotting a stuck run</h4><p>If <code>last_activity_at</code> stops changing for several minutes while <code>status</code> is still <code>running</code>, the run is stuck. The 20-minute wall-clock limit ends it as <code>incomplete</code>.</p></div>
+  </div>
+  <p class="muted" style="font-size:.9rem;margin-top:12px"><code>progress</code> never says <em>what</em> the run is looking at, such as a ticket, table, report or query, because any authenticated caller can poll any job. That detail is only in <a href="#ep-steps"><code>…/steps</code></a>, which is owner-only.</p>
+</section>
+
+<section class="doc" id="diagrams">
+  <h2>Diagrams in a result</h2>
+  <p class="lede">When the agent draws a diagram, such as an ER diagram of a semantic model or of Unity Catalog tables, the answer keeps it as a fenced <code>```mermaid</code> block. A markdown renderer with mermaid support draws it in place. <code>diagrams</code> hands the same blocks over as data for callers that don't render markdown.</p>
+  <div class="code"><div class="bar"><span class="lang">json</span><button class="copy">Copy</button></div><pre>"diagrams": [
+  { "format": "mermaid", "kind": "erDiagram",
+    "title": "Category Sales Analytics Model",
+    "source": "erDiagram
+    vw_category_daily_sales }o--|| CalendarDate : \"Date\"
+…" }
+]</pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>format</code></td><td>Always <code>mermaid</code> today</td></tr>
+      <tr><td><code>kind</code></td><td>The diagram's first keyword: <code>erDiagram</code>, <code>flowchart</code>, …</td></tr>
+      <tr><td><code>title</code></td><td>From the block's frontmatter <code>title:</code>, or <code>null</code></td></tr>
+      <tr><td><code>source</code></td><td>The block's text, unchanged. Render it with mermaid in strict mode (<code>securityLevel: "strict"</code>).</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:.9rem">Derived from <code>result</code> on every read, so nothing extra is stored. At most 10 per result, and a block over 50,000 characters is left out rather than cut. The field is on both poll routes, on each turn of <a href="#ep-conv"><code>GET /v1/conversations/{id}</code></a> and on MCP <code>scotri_status</code>. The diagram is also in the run's files as <code>scratch/&lt;id&gt;-er-diagram.md</code>.</p>
+</section>
+
+<!-- ================= Errors ================= -->
+<section class="doc" id="errors">
+  <h2>Errors</h2>
+  <p class="lede">Errors come in two shapes. Domain errors carry a <code>category</code> that tells you whether a retry can help. Route errors use FastAPI's <code>{"detail": …}</code> shape.</p>
+  <div class="code"><div class="bar"><span class="lang">json</span><button class="copy">Copy</button></div><pre>{"ok": false, "category": "policy", "message": "…"}</pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th><code>category</code></th><th>HTTP</th><th>Retry?</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>credential</code></td><td>401</td><td>No</td><td>A token or backend credential is missing or invalid. An admin needs to fix it.</td></tr>
+      <tr><td><code>not_found</code></td><td>404</td><td>No</td><td>Unknown job, upload or file.</td></tr>
+      <tr><td><code>policy</code></td><td>403</td><td>No</td><td>A guardrail is working as designed, for example a write or a read of another user's data.</td></tr>
+      <tr><td><code>timeout</code></td><td>503</td><td>Often</td><td>A backend took too long.</td></tr>
+      <tr><td><code>transient</code></td><td>503</td><td>Yes, with backoff</td><td>A temporary failure.</td></tr>
+      <tr><td><code>configuration</code></td><td>500</td><td>No</td><td>The server needs a config change.</td></tr>
+      <tr><td><code>unknown</code></td><td>500</td><td>Report it</td><td>Something unexpected. Check <code>services/logs/scotri-api.log</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:.9rem">Route-level <code>{"detail": "…"}</code> errors use 401, 403, 404, 409, 413 and 422. Over MCP, every error becomes a tool error (<code>isError: true</code>) whose text is the same <code>message</code>.</p>
+</section>
+
+<!-- ================= HTTP reference ================= -->
+<section class="doc" id="http">
+  <h2>HTTP API reference</h2>
+  <p class="lede">All bodies are JSON unless noted. Each endpoint has a <strong>Try it</strong> console that calls the base URL above with your token. FastAPI also serves an interactive schema at <a href="#" data-href="{{API}}/docs" target="_blank" rel="noopener"><code>/docs</code></a>.</p>
+  <div id="endpoints"></div>
+</section>
+
+<!-- ================= MCP ================= -->
+<section class="doc" id="mcp">
+  <h2>MCP server: connect a client</h2>
+  <p class="lede">The MCP server makes Scotri available <em>as tools</em> to Claude Desktop, Claude Code or any MCP client over Streamable HTTP. It's a second transport onto the same engine as <code>POST /v1/chat</code>. It doesn't change how Scotri itself reads Jira, Databricks or Fabric.</p>
+
+  <div class="code" data-tabs>
+    <div class="bar" role="tablist">
+      <button class="tab" role="tab" aria-selected="true">Claude Code</button>
+      <button class="tab" role="tab" aria-selected="false">Claude Desktop</button>
+      <button class="tab" role="tab" aria-selected="false">.mcp.json</button>
+      <button class="copy">Copy</button>
+    </div>
+<pre data-tpl>claude mcp add --transport http scotri {{MCP}}/mcp \
+  --header "Authorization: Bearer $SCOTRI_TOKEN"</pre>
+<pre data-tpl hidden><span class="tok-c">// claude_desktop_config.json: bridges Desktop's stdio to Scotri's HTTP endpoint and adds the header</span>
+{
+  "mcpServers": {
+    "scotri": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "{{MCP}}/mcp", "--header", "Authorization:${SCOTRI_AUTH}"],
+      "env": { "SCOTRI_AUTH": "Bearer &lt;token&gt;" }
+    }
+  }
+}</pre>
+<pre data-tpl hidden><span class="tok-c">// In a client project's own .mcp.json, not in the Scotri workspace</span>
+{
+  "mcpServers": {
+    "scotri": {
+      "type": "http",
+      "url": "{{MCP}}/mcp",
+      "headers": { "Authorization": "Bearer ${SCOTRI_TOKEN}" }
+    }
+  }
+}</pre>
+  </div>
+  <div class="callout warn"><p><strong>Streamable HTTP only.</strong> stdio carries no headers, so Scotri can't authenticate a stdio caller and refuses every tool call. Bridges like <code>mcp-remote</code> work because they talk HTTP to Scotri and add the header.</p></div>
+</section>
+
+<section class="doc" id="mcp-tools">
+  <h2>Tool reference</h2>
+  <p class="lede">Five tools, each matching an HTTP route. They return structured JSON.</p>
+  <div class="tool-grid">
+    <div class="tool">
+      <h4>scotri_upload</h4>
+      <p>Stores a file to attach to a prompt. Send text as-is, or binary files (PDFs, images) as base64.</p>
+      <div class="sig">filename: string, content: string<br>encoding?: "text" | "base64"<br>→ { upload_id, filename, size, content_type, created_at, redacted }</div>
+      <div class="mirrors">Same as <a href="#ep-uploads"><code>POST /v1/uploads</code></a>. Only you can attach it.</div>
+    </div>
+    <div class="tool">
+      <h4>scotri_start</h4>
+      <p>Starts an engagement for any free-form prompt and returns right away while the run continues in the background. For a follow-up, pass back the <code>conversation_id</code> and the previous turn's <code>job_id</code> as <code>resume_job_id</code>. When Scotri is busy the job waits in line (<code>queued: true</code>, <code>queue_position</code>) and starts on its own.</p>
+      <div class="sig">prompt: string<br>attachment_ids?: string[]<br>conversation_id?: string<br>resume_job_id?: string<br>→ { job_id, resumed, conversation_id, queued, queue_position? }</div>
+      <div class="mirrors">Same as <a href="#ep-chat"><code>POST /v1/chat</code></a></div>
+    </div>
+    <div class="tool">
+      <h4>scotri_status</h4>
+      <p>Polls a run. <code>progress</code> shows the stage while it runs. <code>result</code> is set when it succeeds and <code>error</code> when it fails. <code>diagrams</code> lists any Mermaid diagrams in the result as data. While it waits for a free slot, <code>queue</code> gives its place in line. A cancelled job carries <code>cancel_reason</code> and its <code>prompt</code>, to send again.</p>
+      <div class="sig">job_id: string<br>→ { job_id, status, prompt, result, diagrams, error, cancel_reason, queue, progress }</div>
+      <div class="mirrors">Same as <a href="#ep-chat-get"><code>GET /v1/chat/{id}</code></a></div>
+    </div>
+    <div class="tool">
+      <h4>scotri_cancel</h4>
+      <p>Cancels one of your own runs. A job still waiting for a free slot leaves the line and never runs; a running one is stopped.</p>
+      <div class="sig">job_id: string<br>→ same as scotri_status</div>
+      <div class="mirrors">Same as <code>POST /v1/chat/{id}/cancel</code>. Owner only.</div>
+    </div>
+    <div class="tool">
+      <h4>scotri_list_files</h4>
+      <p>Lists the markdown deliverables a run wrote: intake, verdict, impact analysis, plan, tests, handoff and patches.</p>
+      <div class="sig">job_id: string<br>→ { job_id, files: [{ path, size, content_type, created_at }] }</div>
+      <div class="mirrors">Same as <a href="#ep-files"><code>GET …/files</code></a>. The owner, or a file-reader role.</div>
+    </div>
+    <div class="tool">
+      <h4>scotri_get_file</h4>
+      <p>Returns one deliverable's full text. The handoff document's path ends in <code>-handoff.md</code>.</p>
+      <div class="sig">job_id: string, path: string<br>→ { job_id, path, content_type, content }</div>
+      <div class="mirrors">Same as <a href="#ep-file"><code>GET …/files/{path}</code></a>. Same access rule.</div>
+    </div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>MCP doesn't have</th><th>Use instead</th></tr></thead>
+    <tbody>
+      <tr><td>Cancel, steps, history, review</td><td>The HTTP routes</td></tr>
+      <tr><td>Presence <code>collision_notice</code></td><td><a href="#ep-engagements"><code>POST /v1/engagements</code></a></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="doc" id="mcp-flow">
+  <h2>Agent workflow</h2>
+  <p class="lede">A client agent (Claude, say) uses the tools in this order. MCP calls are request/response and a run can last minutes, which is why there are separate start and poll tools.</p>
+  <ol class="steps">
+    <li><h4>Start</h4><p>Call <code>scotri_start</code> with the user's ticket key or question exactly as they wrote it. Don't reformat it into a template, because Scotri reads intent from the prompt itself.</p></li>
+    <li><h4>Poll</h4><p>Call <code>scotri_status</code> every 10 to 15 seconds while the status is <code>queued</code> or <code>running</code>. Tell the user which stage it's at by showing <code>progress.phase_label</code>, instead of blocking silently.</p></li>
+    <li><h4>Read the answer</h4><p>Once it's <code>succeeded</code>, <code>result</code> holds the summary, which for a bug is a verdict with a confidence level. If it's <code>incomplete</code>, the deliverables may still hold partial work.</p></li>
+    <li><h4>Fetch deliverables</h4><p>Call <code>scotri_list_files</code>, then <code>scotri_get_file</code> on the <code>*-handoff.md</code> path. That's the document an implementer needs.</p></li>
+  </ol>
+</section>
+
+<!-- ================= Access ================= -->
+<section class="doc" id="access">
+  <h2>Access control</h2>
+  <p class="lede">Ownership comes from the token's <code>subject</code>. Three role sets, configured as comma-separated settings, widen access beyond the owner. All three are empty by default, which means owner-only. A fourth, <code>ADMIN_ROLES</code> (<code>scotri.admin</code>), opens the admin panel.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Endpoint</th><th>Who may call</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /health</code></td><td>Anyone, with no token</td></tr>
+      <tr><td><code>POST /v1/chat</code>, <code>POST /v1/engagements</code>, <code>POST /v1/uploads</code></td><td>Any authenticated principal</td></tr>
+      <tr><td><code>GET /v1/chat/{id}</code>, <code>GET /v1/engagements/{id}</code>, <code>scotri_status</code></td><td>Any authenticated principal. Job ids are opaque uuid4 values.</td></tr>
+      <tr><td><code>…/cancel</code>, <code>…/steps</code></td><td>The job's owner only</td></tr>
+      <tr><td><code>POST …/review</code></td><td>The owner, or <code>VERDICT_REVIEWER_ROLES</code></td></tr>
+      <tr><td><code>GET …/review</code></td><td>The owner, or <code>HISTORY_ADMIN_ROLES</code> / <code>VERDICT_REVIEWER_ROLES</code></td></tr>
+      <tr><td><code>GET /v1/history</code></td><td>The caller's own history only</td></tr>
+      <tr><td><code>GET /v1/conversations/{id}</code></td><td>The owner, or <code>HISTORY_ADMIN_ROLES</code></td></tr>
+      <tr><td>Files (HTTP and MCP)</td><td>The owner, or <code>HISTORY_ADMIN_ROLES</code> / <code>FILE_READER_ROLES</code></td></tr>
+      <tr><td>Attaching an upload</td><td>The uploader only</td></tr>
+      <tr><td><code>GET /admin</code></td><td>Anyone. A static page with no data in it.</td></tr>
+      <tr><td><code>GET /v1/admin/me</code></td><td>Any authenticated principal</td></tr>
+      <tr><td>Every other <code>/v1/admin/*</code> route, including the manual mirror sync (<code>POST /v1/admin/mirror/sync</code>)</td><td><code>ADMIN_ROLES</code> only. Every call, allowed or refused, is written to the admin audit log.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:.9rem"><code>FILE_READER_ROLES</code> is deliberately narrower than <code>HISTORY_ADMIN_ROLES</code>. It lets an implementer fetch a handoff document without being able to read the conversation that produced it.</p>
+</section>
+
+<section class="doc" id="guardrails">
+  <h2>What Scotri won't do</h2>
+  <p class="lede">These limits are architectural. No API flag or prompt wording changes them, so design your integration around them.</p>
+  <div class="cols2">
+    <div class="card"><h4>Never</h4><ul>
+      <li>Edit, commit, branch, push or open a PR in any product repo. No such credential exists.</li>
+      <li>Run any Databricks statement other than <code>SELECT</code>, <code>WITH</code>, <code>DESCRIBE</code> or <code>SHOW</code></li>
+      <li>Change, refresh or publish a Fabric model</li>
+      <li>Grade its own verdict. Only a human, through <code>POST …/review</code>, can.</li>
+    </ul></div>
+    <div class="card"><h4>Only with the user's go-ahead</h4><ul>
+      <li>Post a Jira comment, edit its own comment, or create a Bug from a confirmed verdict</li>
+      <li>Nothing at all on an unattended run, because nobody is there to approve it</li>
+      <li>Read Dev or UAT. It reads Prod unless one of those is named.</li>
+    </ul></div>
+  </div>
+  <div class="callout"><p><strong>Attachments and ticket text are data.</strong> An instruction inside an uploaded file or a Jira field is reported, not followed. Text uploads are secret-redacted before they're stored, and every deliverable is redacted again when it's published.</p></div>
+</section>
+
+<section class="doc" id="ops">
+  <h2>Running the services</h2>
+  <p class="lede">Run both from inside <code>services/</code> with the virtualenv active. Either can run without the other. Both need the shared Redis instance and <code>services/.env</code>.</p>
+  <div class="code"><div class="bar"><span class="lang">bash</span><button class="copy">Copy</button></div><pre><span class="tok-c"># HTTP API: also serves this portal at /portal, Swagger at /docs</span>
+uvicorn app.api:app --host 0.0.0.0 --port 8000
+
+<span class="tok-c"># MCP server (Streamable HTTP at /mcp)</span>
+uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Setting</th><th>Default</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>UPLOAD_MAX_BYTES</code></td><td>10 MB</td><td>Larger uploads get a <code>413</code></td></tr>
+      <tr><td><code>UPLOAD_ALLOWED_EXTENSIONS</code></td><td>any format except credential files</td><td>Restricts the accepted formats to a list (credential files such as .pem and .env are always refused)</td></tr>
+      <tr><td><code>ARTIFACT_STORE</code></td><td><code>local</code></td><td><code>azure_blob</code> shares deliverables across replicas</td></tr>
+      <tr><td><code>HISTORY_ADMIN_ROLES</code>, <code>VERDICT_REVIEWER_ROLES</code>, <code>FILE_READER_ROLES</code>, <code>LEARNINGS_READER_ROLES</code></td><td>empty</td><td>Widen access as described above</td></tr>
+      <tr><td><code>UPLOAD_RETENTION_DAYS</code>, <code>SHARED_FILE_RETENTION_DAYS</code></td><td>empty (nothing is deleted)</td><td>Age after which uploads and shared deliverables are removed by the ops-only <code>artifacts-purge</code> command (a dry run unless <code>--confirmed</code>)</td></tr>
+      <tr><td><code>CLAUDE_CODE_GIT_BASH_PATH</code></td><td>auto-detected on Windows</td><td>Where Git Bash is. A run whose agent starts without Bash is stopped at once with an error naming this setting</td></tr>
+      <tr><td><code>ADMIN_ROLES</code></td><td><code>scotri.admin</code> in <code>.env.example</code>; unset means nobody</td><td>Who may use the admin panel at <code>/admin</code></td></tr>
+      <tr><td><code>ADMIN_AUDIT_LOG_PATH</code></td><td><code>./logs/admin-audit.jsonl</code></td><td>Where every admin call is recorded</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:.9rem">The full prose reference is in <code>docs/api.md</code>. If this page and the code disagree, the code in <code>services/app/api.py</code> and <code>services/app/mcp_server.py</code> is right.</p>
+</section>
+
+<footer class="foot">Scotri reads, analyses and reports. Its output stops at paper and query results, and a human applies any change.</footer>
+</main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- endpoint catalogue (source: services/app/api.py) ----------
+  const EP = [
+    { id: "ep-health", m: "GET", p: "/health", t: "Liveness check",
+      access: "No auth", noAuth: true,
+      d: "Pings Redis. Never raises: `ok` and `redis` turn false when Redis is unreachable.",
+      res: { ok: true, redis: true } },
+
+    { id: "ep-chat", m: "POST", p: "/v1/chat", t: "Start a free-form engagement", s: 202,
+      access: "Any authenticated",
+      d: "Send anything an interactive Scotri session could take: a Jira key, a debugging question or a change request. Leave out `conversation_id` on the first turn and the server issues one. If `resume_job_id` is unknown or has no session yet, the turn starts fresh. Check `resumed` to see which happened.",
+      body: [
+        ["prompt", "string", true, "The request, as the user wrote it"],
+        ["resume_job_id", "string", false, "A previous chat `job_id` of yours whose agent session this turn continues. Someone else's returns `403`."],
+        ["conversation_id", "string", false, "Groups this turn with earlier ones. A conversation owned by another principal returns `403`."],
+        ["attachment_ids", "string[]", false, "Up to 10 `upload_id`s from `POST /v1/uploads`. Only your own uploads: someone else's is `403`, an unknown one `404`."],
+      ],
+      sample: { prompt: "PROJ-2041" },
+      res: { job_id: "9f1c…", resumed: false, conversation_id: "b27a…" } },
+
+    { id: "ep-chat-get", m: "GET", p: "/v1/chat/{job_id}", t: "Poll a chat job",
+      access: "Any authenticated",
+      d: "Any authenticated caller can poll any `job_id`. Steps, files and full history are restricted to the owner. While it runs, `progress` shows the stage it has reached (see Job lifecycle). Returns `404` once the job has expired from the 24-hour store. `diagrams` lists every fenced mermaid block in `result` (see Diagrams in a result), `[]` when there are none.",
+      res: { job_id: "9f1c…", status: "succeeded", result: "…final answer text…", diagrams: [], error: null, progress: { phase: "handoff", phase_label: "Writing the handoff document", phases_seen: ["starting", "intake", "verdict", "impact", "plan", "testing", "handoff"], tool_calls: 61, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:14:40+00:00", elapsed_seconds: 878 }, prompt: "PROJ-2041" } },
+
+    { id: "ep-engagements", m: "POST", p: "/v1/engagements", t: "Start from a Jira ticket", s: 202,
+      access: "Any authenticated",
+      d: "The same engine with a narrower input: `ticket_key` becomes the prompt. It also checks the presence-claim store. If another user is already investigating the ticket, the response includes an advisory `collision_notice`. The run is never blocked.",
+      body: [
+        ["ticket_key", "string", true, "For example `PROJ-2041`"],
+        ["attachment_ids", "string[]", false, "As on `POST /v1/chat`"],
+      ],
+      sample: { ticket_key: "PROJ-2041" },
+      res: { job_id: "9f1c…", conversation_id: "b27a…", collision_notice: "PROJ-2041 is already being investigated by … (only when there is one)" } },
+
+    { id: "ep-engagement-get", m: "GET", p: "/v1/engagements/{job_id}", t: "Poll an engagement",
+      access: "Any authenticated",
+      d: "Same as polling a chat job, except the response has `ticket_key` instead of `prompt`. Chat jobs and engagements share one job store, so either route works for either kind of job.",
+      res: { job_id: "9f1c…", ticket_key: "PROJ-2041", status: "running", result: null, diagrams: [], error: null, progress: { phase: "intake", phase_label: "Reading the request", phases_seen: ["starting", "intake"], tool_calls: 4, started_at: "2026-10-04T09:00:02+00:00", last_activity_at: "2026-10-04T09:00:31+00:00", elapsed_seconds: 31 } } },
+
+    { id: "ep-cancel", m: "POST", p: "/v1/chat/{job_id}/cancel", alt: "/v1/engagements/{job_id}/cancel", t: "Cancel a job",
+      access: "Owner only",
+      d: "Idempotent. A job that has already finished is returned unchanged, so read `status` to see what actually happened. A job that finished at the same moment comes back `succeeded`, not `cancelled`.",
+      res: { job_id: "9f1c…", status: "cancelled", result: null, error: null } },
+
+    { id: "ep-steps", m: "GET", p: "/v1/chat/{job_id}/steps", alt: "/v1/engagements/{job_id}/steps", t: "What the agent did",
+      access: "Owner only",
+      d: "Lists every tool call in order with a truncated, secret-redacted input and result preview, plus the agent's narration. It works while the job is still running as well as afterwards. Restricted to the owner because steps contain queries and file contents. Returns `404` if the job never got a session.",
+      res: { job_id: "9f1c…", status: "running", steps: [
+        { kind: "tool_call", timestamp: "2026-10-04T09:12:04Z", tool: "Bash", input_summary: "app.cli jira-get-issue --key PROJ-2041", result_preview: "{\"ok\": true, …}" },
+        { kind: "message", timestamp: "2026-10-04T09:12:09Z", text: "The ticket is a Bug; tracing the reported figure first." } ] } },
+
+    { id: "ep-files", m: "GET", p: "/v1/engagements/{job_id}/files", alt: "/v1/chat/{job_id}/files", t: "Deliverables a run produced",
+      access: "Owner · file roles",
+      d: "The markdown deliverables the agent wrote under `scratch/`, `proposals/` or `investigations/`. Each is a redacted copy taken when the run ended, so it doesn't change if the ticket is run again. Partial work from incomplete, failed or cancelled runs is included.",
+      res: { job_id: "9f1c…", count: 1, files: [ { job_id: "9f1c…", path: "scratch/PROJ-2041-handoff.md", name: "PROJ-2041-handoff.md", size: 8123, content_type: "text/markdown", created_at: "2026-10-04T09:31:00+00:00", url: "/v1/engagements/9f1c…/files/scratch/PROJ-2041-handoff.md" } ] } },
+
+    { id: "ep-file", m: "GET", p: "/v1/engagements/{job_id}/files/{path}", alt: "/v1/chat/{job_id}/files/{path}", t: "One file's content",
+      access: "Owner · file roles",
+      d: "Returns the raw file (`text/markdown; charset=utf-8` for `.md`). Add `?download=true` to get `Content-Disposition: attachment`. Returns `404` for an unknown path.",
+      query: [["download", "bool", "false", "Send as an attachment"]],
+      raw: true },
+
+    { id: "ep-uploads", m: "POST", p: "/v1/uploads", t: "Upload a file to attach", s: 201,
+      access: "Any authenticated",
+      d: "A `multipart/form-data` request with one field, `file`. Accepts text formats (`.md .txt .csv .json .sql .dax .yaml .tmdl .py .ipynb .patch …`), `.pdf` and images. `.docx` and `.xlsx` are refused because the agent can't read them, so export to PDF or CSV. The limit is 10 MB (`413` above it, `422` for an empty or refused file). Text is secret-redacted before it's stored.",
+      upload: true,
+      res: { upload_id: "9f2c…", filename: "BRD v2.pdf", size: 182044, content_type: "application/pdf", created_at: "…", redacted: false } },
+
+    { id: "ep-review-post", m: "POST", p: "/v1/engagements/{job_id}/review", t: "Record a verdict review", s: 201,
+      access: "Owner · reviewer role",
+      d: "The only way to record a human review of Scotri's verdict. No CLI command or MCP tool can, so Scotri can't grade its own work. Reviews are append-only and the latest one is current. Returns `409` if the run hasn't succeeded or reached no reviewable conclusion, and `422` for an invalid outcome or reason.",
+      body: [
+        ["outcome", "string", true, "`upheld`, `partially_upheld` or `overturned`"],
+        ["reason", "string", false, "Free text. Some outcomes require it."],
+        ["superseded_by_job_id", "string", false, "A later engagement that replaces this verdict. It must exist."],
+      ],
+      sample: { outcome: "upheld", reason: "Root cause confirmed in the gold table" },
+      res: { ok: true, review: { job_id: "9f1c…", outcome: "upheld", reviewer: "<subject>", reviewed_at: "2026-10-04T09:30:00+00:00", reason: "…", superseded_by_job_id: null } } },
+
+    { id: "ep-review-get", m: "GET", p: "/v1/engagements/{job_id}/review", t: "Review trail",
+      access: "Owner · admin/reviewer",
+      d: "`current_outcome` is `unreviewed` until someone submits a review. `verdict` is `null` when the run recorded no learning.",
+      res: { job_id: "9f1c…", verdict: "confirmed_bug", reviewable: true, current_outcome: "upheld", reviews: ["…"] } },
+
+    { id: "ep-history", m: "GET", p: "/v1/history", t: "Your engagement history",
+      access: "Self only",
+      d: "The caller's own durable history, newest first. It outlasts the 24-hour job store. `verdict` is one of `confirmed_bug`, `not_a_bug`, `inconclusive`, `story` or `question`, or `null`.",
+      query: [["limit", "int", "50", "Clamped to 1–200"]],
+      res: { subject: "<subject>", count: 1, engagements: [ { job_id: "9f1c…", conversation_id: "b27a…", prompt: "PROJ-2041", status: "succeeded", created_at: "…", review_outcome: "unreviewed", verdict: "confirmed_bug", reviewable: true } ] } },
+
+    { id: "ep-learnings", m: "GET", p: "/v1/learnings", t: "Browse learnings",
+      access: "Self · team needs a learnings-reader role",
+      d: "The learnings past investigations recorded: symptom, what was checked, root cause and takeaways, never query results. `scope=mine` (the default) lists learnings from your own runs. `scope=team` lists everyone's, including service runs, and needs a role in `LEARNINGS_READER_ROLES` (empty by default, so 403 until an admin names one). With `q` results are ranked by relevance, otherwise newest first. The agent's own `retrieve` always searches every learning; this only limits what people browse.",
+      query: [["scope", "string", "mine", "`mine` or `team`"], ["q", "string", "", "Search text"], ["verdict", "string", "", "`confirmed_bug`, `not_a_bug`, `inconclusive`, `story` or `question`"], ["limit", "int", "50", "Clamped to 1–200"]],
+      res: { scope: "mine", count: 1, learnings: [ { job_id: "9f1c…", ticket_key: "PROJ-2041", title: "…", verdict: "confirmed_bug", root_cause_category: "report-visual", takeaways: ["…"], entities: ["…"], investigated_by: "…", created_at: "…", review_outcome: "unreviewed" } ] } },
+
+    { id: "ep-learning", m: "GET", p: "/v1/learnings/{job_id}", t: "One learning",
+      access: "Owner · learnings reader",
+      d: "The learning one run recorded, by its `job_id`. 404 when that run recorded none.",
+      res: { job_id: "9f1c…", title: "…", verdict: "confirmed_bug", symptom: "…", checked: ["…"], root_cause: "…", confidence: "high", takeaways: ["…"], review_outcome: "upheld" } },
+
+    { id: "ep-conv", m: "GET", p: "/v1/conversations/{conversation_id}", t: "A whole conversation",
+      access: "Owner · history admin",
+      d: "Every turn in the conversation, oldest first, with the full `result` text.",
+      res: { conversation_id: "b27a…", owner: "<subject>", turn_count: 2, turns: ["…"] } },
+
+    { id: "ep-conv-adopt", m: "POST", p: "/v1/conversations/adopt", t: "Group older jobs into a conversation",
+      access: "Self only · your own jobs",
+      d: "For threads that predate server-side conversations and so exist as one thread only in the browser that ran them. Puts your own jobs under one conversation: a fresh id, or a `conversation_id` you pass that you own. A job already in a conversation is never moved (`in_other`); one the server has no record of is `unknown`. 403 if any job or the conversation is someone else's. `conversation_id` comes back `null` when nothing could be grouped. Safe to repeat.",
+      body: [
+        ["job_ids", "string[]", true, "1–200 of your own job ids, oldest first"],
+        ["conversation_id", "string", false, "One you own, to add the jobs to it. Omit for a fresh id."],
+      ],
+      sample: { job_ids: ["9f1c…", "a2b4…"] },
+      res: { conversation_id: "b27a…", adopted: ["9f1c…", "a2b4…"], already: [], unknown: [], in_other: [] } },
+
+    { id: "ep-conv-files", m: "GET", p: "/v1/conversations/{conversation_id}/files", t: "Every turn's files",
+      access: "Owner · file roles",
+      d: "The file list for a whole conversation, oldest turn first. Each entry carries its own `job_id`, so a file rewritten in a later turn appears once per turn, with the newest last.",
+      res: { conversation_id: "b27a…", count: 2, files: ["…"] } },
+  ];
+
+  // ---------- helpers ----------
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+  const lockSvg = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
+  const pathParams = (p) => [...p.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+
+  const state = { api: "", mcp: "", token: "" };
+  const defaults = () => {
+    const sameOrigin = /^https?:$/.test(location.protocol) && location.pathname.replace(/\/+$/, "").endsWith("/portal");
+    const api = sameOrigin ? location.origin : "http://localhost:8000";
+    let mcp = "http://localhost:8100";
+    try { const u = new URL(api); u.port = "8100"; mcp = u.origin; } catch (_) {}
+    return { api, mcp, served: sameOrigin };
+  };
+  const trim = (u) => (u || "").trim().replace(/\/+$/, "");
+
+  // ---------- render endpoint cards ----------
+  function renderEndpoints() {
+    const host = $("#endpoints");
+    host.innerHTML = EP.map((e) => {
+      const verb = e.m.toLowerCase();
+      const params = pathParams(e.p);
+      let html = `<article class="ep" id="${e.id}">
+        <header>
+          <span class="verb-pill ${verb}">${e.m}</span>
+          <h3>${esc(e.p)}</h3>
+          <span class="access">${e.noAuth ? "" : lockSvg}${esc(e.access)}</span>
+          <div class="what">${esc(e.t)}${e.s ? ` · returns <code>${e.s}</code>` : ""}${e.alt ? ` · also at <code>${esc(e.alt)}</code>` : ""}</div>
+        </header>
+        <div class="body"><p>${md(e.d)}</p>`;
+      if (e.body) {
+        html += `<div class="tbl"><table><thead><tr><th>Body field</th><th>Type</th><th>Description</th></tr></thead><tbody>${
+          e.body.map(([n, t, r, d]) => `<tr><td><code>${n}</code> ${r ? '<span class="req">required</span>' : ""}</td><td><code>${t}</code></td><td>${md(d)}</td></tr>`).join("")
+        }</tbody></table></div>`;
+      }
+      if (e.query) {
+        html += `<div class="tbl"><table><thead><tr><th>Query</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>${
+          e.query.map(([n, t, def, d]) => `<tr><td><code>${n}</code></td><td><code>${t}</code></td><td><code>${def}</code></td><td>${md(d)}</td></tr>`).join("")
+        }</tbody></table></div>`;
+      }
+      html += codeTabs(e) + `</div>`;
+
+      // try-it console
+      html += `<details class="try"><summary>Try it</summary><div class="try-body" data-ep="${e.id}">`;
+      if (params.length || e.query) {
+        html += `<div class="try-row">${params.map((p) => `<div class="field"><label>${p}</label><input type="text" class="mono" data-param="${p}" spellcheck="false" placeholder="${p === "path" ? "scratch/PROJ-2041-handoff.md" : ""}"></div>`).join("")}${
+          (e.query || []).map(([n, , def]) => `<div class="field"><label>?${n}</label><input type="text" class="mono" data-query="${n}" value="${def === "false" ? "" : def}" spellcheck="false"></div>`).join("")}</div>`;
+      }
+      if (e.body) html += `<div class="field"><label>Request body (JSON)</label><textarea data-body spellcheck="false">${esc(JSON.stringify(e.sample, null, 2))}</textarea></div>`;
+      if (e.upload) html += `<div class="field"><label>file</label><input type="file" data-file></div>`;
+      html += `<div class="try-actions"><button class="btn" data-send>Send request</button><span class="try-url" data-url></span></div>
+        <div class="resp" data-resp hidden><div class="resp-head"><span class="code-status" data-code></span><span class="muted" data-time></span></div><pre data-out></pre></div>
+      </div></details></article>`;
+      return html;
+    }).join("");
+  }
+
+  function codeTabs(e) {
+    const curl = curlFor(e);
+    const res = e.raw ? "# The raw file body, e.g. text/markdown" : JSON.stringify(e.res, null, 2);
+    return `<div class="code" data-tabs><div class="bar" role="tablist">
+        <button class="tab" role="tab" aria-selected="true">Request</button>
+        <button class="tab" role="tab" aria-selected="false">Response${e.s ? " " + e.s : " 200"}</button>
+        <button class="copy">Copy</button></div>
+      <pre data-tpl>${esc(curl)}</pre><pre hidden>${esc(res)}</pre></div>`;
+  }
+
+  function curlFor(e) {
+    const url = "{{API}}" + e.p.replace(/\{(\w+)\}/g, (_, n) => "$" + (n === "path" ? "FILE_PATH" : n.toUpperCase()));
+    const lines = [`curl${e.m === "GET" ? "" : " -X " + e.m} "${url}${e.query && e.id === "ep-file" ? "?download=true" : ""}"`];
+    if (!e.noAuth) lines.push(`  -H "Authorization: Bearer $TOKEN"`);
+    if (e.body) {
+      lines.push(`  -H "Content-Type: application/json"`);
+      lines.push(`  -d '${JSON.stringify(e.sample)}'`);
+    }
+    if (e.upload) lines.push(`  -F "file=@BRD.pdf"`);
+    return lines.join(" \\\n");
+  }
+
+  // ---------- templating ----------
+  function applyTemplates() {
+    document.querySelectorAll("pre[data-tpl]").forEach((pre) => {
+      if (!pre.dataset.src) pre.dataset.src = pre.innerHTML;
+      pre.innerHTML = pre.dataset.src.replaceAll("{{API}}", esc(state.api)).replaceAll("{{MCP}}", esc(state.mcp));
+    });
+    document.querySelectorAll("[data-text]").forEach((el) => {
+      el.textContent = el.dataset.text.replace("{{API}}", state.api).replace("{{MCP}}", state.mcp);
+    });
+    document.querySelectorAll("[data-href]").forEach((el) => {
+      el.href = el.dataset.href.replace("{{API}}", state.api).replace("{{MCP}}", state.mcp);
+    });
+  }
+
+  // ---------- try-it ----------
+  async function send(container) {
+    const e = EP.find((x) => x.id === container.dataset.ep);
+    const btn = $("[data-send]", container), resp = $("[data-resp]", container);
+    const out = $("[data-out]", container), code = $("[data-code]", container), time = $("[data-time]", container);
+    let path = e.p, missing = [];
+    container.querySelectorAll("[data-param]").forEach((inp) => {
+      const v = inp.value.trim();
+      if (!v) missing.push(inp.dataset.param);
+      const enc = inp.dataset.param === "path" ? v.split("/").map(encodeURIComponent).join("/") : encodeURIComponent(v);
+      path = path.replace(`{${inp.dataset.param}}`, enc);
+    });
+    const qs = new URLSearchParams();
+    container.querySelectorAll("[data-query]").forEach((inp) => { if (inp.value.trim()) qs.set(inp.dataset.query, inp.value.trim()); });
+    const url = state.api + path + (qs.toString() ? "?" + qs : "");
+    $("[data-url]", container).textContent = `${e.m} ${url}`;
+
+    const show = (status, ok, text, ms) => {
+      resp.hidden = false;
+      code.textContent = status; code.className = "code-status " + (ok ? "ok" : "err");
+      time.textContent = ms != null ? `${ms} ms` : "";
+      out.textContent = text;
+    };
+    if (missing.length) return show("not sent", false, `Fill in: ${missing.join(", ")}`);
+    if (!e.noAuth && !state.token) return show("not sent", false, "Paste a Bearer token in the connection panel at the top first.");
+
+    const opts = { method: e.m, headers: {} };
+    if (!e.noAuth) opts.headers.Authorization = "Bearer " + state.token;
+    if (e.body) {
+      const raw = $("[data-body]", container).value;
+      try { JSON.parse(raw); } catch (err) { return show("not sent", false, "Body isn't valid JSON: " + err.message); }
+      opts.headers["Content-Type"] = "application/json"; opts.body = raw;
+    }
+    if (e.upload) {
+      const f = $("[data-file]", container).files[0];
+      if (!f) return show("not sent", false, "Choose a file first.");
+      const fd = new FormData(); fd.append("file", f); opts.body = fd;
+    }
+
+    btn.disabled = true;
+    const t0 = performance.now();
+    try {
+      const r = await fetch(url, opts);
+      const ct = r.headers.get("content-type") || "";
+      let text = await r.text();
+      if (ct.includes("json")) { try { text = JSON.stringify(JSON.parse(text), null, 2); } catch (_) {} }
+      show(`${r.status} ${r.statusText}`, r.ok, text || "(empty body)", Math.round(performance.now() - t0));
+    } catch (err) {
+      show("network error", false, `${err.message}\n\nThe API may be unreachable, or it may be refusing a cross-origin request. Open this page from ${state.api}/portal so requests are same-origin.`);
+    } finally { btn.disabled = false; }
+  }
+
+  async function checkHealth() {
+    const el = $("#healthStatus"), dot = $(".dot", el), label = el.lastElementChild;
+    dot.className = "dot"; label.textContent = "Checking…";
+    try {
+      const r = await fetch(state.api + "/health", { cache: "no-store" });
+      const j = await r.json();
+      dot.className = "dot " + (j.ok ? "ok" : "bad");
+      label.textContent = j.ok ? "API reachable · Redis up" : "API up · Redis down";
+    } catch (_) {
+      dot.className = "dot bad"; label.textContent = "API unreachable";
+    }
+  }
+
+  // ---------- wiring ----------
+  function init() {
+    const d = defaults();
+    state.api = d.api; state.mcp = d.mcp;
+    $("#apiBase").value = state.api; $("#mcpBase").value = state.mcp;
+
+    renderEndpoints();
+    applyTemplates();
+
+    let healthTimer;
+    $("#apiBase").addEventListener("input", (ev) => {
+      state.api = trim(ev.target.value); applyTemplates();
+      clearTimeout(healthTimer); healthTimer = setTimeout(checkHealth, 600);
+    });
+    $("#mcpBase").addEventListener("input", (ev) => { state.mcp = trim(ev.target.value); applyTemplates(); });
+    $("#token").addEventListener("input", (ev) => { state.token = ev.target.value.trim(); });
+
+    document.addEventListener("click", (ev) => {
+      const tab = ev.target.closest(".code .tab");
+      if (tab) {
+        const box = tab.closest(".code");
+        const tabs = [...box.querySelectorAll(".tab")], pres = [...box.querySelectorAll("pre")];
+        tabs.forEach((t, i) => { t.setAttribute("aria-selected", String(t === tab)); pres[i].hidden = t !== tab; });
+        return;
+      }
+      const copy = ev.target.closest(".code .copy");
+      if (copy) {
+        const pre = [...copy.closest(".code").querySelectorAll("pre")].find((p) => !p.hidden);
+        navigator.clipboard?.writeText(pre.innerText).then(() => {
+          copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy"), 1400);
+        }, () => { copy.textContent = "Select & copy"; });
+        return;
+      }
+      const sendBtn = ev.target.closest("[data-send]");
+      if (sendBtn) { send(sendBtn.closest(".try-body")); return; }
+      if (ev.target.closest(".side a") && document.body.classList.contains("nav-open")) toggleNav(false);
+    });
+
+    const toggleNav = (open) => {
+      document.body.classList.toggle("nav-open", open);
+      $("#menuBtn").setAttribute("aria-expanded", String(open));
+    };
+    $("#menuBtn").addEventListener("click", () => toggleNav(!document.body.classList.contains("nav-open")));
+
+    $("#themeBtn").addEventListener("click", () => {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      root.dataset.theme = dark ? "light" : "dark";
+      try { localStorage.setItem("scotri-portal-theme", root.dataset.theme); } catch (_) {}
+    });
+    try { const t = localStorage.getItem("scotri-portal-theme"); if (t) document.documentElement.dataset.theme = t; } catch (_) {}
+
+    // scroll-spy for the sidebar
+    const links = [...document.querySelectorAll(".side a")];
+    const targets = links.map((a) => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+      });
+    }, { rootMargin: "-70px 0px -70% 0px" });
+    targets.forEach((t) => spy.observe(t));
+
+    if (d.served) checkHealth();
+    else {
+      const el = $("#healthStatus");
+      el.lastElementChild.textContent = "Live console runs at /portal";
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

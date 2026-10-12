@@ -1,0 +1,56 @@
+{
+  "_comment": "Fixed prompts replayed by run_benchmark.py. Keep prompts stable: changing one starts a new baseline for that case. Every case is read-only; any Jira write fails the run. A case's `ticket` lets the harness set that ticket's earlier scratch/<ticket>-* deliverables aside during the case, so it measures a cold investigation.",
+  "cases": [
+    {
+      "id": "er-diagram-gold",
+      "why": "A diagram from live DESCRIBE output: tests batching, type checking and diagram-lint.",
+      "prompt": "Draw an ER diagram, using the er-diagram skill, of acme_prod.gold.store_visit_report, acme_prod.gold.zone_region_map and acme_prod.gold.store_manager_history, with the joins the producing notebook uses. Environment is Prod.",
+      "checks": {
+        "min_diagrams": 1,
+        "max_unchecked": 0
+      }
+    },
+    {
+      "id": "bug-acme1922",
+      "why": "A Bug ticket end to end: attachments, notebook trace, gold-table queries, verdict.",
+      "prompt": "investigate https://acme.atlassian.net/browse/ACME-2118. Also read the attachments and the reporter's comment for context.",
+      "checks": {
+        "verdict_in": [
+          "confirmed_bug"
+        ],
+        "must_mention": [
+          "Store_Visit"
+        ]
+      },
+      "ticket": "ACME-2118"
+    },
+    {
+      "id": "story-gaps-acme1806",
+      "why": "Requirement intake on a Story: the Gaps-and-ambiguities section and BRD attachments.",
+      "prompt": "look for gaps in the requirements for the ticket https://acme.atlassian.net/browse/ACME-2052. Environment is Prod.",
+      "checks": {
+        "must_mention_any": [
+          "gap",
+          "Gap"
+        ]
+      },
+      "ticket": "ACME-2052"
+    },
+    {
+      "id": "report-usage",
+      "why": "Lineage up to reports: tests report-bindings instead of grepping report JSON.",
+      "prompt": "Which Power BI reports use acme_prod.gold.store_visit_report, and on which pages and visuals? Environment is Prod.",
+      "checks": {
+        "must_mention": [
+          "VISIT INSIGHTS"
+        ]
+      }
+    },
+    {
+      "id": "adf-failures",
+      "why": "A run-history question whose access may be missing: the answer must report the real error, never invent runs.",
+      "prompt": "Did any ADF pipeline in the Prod factory acme-adf-prod fail in the last 24 hours? Environment is Prod.",
+      "checks": {}
+    }
+  ]
+}

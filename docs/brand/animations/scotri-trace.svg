@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none" role="img" aria-label="Scotri starting">
+  <title>Scotri — starting</title>
+  <style>
+    .pupil { transform-box: view-box; transform-origin: 24px 24px; }
+    .arc   { animation: draw 2.6s cubic-bezier(.22,.7,.3,1) infinite; }
+    .arc2  { animation-delay: .14s; }
+    .pupil { animation: pupil 2.6s cubic-bezier(.3,1.4,.5,1) infinite; }
+    @keyframes draw  { 0% { stroke-dashoffset: 100; } 55%, 100% { stroke-dashoffset: 0; } }
+    @keyframes pupil { 0%, 45% { transform: scale(0); } 72% { transform: scale(1.22); } 100% { transform: scale(1); } }
+    .ink { stroke: #12151A; } .fill-ink { fill: #12151A; }
+    @media (prefers-color-scheme: dark) { .ink { stroke: #F6F4EF; } .fill-ink { fill: #F6F4EF; } }
+    @media (prefers-reduced-motion: reduce) { .arc, .pupil { animation: none; } .arc { stroke-dashoffset: 0; } }
+  </style>
+  <path class="arc ink" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="100" d="M14.5 16.2 Q 27 7.5 41 24" stroke-width="4" stroke-linecap="round"/>
+  <path class="arc arc2 ink" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="100" d="M33.5 31.8 Q 21 40.5 7 24" stroke-width="4" stroke-linecap="round"/>
+  <circle class="pupil fill-ink" cx="24" cy="24" r="3.6"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none" role="img" aria-label="Scotri reading">
+  <title>Scotri — reading</title>
+  <style>
+    .arc { animation: aperture 1.9s cubic-bezier(.45,0,.55,1) infinite; }
+    @keyframes aperture { 0%, 100% { stroke-dashoffset: 0; } 50% { stroke-dashoffset: 32; } }
+    .ink { stroke: #12151A; } .fill-ink { fill: #12151A; }
+    @media (prefers-color-scheme: dark) { .ink { stroke: #F6F4EF; } .fill-ink { fill: #F6F4EF; } }
+    @media (prefers-reduced-motion: reduce) { .arc { animation: none; } }
+  </style>
+  <path class="arc ink" pathLength="100" stroke-dasharray="100 100" d="M14.5 16.2 Q 27 7.5 41 24" stroke-width="4" stroke-linecap="round"/>
+  <path class="arc ink" pathLength="100" stroke-dasharray="100 100" d="M33.5 31.8 Q 21 40.5 7 24" stroke-width="4" stroke-linecap="round"/>
+  <circle class="fill-ink" cx="24" cy="24" r="3.6"/>
+</svg>

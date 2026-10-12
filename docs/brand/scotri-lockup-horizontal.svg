@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 48" width="208" height="48" fill="none" role="img" aria-label="Scotri">
+  <title>Scotri</title>
+  <g>
+    <path d="M14.5 16.2 Q 27 7.5 41 24" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <path d="M33.5 31.8 Q 21 40.5 7 24" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="24" cy="24" r="3.6" fill="currentColor"/>
+  </g>
+  <text x="65" y="34" fill="currentColor" font-family="'Space Grotesk', 'IBM Plex Sans', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="0.2">Scotri</text>
+</svg>

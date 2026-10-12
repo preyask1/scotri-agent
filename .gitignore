@@ -1,0 +1,61 @@
+# Local read-only repo mirror (added in a later build pass) — refreshed copies of the
+# product repos, never this workspace's own content, so never versioned here.
+mirror-active/
+mirror-staging/
+
+# Secrets / local env — no real credential is ever meant to live in this workspace,
+# but keep this as a guardrail against an accidental local .env during testing.
+# .env.example (and any *.example) is a template, never real values — always keep that tracked.
+.env
+.env.local
+.env.*
+!.env.example
+!**/*.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Scratch/working files -- local scratchpad, never source
+scratch/
+
+# Local run logs (the whole directory, not just *.log -- rotated backups are named
+# scotri-cli.log.1, .2, etc., which *.log alone wouldn't catch)
+*.log
+services/logs/
+
+# Mirror health-status snapshot -- runtime state local to this machine's run history, not source
+services/mirror/status.json
+
+# Contains a live SCOTRI_DEV_AUTH_TOKEN value for the dev-mode auth bypass -- local/test secret,
+# never meant to be versioned (see services/FRONTEND_AUTH.md's own note on this).
+services/FRONTEND_AUTH.md
+
+# Scotri investigation verdicts (e.g. investigations/PROJ-2074/) -- ticket-specific working output
+# that can quote business data; local only, never source.
+investigations/
+
+# Launcher runtime state (process IDs, logs) — machine-specific, never shared
+tools/launcher/state/
+
+# Derived/durable local datastores under services/data/ — the lineage graph index (OPEN_ITEMS.md
+# #37) is a rebuildable derived index; the engagement-history SQLite DB (OPEN_ITEMS.md #19/#25) is a
+# local system-of-record for dev only (prod is Azure SQL/Postgres). Neither is source.
+services/data/
+
+# Benchmark results and proposals come from real runs against a real estate -- keep them local.
+tools/benchmark/results/
+proposals/*
+!proposals/README.md
+.pytest_cache/

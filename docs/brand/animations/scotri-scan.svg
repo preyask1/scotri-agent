@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none" role="img" aria-label="Scotri working">
+  <title>Scotri — working</title>
+  <style>
+    .arcs { transform-box: view-box; transform-origin: 24px 24px; animation: scan 2.4s linear infinite; }
+    @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+    .ink { stroke: #12151A; } .fill-ink { fill: #12151A; }
+    @media (prefers-color-scheme: dark) { .ink { stroke: #F6F4EF; } .fill-ink { fill: #F6F4EF; } }
+    @media (prefers-reduced-motion: reduce) { .arcs { animation: none; } }
+  </style>
+  <g class="arcs">
+    <path class="ink" d="M14.5 16.2 Q 27 7.5 41 24" stroke-width="4" stroke-linecap="round"/>
+    <path class="ink" d="M33.5 31.8 Q 21 40.5 7 24" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <circle class="fill-ink" cx="24" cy="24" r="3.6"/>
+</svg>

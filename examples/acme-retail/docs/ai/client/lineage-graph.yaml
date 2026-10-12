@@ -1,0 +1,83 @@
+# Machine-readable lineage graph — the source of truth the queryable graph index is built from.
+# This file is authoritative for the graph; docs/ai/client/lineage-map.md is the human-readable narrative of
+# the same facts. Keep the two in sync. The platform (Acme Retail) is fictional.
+#
+# Loaded and validated by domain/lineage.py, built into a SQLite index by
+# adapters/lineage/sqlite_lineage_graph.py, queried via the `lineage-*` CLI commands.
+#
+# Node id = "kind:name". Kinds in use: adf_pipeline, notebook, gold_table, fabric_table,
+#   fabric_model. Nodes are auto-derived from edge endpoints; the optional `nodes:` list below only
+#   names not-yet-connected placeholders.
+# Edge rel vocabulary: produces (notebook -> gold_table), consumes (fabric -> gold_table),
+#   feeds (adf_pipeline -> notebook), references, triggers.
+# verified: true  == a ✅ leg re-confirmed from the mirror or a live query.
+# verified: false == a 🔁 leg inherited/assumed, not yet re-confirmed.
+# source_ref: where the edge came from (a ticket, a session, a mirror path) — for audit.
+
+edges:
+  # --- Sales Overview (inherited 🔁 — not yet re-confirmed) ---
+  - src: adf_pipeline:PL_POS_Daily_Ingest
+    dst: notebook:Gold_Notebooks/SALES/Wave3/USP_SALES_DAILY.ipynb
+    rel: feeds
+    verified: false
+    source_ref: lineage-map.md Sales Overview (inherited)
+  - src: notebook:Gold_Notebooks/SALES/Wave3/USP_SALES_DAILY.ipynb
+    dst: gold_table:acme_prod.gold.sales_daily
+    rel: produces
+    verified: false
+    source_ref: lineage-map.md Sales Overview (inherited)
+  - src: fabric_table:sales_daily
+    dst: gold_table:acme_prod.gold.sales_daily
+    rel: consumes
+    verified: false
+    source_ref: lineage-map.md Sales Overview (inherited)
+  - src: notebook:Gold_Notebooks/MASTER/Wave1/USP_STORE_DIM.ipynb
+    dst: gold_table:acme_prod.gold.store_dim
+    rel: produces
+    verified: false
+    source_ref: lineage-map.md Sales Overview (inherited)
+  - src: fabric_table:store_dim
+    dst: gold_table:acme_prod.gold.store_dim
+    rel: consumes
+    verified: false
+    source_ref: lineage-map.md Sales Overview (inherited)
+
+  # --- Rep Scorecard (producing-notebook legs 🔁; Fabric consumer leg ✅) ---
+  - src: notebook:scorecard/gold/1. Fact Rep Scorecard.ipynb
+    dst: gold_table:acme_prod.gold.fact_rep_kpi_scorecard
+    rel: produces
+    verified: false
+    source_ref: lineage-map.md Rep Scorecard (inherited)
+  - src: notebook:scorecard/gold/2. PBI Views Scorecard.ipynb
+    dst: gold_table:acme_prod.gold.vw_fact_rep_scorecard
+    rel: produces
+    verified: false
+    source_ref: lineage-map.md Rep Scorecard (inherited)
+  - src: fabric_model:Rep Scorecard
+    dst: gold_table:acme_prod.gold.vw_fact_rep_scorecard
+    rel: consumes
+    verified: true
+    source_ref: fabric-read, consumer side confirmed (lineage-map.md)
+
+  # --- Visit Status (gold/notebook/Fabric legs ✅ via ACME-2085's impact analysis) ---
+  - src: notebook:Gold_Notebooks/FIELD/Visit summary report.ipynb
+    dst: gold_table:acme_prod.gold.visit_summary
+    rel: produces
+    verified: true
+    source_ref: ACME-2085 impact analysis (live query + mirror read)
+  - src: fabric_table:visit_summary
+    dst: gold_table:acme_prod.gold.visit_summary
+    rel: consumes
+    verified: true
+    source_ref: ACME-2085 impact analysis (Visit-Status.SemanticModel .tmdl M-partition)
+  # ADF leg deliberately absent: no pipeline JSON references the producing notebook — likely a
+  # Databricks Job schedule outside ADF, unconfirmed. An absent edge is honest; a verified:false guess
+  # at a pipeline name would not be.
+
+# Not-yet-mapped placeholders — declared so coverage counts them as known-but-unmapped nodes rather
+# than silently omitting them.
+nodes:
+  - id: gold_table:acme_prod.gold.rep_hierarchy_monthly
+    name: rep_hierarchy_monthly (⬜ unmapped in lineage-map.md)
+  - id: gold_table:acme_prod.gold.category_trend_weekly
+    name: category_trend_weekly (⬜ unmapped in lineage-map.md)

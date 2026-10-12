@@ -1,0 +1,412 @@
+<title>Scotri White-Label Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 72ch reading column; the architecture figure and tables break out to the full 1120px
+   frame. Tokens follow docs/brand/README.md: ink on paper, Verified teal only where something is
+   enforced or proven, Space Grotesk for headings, Plex Sans for prose, Plex Mono for names. */
+:root {
+  --paper: #F6F4EF;
+  --surface: #FFFFFF;
+  --ink: #12151A;
+  --caption: #5F646B;
+  --rule: #DAD6CC;
+  --verified: #2A6F66;
+  --verified-tint: #E3EFEC;
+  --tenant: #8A5A12;
+  --tenant-tint: #F6ECDA;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12151A; --surface: #191D23; --ink: #ECEAE4; --caption: #9BA1A8; --rule: #2C323A;
+    --verified: #5FB3A6; --verified-tint: #16302C; --tenant: #E0B062; --tenant-tint: #2E2617;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12151A; --surface: #191D23; --ink: #ECEAE4; --caption: #9BA1A8; --rule: #2C323A;
+  --verified: #5FB3A6; --verified-tint: #16302C; --tenant: #E0B062; --tenant-tint: #2E2617;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6;
+  padding-inline: 16px; padding-block: 0 72px;
+}
+.frame { max-width: 1120px; margin: 0 auto; }
+.col { max-width: 72ch; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.3rem, 5.5vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--verified); }
+a:focus-visible { outline: 2px solid var(--verified); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.85em; overflow-wrap: anywhere; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--caption);
+}
+.muted { color: var(--caption); }
+
+/* top bar */
+nav.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 4;
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+  margin-inline: -16px; padding: 10px 16px;
+}
+nav.bar .frame { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; }
+nav.bar .brand { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 600; margin-right: auto; }
+nav.bar .brand svg { width: 22px; height: 22px; }
+nav.bar a.link { color: var(--caption); text-decoration: none; font-size: 0.92rem; }
+nav.bar a.link:hover { color: var(--ink); }
+
+section { padding-block: 60px 0; display: grid; gap: 22px; }
+section > header { display: grid; gap: 10px; }
+
+/* hero */
+.hero { padding-block: 64px 8px; display: grid; gap: 24px; }
+.hero h1 { display: flex; align-items: center; gap: 16px; }
+.hero h1 svg { width: 0.9em; height: 0.9em; flex: none; }
+.lede { font-size: 1.22rem; line-height: 1.5; max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border-block: 1px solid var(--rule); }
+.fact { padding: 14px 16px 14px 0; display: grid; gap: 2px; }
+.fact b { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 0.88rem; color: var(--caption); }
+
+/* capability grid */
+.caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 26px 32px; }
+.cap { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.cap .eyebrow { color: var(--verified); }
+.stages { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; counter-reset: st; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); overflow: hidden; }
+.stages li { counter-increment: st; padding: 14px 14px 16px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.stages li::before { content: counter(st); font-family: var(--font-mono); font-size: 0.75rem; color: var(--caption); }
+.stages li b { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; }
+.stages li span { font-size: 0.88rem; color: var(--caption); line-height: 1.45; }
+.stages li.gate b::after { content: " · gate"; font-family: var(--font-mono); font-size: 0.72rem; color: var(--tenant); font-weight: 500; }
+
+/* layers */
+.layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.layer { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.layer .tag { justify-self: start; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; }
+.layer.core .tag { background: var(--verified-tint); color: var(--verified); }
+.layer.adapt .tag { background: var(--paper); color: var(--ink); border: 1px solid var(--rule); }
+.layer.tenant .tag { background: var(--tenant-tint); color: var(--tenant); }
+.layer ul { font-size: 0.94rem; }
+
+/* figure */
+figure { margin: 0; display: grid; gap: 12px; }
+.diagram { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+figcaption { font-size: 0.94rem; color: var(--caption); max-width: 72ch; }
+.d-box { fill: var(--surface); stroke: var(--rule); stroke-width: 1.3; }
+.d-drive { fill: var(--paper); stroke: var(--ink); stroke-width: 1.1; }
+.d-ring { fill: var(--paper); stroke: var(--ink); stroke-width: 1.4; }
+.d-core { fill: var(--verified-tint); stroke: var(--verified); stroke-width: 1.6; }
+.d-wire { stroke: var(--caption); stroke-width: 1.1; fill: none; }
+.d-title { fill: var(--ink); font-family: var(--font-body); font-weight: 600; font-size: 13.5px; }
+.d-sub { fill: var(--caption); font-family: var(--font-mono); font-size: 10.5px; }
+.d-cap { fill: var(--caption); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; }
+.d-core-t { fill: var(--verified); font-family: var(--font-display); font-weight: 600; font-size: 17px; }
+.d-core-s { fill: var(--ink); font-family: var(--font-mono); font-size: 11px; }
+
+/* tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--caption); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.port { font-family: var(--font-mono); font-size: 0.84rem; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 7px; border-radius: 3px; margin: 1px 4px 1px 0; white-space: nowrap; }
+.pill.live { background: var(--verified-tint); color: var(--verified); }
+.pill.alt { background: var(--paper); color: var(--caption); border: 1px solid var(--rule); }
+
+/* guardrails */
+.rails { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 32px; }
+.rail { display: grid; grid-template-columns: 18px 1fr; gap: 10px; padding-block: 12px; border-top: 1px solid var(--rule); min-width: 0; }
+.rail svg { width: 16px; height: 16px; margin-top: 4px; color: var(--verified); }
+.rail p { font-size: 0.95rem; }
+.rail p b { font-weight: 600; }
+
+/* onboarding */
+ol.steps { list-style: none; padding: 0; gap: 0; counter-reset: step; }
+ol.steps li { counter-increment: step; display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding-block: 14px; border-top: 1px solid var(--rule); }
+ol.steps li::before { content: counter(step, decimal-leading-zero); font-family: var(--font-mono); color: var(--tenant); font-size: 0.95rem; padding-top: 2px; }
+ol.steps li div { display: grid; gap: 4px; min-width: 0; }
+ol.steps li p { font-size: 0.95rem; color: var(--caption); }
+
+/* readiness */
+.gaps { display: grid; gap: 0; }
+.gap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 18px; padding-block: 12px; border-top: 1px solid var(--rule); align-items: baseline; }
+.gap p { font-size: 0.95rem; }
+.gap .eff { font-family: var(--font-mono); font-size: 0.78rem; color: var(--caption); white-space: nowrap; }
+@media (max-width: 560px) { .gap { grid-template-columns: 1fr; } }
+
+footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.88rem; color: var(--caption); display: grid; gap: 6px; }
+</style>
+
+<nav class="bar" aria-label="Sections">
+  <div class="frame">
+    <span class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14.5 16.2 Q 27 7.5 41 24" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/><path d="M33.5 31.8 Q 21 40.5 7 24" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/><circle cx="24" cy="24" r="4.1" fill="currentColor"/></svg>
+      Scotri
+    </span>
+    <a class="link" href="#capabilities">Capabilities</a>
+    <a class="link" href="#layers">What changes</a>
+    <a class="link" href="#hexagon">Architecture</a>
+    <a class="link" href="#guardrails">Guardrails</a>
+    <a class="link" href="#onboarding">Onboarding</a>
+    <a class="link" href="#readiness">Readiness</a>
+  </div>
+</nav>
+
+<main class="frame">
+
+  <section class="hero" id="top">
+    <p class="eyebrow">Stakeholder brief · 12 October 2026</p>
+    <h1>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14.5 16.2 Q 27 7.5 41 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M33.5 31.8 Q 21 40.5 7 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="3.6" fill="var(--verified)"/></svg>
+      Scotri, white-label
+    </h1>
+    <p class="lede">Scotri is a read-only analysis agent for data platforms. It takes a ticket or a question, traces it across pipelines, notebooks, semantic models and live data, runs read-only tests, and hands back a work order a human can act on. One engine serves any number of organisations: its rules live in code, and everything specific to one client lives in a single profile file and the knowledge pack generated from it.</p>
+    <div class="facts" role="list">
+      <div class="fact" role="listitem"><b>8</b><span>lifecycle stages, ticket to handoff</span></div>
+      <div class="fact" role="listitem"><b>30</b><span>ports between the core and the outside world</span></div>
+      <div class="fact" role="listitem"><b>1</b><span>write path (Jira), approved by a person each time</span></div>
+      <div class="fact" role="listitem"><b>0</b><span>credentials that can change a product repo</span></div>
+      <div class="fact" role="listitem"><b>832</b><span>automated tests, no live system needed</span></div>
+    </div>
+  </section>
+
+  <section id="capabilities">
+    <header class="col">
+      <p class="eyebrow">What every deployment gets</p>
+      <h2>From a ticket to a handoff, without touching production</h2>
+      <p>Each engagement runs the same lifecycle. A bug that turns out not to be a bug stops at stage 2, with the verdict as the deliverable. Nothing past stage 7 is code; a person applies any change by hand.</p>
+    </header>
+    <ol class="stages">
+      <li><b>Intake</b><span>Restates the ticket and lists gaps and ambiguities.</span></li>
+      <li class="gate"><b>Bug verdict</b><span>Confirmed, not a bug, or inconclusive, with a root-cause category and confidence.</span></li>
+      <li><b>Impact analysis</b><span>Blast radius across every repo in the registry, checked against live data.</span></li>
+      <li><b>Plan</b><span>What to change, in what order, with risk and alternatives.</span></li>
+      <li><b>Tests, executed</b><span>SQL and DAX assertions run read-only; real pass or fail recorded.</span></li>
+      <li><b>Proposal</b><span>Optional <code>.patch</code> in <code>proposals/</code>, applied by a person.</span></li>
+      <li><b>Handoff</b><span>One document, Bug or Story template, for the implementer.</span></li>
+      <li class="gate"><b>Jira write</b><span>Comment, Bug or attachment, shown to the user first.</span></li>
+    </ol>
+    <div class="caps">
+      <div class="cap"><p class="eyebrow">Query governor</p><p>Every outbound call is rate-limited per user, capped per backend, cached and audit-logged. A rejected call reports a real queue position or wait.</p></div>
+      <div class="cap"><p class="eyebrow">Prod mirror</p><p>Prod branches are read from a local read-only mirror refreshed by a separate sync service, with freshness verdicts and a maintenance flag.</p></div>
+      <div class="cap"><p class="eyebrow">Team memory</p><p>Each investigation ends with a learning (mechanism, not numbers) that the next one retrieves. People review verdicts; overturned ones drop out of retrieval.</p></div>
+      <div class="cap"><p class="eyebrow">Answer check</p><p>Every table name, file and large number in a final answer is matched against the run's own tool results. Anything unsupported goes back to the agent.</p></div>
+      <div class="cap"><p class="eyebrow">Three ways in</p><p>A REST API for a web UI, an MCP server for other agents, and a CLI. All three share one queue and one set of rules.</p></div>
+      <div class="cap"><p class="eyebrow">Operations</p><p>Admin panel for queue, logs, mirror sync and caller apps. Every admin action is audited; access fails closed.</p></div>
+    </div>
+  </section>
+
+  <section id="layers">
+    <header class="col">
+      <p class="eyebrow">White-label model</p>
+      <h2>What stays fixed, and what each client brings</h2>
+      <p>The work splits into three layers. The core is the product. Adapters are chosen per technology stack. The client pack is the only part that names a business. It lives in the client's own repo, generated from one profile file, so upgrading the engine never touches it.</p>
+    </header>
+    <div class="layers">
+      <div class="layer core">
+        <span class="tag">Core · same for every client</span>
+        <h3>Rules and lifecycle</h3>
+        <ul>
+          <li>Query guard: SELECT-only allowlist, one statement per call</li>
+          <li>Governor policy: rate, concurrency, cache, audit</li>
+          <li>Tool scope: what an unattended run may read, write and execute</li>
+          <li>Secret redaction on every output and every Jira write</li>
+          <li>Engagement lifecycle, admission queue, cancel and timeouts</li>
+          <li>Grounding check, learnings, verdict review, retention</li>
+        </ul>
+        <p class="muted mono">services/domain/ · services/ports/</p>
+      </div>
+      <div class="layer adapt">
+        <span class="tag">Adapters · per stack</span>
+        <h3>How each system is reached</h3>
+        <ul>
+          <li>Databricks SQL and Jobs, Fabric/Power BI, ADF run history</li>
+          <li>Git mirror sync and live Azure DevOps reads</li>
+          <li>Jira read and write</li>
+          <li>Redis state, SQLite history, local or Azure Blob files</li>
+          <li>Entra ID or dev-mode identity; env vars or a vault for secrets</li>
+          <li>Claude Agent SDK as the runtime</li>
+        </ul>
+        <p class="muted mono">services/adapters/ · wired in app/container.py</p>
+      </div>
+      <div class="layer tenant">
+        <span class="tag">Client pack · per organisation</span>
+        <h3>What makes it theirs</h3>
+        <ul>
+          <li>One profile: repos, catalogs, Jira projects, factories, model (<code>client/profile.yaml</code>)</li>
+          <li>Generated from it: registries and client config (<code>services/config/*.yaml</code>) and facts docs (<code>docs/ai/client/</code>)</li>
+          <li>Domain knowledge a person writes: conventions, lineage (skeletons in <code>docs/ai/client/</code>)</li>
+          <li>Optional components: ADF and Power BI/Fabric can be switched off</li>
+          <li>Display name and logo on the admin panel, portal, API and the agent's replies (<code>client/brand/</code>)</li>
+        </ul>
+        <p class="muted mono">No Python changes for a client on the same stack</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="hexagon">
+    <header class="col">
+      <p class="eyebrow">Hexagonal architecture</p>
+      <h2>One core, connected only through ports</h2>
+      <p>Business rules sit in the centre and import nothing but the Python standard library and each other. They talk to the world through 30 port modules, each a small typed interface. Adapters implement those ports for a specific technology, and a single composition root picks which adapter fills each port. A test fails the build if any core module imports a vendor SDK, Redis or the app layer.</p>
+    </header>
+    <figure>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 640" role="img" aria-labelledby="hex-t hex-d">
+          <title id="hex-t">Scotri hexagonal architecture</title>
+          <desc id="hex-d">Driving adapters on the left (web API, MCP server, admin panel, CLI, mirror sync service) call into a ring of ports around the domain core. Driven adapters on the right (data platform, source control, work tracking, shared state, storage, identity and model runtime) implement ports the core depends on.</desc>
+
+          <text class="d-cap" x="20" y="60">DRIVING · CALLS IN</text>
+          <text class="d-cap" x="760" y="28">DRIVEN · CALLED OUT TO</text>
+
+          <!-- wires: left -->
+          <path class="d-wire" d="M240 121 L400 160"/>
+          <path class="d-wire" d="M240 206 L345 240"/>
+          <path class="d-wire" d="M240 291 L305 320"/>
+          <path class="d-wire" d="M240 376 L345 400"/>
+          <path class="d-wire" d="M240 461 L400 480"/>
+          <!-- wires: right -->
+          <path class="d-wire" d="M760 81 L580 147"/>
+          <path class="d-wire" d="M760 176 L616 175"/>
+          <path class="d-wire" d="M760 271 L665 260"/>
+          <path class="d-wire" d="M760 366 L665 380"/>
+          <path class="d-wire" d="M760 461 L619 460"/>
+          <path class="d-wire" d="M760 556 L580 493"/>
+
+          <!-- ports ring and core -->
+          <polygon class="d-ring" points="700,320 600,493.2 400,493.2 300,320 400,146.8 600,146.8"/>
+          <polygon class="d-core" points="628,320 564,430.9 436,430.9 372,320 436,209.1 564,209.1"/>
+          <text class="d-cap" x="500" y="178" text-anchor="middle">PORTS · 30 INTERFACES</text>
+          <text class="d-sub" x="500" y="466" text-anchor="middle">typing.Protocol · no vendor imports</text>
+          <text class="d-core-t" x="500" y="270" text-anchor="middle">Domain core</text>
+          <text class="d-core-s" x="500" y="298" text-anchor="middle">query guard · governor</text>
+          <text class="d-core-s" x="500" y="318" text-anchor="middle">tool scope · redaction</text>
+          <text class="d-core-s" x="500" y="338" text-anchor="middle">engagement lifecycle</text>
+          <text class="d-core-s" x="500" y="358" text-anchor="middle">grounding · learnings</text>
+          <text class="d-core-s" x="500" y="378" text-anchor="middle">queue · retention</text>
+
+          <!-- driving adapters -->
+          <rect class="d-drive" x="20" y="90" width="220" height="62" rx="5"/>
+          <text class="d-title" x="34" y="116">Web API</text><text class="d-sub" x="34" y="136">FastAPI · /v1 · Entra tokens</text>
+          <rect class="d-drive" x="20" y="175" width="220" height="62" rx="5"/>
+          <text class="d-title" x="34" y="201">MCP server</text><text class="d-sub" x="34" y="221">scotri_start · scotri_status</text>
+          <rect class="d-drive" x="20" y="260" width="220" height="62" rx="5"/>
+          <text class="d-title" x="34" y="286">Admin panel</text><text class="d-sub" x="34" y="306">/v1/admin · audited</text>
+          <rect class="d-drive" x="20" y="345" width="220" height="62" rx="5"/>
+          <text class="d-title" x="34" y="371">CLI (app.cli)</text><text class="d-sub" x="34" y="391">the agent's only tool</text>
+          <rect class="d-drive" x="20" y="430" width="220" height="62" rx="5"/>
+          <text class="d-title" x="34" y="456">Mirror sync service</text><text class="d-sub" x="34" y="476">fetch · atomic swap</text>
+
+          <!-- driven adapters -->
+          <rect class="d-box" x="760" y="40" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="64">Data platform</text>
+          <text class="d-sub" x="774" y="84">Databricks SQL + Jobs</text><text class="d-sub" x="774" y="100">Fabric DAX + refresh history</text><text class="d-sub" x="774" y="116">ADF run history</text>
+          <rect class="d-box" x="760" y="135" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="159">Source control</text>
+          <text class="d-sub" x="774" y="179">Prod mirror reader</text><text class="d-sub" x="774" y="195">live Azure DevOps (Dev/UAT)</text><text class="d-sub" x="774" y="211">git sync target</text>
+          <rect class="d-box" x="760" y="230" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="254">Work tracking</text>
+          <text class="d-sub" x="774" y="274">Jira reader</text><text class="d-sub" x="774" y="290">Jira writer (gated)</text>
+          <rect class="d-box" x="760" y="325" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="349">Shared state · Redis</text>
+          <text class="d-sub" x="774" y="369">cache · rate limiter · queue</text><text class="d-sub" x="774" y="385">jobs · presence · progress</text><text class="d-sub" x="774" y="401">sync lock · run identity</text>
+          <rect class="d-box" x="760" y="420" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="444">Storage</text>
+          <text class="d-sub" x="774" y="464">SQLite history + lineage</text><text class="d-sub" x="774" y="480">local FS or Azure Blob</text><text class="d-sub" x="774" y="496">JSONL audit logs</text>
+          <rect class="d-box" x="760" y="515" width="220" height="82" rx="5"/>
+          <text class="d-title" x="774" y="539">Identity · secrets · model</text>
+          <text class="d-sub" x="774" y="559">Entra ID or dev auth</text><text class="d-sub" x="774" y="575">env vars (vault planned)</text><text class="d-sub" x="774" y="591">Claude Agent SDK runtime</text>
+        </svg>
+      </div>
+      <figcaption>Requests enter on the left and reach the core only through ports. Everything on the right is an adapter that can be replaced without changing a rule in the centre. The boundary is checked on every test run by <code>services/tests/test_architecture.py</code>.</figcaption>
+    </figure>
+
+    <div class="col"><h3>Ports that matter most for a new client</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Port</th><th>What the core asks for</th><th>Adapters today</th><th>Swap for another client</th></tr></thead>
+        <tbody>
+          <tr><td class="port">QueryExecutor</td><td>Run one read-only SQL statement</td><td><span class="pill live">Databricks SDK</span></td><td>Snowflake, Synapse or BigQuery adapter; the SELECT-only guard stays in the core</td></tr>
+          <tr><td class="port">SemanticModel</td><td>Evaluate DAX, read refresh history</td><td><span class="pill live">Fabric REST</span></td><td>Another BI semantic layer</td></tr>
+          <tr><td class="port">RepoContentReader</td><td>List and read files on a branch</td><td><span class="pill live">Mirror</span><span class="pill live">Live ADO</span></td><td>GitHub or GitLab reader</td></tr>
+          <tr><td class="port">MirrorSyncTarget</td><td>Refresh the Prod mirror</td><td><span class="pill live">git</span></td><td>Any git host; only the remote URL and token change</td></tr>
+          <tr><td class="port">PipelineRunReader</td><td>Pipeline and activity runs</td><td><span class="pill live">ADF ARM REST</span></td><td>Airflow, Fabric pipelines</td></tr>
+          <tr><td class="port">TicketReader / TicketWriter</td><td>Read a ticket; comment, file a Bug, attach</td><td><span class="pill live">Jira REST</span></td><td>Azure Boards, ServiceNow; the approval gate stays in the core</td></tr>
+          <tr><td class="port">IdentityProvider</td><td>Turn a token into a trusted caller</td><td><span class="pill live">Entra ID</span><span class="pill alt">Dev auth</span></td><td>Another OIDC issuer</td></tr>
+          <tr><td class="port">SecretProvider</td><td>Read a named credential</td><td><span class="pill live">Env vars</span></td><td>Azure Key Vault (planned), AWS Secrets Manager</td></tr>
+          <tr><td class="port">ArtifactStore</td><td>Store deliverables and uploads</td><td><span class="pill live">Local FS</span><span class="pill live">Azure Blob</span></td><td>S3 or any object store</td></tr>
+          <tr><td class="port">EngagementHistory</td><td>Durable per-user results</td><td><span class="pill live">SQLite</span></td><td>Azure SQL or Postgres for multi-replica hosting</td></tr>
+          <tr><td class="port">AgentRuntime</td><td>Run the lifecycle on a model</td><td><span class="pill live">Claude Agent SDK</span></td><td>Another Claude model or host (direct API, Microsoft Foundry) by config</td></tr>
+          <tr><td class="port">RateLimiter / Cache / EngagementQueue</td><td>Governor and admission state</td><td><span class="pill live">Redis</span></td><td>Managed Redis; same adapter</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="guardrails">
+    <header class="col">
+      <p class="eyebrow">Inherited by every client</p>
+      <h2>Guardrails enforced in code, not by instruction alone</h2>
+      <p>The agent is told the rules, and each one below is also enforced by code it cannot change. A new client gets all of them on day one.</p>
+    </header>
+    <div class="rails">
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>No write credential exists</b> for any product repo, on the agent or the sync service.</p></div>
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>SQL is SELECT-only</b>: a leading-keyword allowlist, a single-statement check and a write-verb denylist, behind a SELECT-only service principal.</p></div>
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>Tool scope hook</b>: an unattended run may write only to its output folders, run only the governed CLI, and cannot read secrets or the unredacted mirror.</p></div>
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>Redaction</b> on every CLI output, every published deliverable and every Jira write.</p></div>
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>Run identity</b>: every call is attributed to the real caller from a run token, whatever user name the agent passes.</p></div>
+      <div class="rail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>Ceilings</b> on wall-clock time, turns and cost per engagement, plus a bounded queue per user.</p></div>
+    </div>
+  </section>
+
+  <section id="onboarding">
+    <header class="col">
+      <p class="eyebrow">Deploying for a new client</p>
+      <h2>Onboarding, in order</h2>
+      <p>Each client gets a private repo created from this template. For a client on the same stack (Azure DevOps, ADF, Databricks, Fabric, Jira), every step is a setup command or writing. A different stack adds adapters behind the existing ports. <code>SETUP.md</code> lists the exact permissions each service account needs.</p>
+    </header>
+    <ol class="steps">
+      <li><div><h3>Describe the client</h3><p><code>python -m app.setup init</code> writes <code>client/profile.yaml</code>: repos and Prod branches, catalogs, Jira projects, factories, which optional components exist, and the name users see. <code>examples/acme-retail/</code> is a complete worked profile.</p></div></li>
+      <li><div><h3>Generate config and docs</h3><p><code>python -m app.setup render</code> writes the registries and client config, and the facts docs under <code>docs/ai/client/</code>. Generated files are rebuilt on every render; skeleton docs are created once and then belong to the client.</p></div></li>
+      <li><div><h3>Add credentials</h3><p><code>python -m app.setup secrets</code> collects read-only service principals, a read-only git token and a Jira account into the gitignored <code>services/.env</code>, with input hidden.</p></div></li>
+      <li><div><h3>Check every connection</h3><p><code>python -m app.setup doctor</code> checks Redis, Azure DevOps, Databricks, Jira, Fabric and ADF, and names what is missing.</p></div></li>
+      <li><div><h3>First sync</h3><p><code>python -m app.setup bootstrap</code> runs the first mirror sync and builds the lineage index.</p></div></li>
+      <li><div><h3>Write the knowledge pack and run the benchmark</h3><p>Fill the conventions and lineage skeletons, set governor limits and roles, then replay a few known tickets with <code>tools/benchmark/</code> before opening it to users.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="readiness">
+    <header class="col">
+      <p class="eyebrow">Readiness</p>
+      <h2>What is still open</h2>
+      <p>White-labelling works today: the engine carries no client names, and the answer check reads its catalog names from the client config. These items remain before a production rollout.</p>
+    </header>
+    <div class="gaps">
+      <div class="gap"><p>The governor's backend list is fixed to the Microsoft data stack. A new stack needs a new entry alongside its adapter.</p><span class="eff">small · code</span></div>
+      <div class="gap"><p>Production sign-in must be configured per client (open item #57): an Entra app registration and roles. Dev auth is for local use only.</p><span class="eff">config</span></div>
+      <div class="gap"><p>Engagement history and the admin audit log are SQLite and files on one host (open item #15). Multi-replica hosting needs the Azure SQL/Postgres adapter.</p><span class="eff">medium · adapter</span></div>
+      <div class="gap"><p>Webhook and scheduled-sweep triggers are not built yet (open item #7), so every run today starts from a person or another agent.</p><span class="eff">medium · code</span></div>
+      <div class="gap"><p>One deployment serves one client, from its own repo. Several clients on one host would need client-scoped storage keys and caches, which this design does not include.</p><span class="eff">design decision</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Sources: <code>services/ports/</code>, <code>services/adapters/</code>, <code>services/app/container.py</code>, <code>services/tests/test_architecture.py</code>, <code>OPEN_ITEMS.md</code>. Test count from the suite on 12 October 2026.</p>
+    <p>Companion pages: <a href="../../README.md">README</a> · <a href="../../SETUP.md">setup guide</a> · <a href="../developer/portal.html">developer portal</a>.</p>
+  </footer>
+</main>

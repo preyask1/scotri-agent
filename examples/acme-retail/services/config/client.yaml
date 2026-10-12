@@ -1,0 +1,14 @@
+# GENERATED from client/profile.yaml by `python -m app.setup render` (run from services/).
+# Do not edit: change the profile and re-render. See SETUP.md.
+
+client_name: Acme Retail
+display_name: Scotri
+logo: ''
+components:
+  adf: true
+  fabric: true
+catalogs:
+  prod: acme_prod
+  dev: acme_dev
+jira_projects:
+- ACME

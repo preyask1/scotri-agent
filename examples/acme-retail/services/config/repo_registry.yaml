@@ -1,0 +1,84 @@
+# GENERATED from client/profile.yaml by `python -m app.setup render` (run from services/).
+# Do not edit: change the profile and re-render. See SETUP.md.
+
+repos:
+- repo_key: databricks
+  ado_repo: Acme_Databricks_WS
+  ado_org: acme-data
+  ado_project: Data-Platform
+  environments:
+  - environment: prod
+    branch: release_main
+    mirrored: true
+    catalog: acme_prod
+  - environment: dev
+    branch: develop_main
+    mirrored: false
+    catalog: acme_dev
+- repo_key: adf
+  ado_org: acme-data
+  ado_project: Data-Platform
+  environments:
+  - environment: prod
+    ado_repo: AcmeAdfProd
+    branch: main
+    mirrored: true
+  - environment: dev
+    ado_repo: Data-Platform
+    branch: main
+    mirrored: false
+- repo_key: fabric_core
+  ado_repo: Acme-PowerBIReports
+  ado_org: AcmeFabricReports
+  ado_project: AcmeFabricReports
+  environments:
+  - environment: prod
+    branch: main
+    mirrored: true
+  - environment: prod
+    branch: hq_live
+    mirrored: true
+- repo_key: fabric_secondary
+  ado_repo: AcmeFabricReports
+  ado_org: AcmeFabricReports
+  ado_project: AcmeFabricReports
+  environments:
+  - environment: prod
+    branch: regional_main
+    mirrored: true
+  - environment: uat
+    branch: main
+    mirrored: false
+- repo_key: fabric_hq
+  ado_repo: PowerBI_Acme_HQ
+  ado_org: acme-data
+  ado_project: Data-Platform
+  environments:
+  - environment: prod
+    branch: main
+    mirrored: true
+  - environment: dev
+    branch: dev
+    mirrored: false
+- repo_key: fabric_stores
+  ado_repo: PowerBI_Acme_Field
+  ado_org: acme-data
+  ado_project: Data-Platform
+  environments:
+  - environment: prod
+    branch: main
+    mirrored: true
+  - environment: dev
+    branch: dev
+    mirrored: false
+- repo_key: fabric_regional
+  ado_repo: PowerBI_Acme_Regional
+  ado_org: acme-data
+  ado_project: Data-Platform
+  environments:
+  - environment: prod
+    branch: main
+    mirrored: true
+  - environment: dev
+    branch: dev
+    mirrored: false

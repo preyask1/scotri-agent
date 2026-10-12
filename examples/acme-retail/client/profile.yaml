@@ -1,0 +1,123 @@
+# Client profile — the one file that describes a deployment.
+#
+# `python -m app.setup render` (run from services/) turns this into services/config/*.yaml and the
+# generated docs under docs/ai/client/. Edit this file, never the generated ones, and re-run render.
+# Identifiers and choices only: NO secrets here. Credentials go into services/.env via
+# `python -m app.setup secrets` (or your vault). See SETUP.md.
+#
+# This example describes "Acme Retail", a fictional retailer.
+
+client:
+  name: Acme Retail                      # the business, as it appears in docs
+  display_name: Scotri                   # what users see the agent called (admin page, API, replies)
+  logo: ""                               # optional: an SVG/PNG under client/brand/, e.g. client/brand/logo.svg
+  host_os: windows                       # windows | linux — picks the venv interpreter path the agent runs
+
+components:                              # Databricks and Jira are always on
+  adf: true                              # Azure Data Factory pipelines and run history
+  fabric: true                           # Power BI / Fabric models and reports
+
+jira:
+  site_url: https://acme.atlassian.net
+  projects: [ACME]                       # ticket key prefixes; the first is the primary project
+
+databricks:
+  host: adb-1111111111111111.11.azuredatabricks.net
+  warehouse_id: ""                       # a SQL warehouse the service principal may use
+  catalogs:
+    prod: acme_prod
+    dev: acme_dev                        # leave empty if there is no dev catalog
+  schemas: [brnz, slvr, gold, insights]     # medallion layers the docs and skills refer to
+  secondary_workspace:                   # optional: a second workspace the agent may reach only
+    host: adb-2222222222222222.4.azuredatabricks.net   # from a bug's pipeline-failure trace
+    purpose: hosts the nightly jobs that write the Prod gold tables
+
+model: claude-sonnet-5-5                 # the Claude model every engagement runs on
+
+repos:
+  # kind: databricks | adf | fabric. environment: prod | dev | uat. Only prod branches are mirrored.
+  - repo_key: databricks
+    kind: databricks
+    ado_org: acme-data
+    ado_project: Data-Platform
+    ado_repo: Acme_Databricks_WS
+    environments:
+      - {environment: prod, branch: release_main, mirrored: true}
+      - {environment: dev, branch: develop_main, mirrored: false}
+
+  - repo_key: adf
+    kind: adf
+    ado_org: acme-data
+    ado_project: Data-Platform
+    environments:                        # ADF Dev and Prod are separate repos here
+      - {environment: prod, branch: main, mirrored: true, ado_repo: AcmeAdfProd}
+      - {environment: dev, branch: main, mirrored: false, ado_repo: Data-Platform}
+
+  - repo_key: fabric_core
+    kind: fabric
+    ado_org: AcmeFabricReports
+    ado_project: AcmeFabricReports
+    ado_repo: Acme-PowerBIReports
+    note: legacy structure; hq_live is a second, independent live content set
+    environments:
+      - {environment: prod, branch: main, mirrored: true}
+      - {environment: prod, branch: hq_live, mirrored: true}
+
+  - repo_key: fabric_secondary
+    kind: fabric
+    ado_org: AcmeFabricReports
+    ado_project: AcmeFabricReports
+    ado_repo: AcmeFabricReports
+    note: legacy structure
+    environments:
+      - {environment: prod, branch: regional_main, mirrored: true}
+      - {environment: uat, branch: main, mirrored: false}
+
+  - repo_key: fabric_hq
+    kind: fabric
+    ado_org: acme-data
+    ado_project: Data-Platform
+    ado_repo: PowerBI_Acme_HQ
+    note: new structure (head office)
+    environments:
+      - {environment: prod, branch: main, mirrored: true}
+      - {environment: dev, branch: dev, mirrored: false}
+
+  - repo_key: fabric_stores
+    kind: fabric
+    ado_org: acme-data
+    ado_project: Data-Platform
+    ado_repo: PowerBI_Acme_Field
+    note: new structure (field teams)
+    environments:
+      - {environment: prod, branch: main, mirrored: true}
+      - {environment: dev, branch: dev, mirrored: false}
+
+  - repo_key: fabric_regional
+    kind: fabric
+    ado_org: acme-data
+    ado_project: Data-Platform
+    ado_repo: PowerBI_Acme_Regional
+    note: new structure (regions)
+    environments:
+      - {environment: prod, branch: main, mirrored: true}
+      - {environment: dev, branch: dev, mirrored: false}
+
+fabric:
+  tenant_id: ""                          # the Entra tenant Power BI/Fabric lives in
+  workspaces:                            # Fabric workspace -> the repo/branch it is git-synced to
+    - {name: ACME-Fabric-Prod, repo_key: fabric_core, branch: main}
+    - {name: ACME-Fabric-HO-Prod, repo_key: fabric_core, branch: hq_live}
+    - {name: ACME-Fabric-Prod-2, repo_key: fabric_secondary, branch: regional_main}
+    - {name: ACME-HQ-Prod, repo_key: fabric_hq, branch: main}
+    - {name: ACME-Field-Prod, repo_key: fabric_stores, branch: main}
+    - {name: ACME-Regional-Prod, repo_key: fabric_regional, branch: main}
+
+adf:
+  tenant_id: ""                          # the Entra tenant the factories live in
+  client_id: ""                          # app registration trusted via a federated credential
+  factories:
+    - {environment: prod, factory_name: acme-adf-prod, subscription_id: "00000000-0000-0000-0000-000000000000",
+       resource_group: rg-acme-data, default: true}
+    - {environment: prod, factory_name: acme-ingest-adf, subscription_id: "", resource_group: ""}
+    - {environment: prod, factory_name: acme-analytics-adf, subscription_id: "", resource_group: ""}

@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Scotri Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 48 48&quot; width=&quot;32&quot; height=&quot;32&quot; role=&quot;img&quot; aria-label=&quot;Scotri&quot;%3E %3Ctitle%3EScotri%3C/title%3E %3Crect width=&quot;48&quot; height=&quot;48&quot; rx=&quot;10&quot; fill=&quot;#12151A&quot;/%3E %3Cg transform=&quot;translate(24 24) scale(0.74) translate(-24 -24)&quot; fill=&quot;none&quot;%3E %3Cpath d=&quot;M14.5 16.2 Q 27 7.5 41 24&quot; stroke=&quot;#F6F4EF&quot; stroke-width=&quot;5.2&quot; stroke-linecap=&quot;round&quot;/%3E %3Cpath d=&quot;M33.5 31.8 Q 21 40.5 7 24&quot; stroke=&quot;#F6F4EF&quot; stroke-width=&quot;5.2&quot; stroke-linecap=&quot;round&quot;/%3E %3Ccircle cx=&quot;24&quot; cy=&quot;24&quot; r=&quot;4.6&quot; fill=&quot;#5FB3A6&quot;/%3E %3C/g%3E %3C/svg%3E">
+<!--
+  Admin panel (OPEN_ITEMS.md #43). A static shell served at /admin: it holds no data and no
+  credential. It asks for a bearer token (kept in sessionStorage for this tab only) and calls
+  /v1/admin/*, where every route checks ADMIN_ROLES and writes the admin audit log itself. Every value
+  from the API is set with textContent, never innerHTML, because log lines and prompts are untrusted.
+-->
+<style>
+  /* Brand tokens (docs/brand/README.md): ink on paper is the identity; Verified is the only accent
+     and marks something verified (ok states, live links, the settle flash). Caption is 13px and up. */
+  :root {
+    --bg: #F6F4EF; --panel: #FBFAF7; --text: #12151A; --muted: #6B6F76; --line: #E2DFD8;
+    --accent: #2A6F66; --ok: #2A6F66; --warn: #8A5A00; --bad: #B3261E; --chip: #ECE9E2; --code: #EFECE5;
+    --font-display: "Space Grotesk", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --scotri-ink: var(--text); --scotri-accent: var(--accent);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151A; --panel: #191D23; --text: #F6F4EF; --muted: #9BA1A8; --line: #2B3038;
+      --accent: #5FB3A6; --ok: #5FB3A6; --warn: #D4A72C; --bad: #F2716B; --chip: #232830; --code: #161A20;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151A; --panel: #191D23; --text: #F6F4EF; --muted: #9BA1A8; --line: #2B3038;
+    --accent: #5FB3A6; --ok: #5FB3A6; --warn: #D4A72C; --bad: #F2716B; --chip: #232830; --code: #161A20;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 var(--font-body); }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+           padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { margin: 0; display: flex; align-items: center; gap: 10px; font: 600 18px/1 var(--font-display); letter-spacing: .2px; }
+  header h1 .scotri-anim { width: 32px; height: 32px; }
+  header h1 .sub { font-weight: 500; color: var(--muted); }
+  section.card h2, #login h2 { font-family: var(--font-display); font-weight: 600; }
+  header .who { color: var(--muted); font-size: 13px; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  nav button { background: none; border: 0; padding: 6px 10px; border-radius: 6px; color: var(--muted); cursor: pointer; font: inherit; }
+  nav button[aria-selected="true"] { background: var(--chip); color: var(--text); font-weight: 600; }
+  main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+  section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+  section.card h2 { font-size: 14px; margin: 0 0 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  input, select, textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+                            border-radius: 6px; padding: 6px 8px; min-width: 0; }
+  button.act { font: inherit; background: var(--text); color: var(--bg); border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button.act:disabled { opacity: .6; cursor: default; }
+  button.ghost { font: inherit; background: none; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.mono, pre, code { font-family: var(--font-mono); font-size: 12px; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow: auto;
+        max-height: 60vh; white-space: pre-wrap; word-break: break-word; margin: 0; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--chip); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+  .stat .k { color: var(--muted); font-size: 12px; } .stat .v { font-size: 18px; font-weight: 600; }
+  #msg { padding: 8px 16px; display: none; } #msg.show { display: block; }
+  #login { max-width: 520px; margin: 40px auto; }
+  .hidden { display: none !important; }
+  a.link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+  .sync-mark { width: 24px; height: 24px; color: var(--text); }
+  .repo-sync { display: flex; align-items: center; gap: 8px; min-width: 260px; }
+  .repo-sync button.ghost { padding: 2px 10px; font-size: 12px; }
+  .repo-sync button:disabled { opacity: .5; cursor: default; }
+  .bar { flex: 1; height: 6px; border-radius: 999px; background: var(--chip); overflow: hidden; min-width: 90px; }
+  .bar > span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--text);
+                transition: width 400ms cubic-bezier(.4,0,.2,1); }
+  .bar.done > span { background: var(--ok); } .bar.failed > span { background: var(--bad); }
+  .bar.queued > span { width: 0; }
+  .repo-sync .pct { font-size: 12px; color: var(--muted); min-width: 92px; font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
+
+  /* Scotri motion (docs/brand/animations/scotri-motion.css, copied as-is). The mark only turns about
+     its own centre, trims its arcs, or beats at the pupil. Used here: trace (boot), scan (working),
+     queued (waiting on another sync's lock), settle (done). */
+  .scotri-anim { display: inline-block; flex: none; }
+  .scotri-anim svg { display: block; width: 100%; height: 100%; }
+  .scotri-anim .arcs, .scotri-anim .pupil { transform-box: view-box; transform-origin: 24px 24px; }
+  @keyframes scotri-scan     { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+  @keyframes scotri-draw     { 0% { stroke-dashoffset: 100; } 55%, 100% { stroke-dashoffset: 0; } }
+  @keyframes scotri-pupil-in { 0%, 45% { transform: scale(0); } 72% { transform: scale(1.22); } 100% { transform: scale(1); } }
+  @keyframes scotri-dim      { 0%, 100% { opacity: 1; } 50% { opacity: 0.28; } }
+  @keyframes scotri-settle-arcs  { 0% { transform: rotate(180deg); } 58%, 100% { transform: rotate(360deg); } }
+  @keyframes scotri-settle-pupil { 0%, 44% { fill: var(--scotri-ink, #12151A); transform: scale(0.55); }
+                                   62% { fill: var(--scotri-accent, #2A6F66); transform: scale(1.24); }
+                                   76% { fill: var(--scotri-accent, #2A6F66); transform: scale(1); }
+                                   100% { fill: var(--scotri-ink, #12151A); transform: scale(1); } }
+  .scotri-trace .arcs path { animation: scotri-draw 1.5s cubic-bezier(.22,.7,.3,1) both; }
+  .scotri-trace .arcs path:nth-child(2) { animation-delay: 0.14s; }
+  .scotri-trace .pupil { animation: scotri-pupil-in 1.5s cubic-bezier(.3,1.4,.5,1) both; }
+  .scotri-scan .arcs { animation: scotri-scan 2.4s linear infinite; }
+  .scotri-queued { opacity: 0.62; }
+  .scotri-queued .arcs  { animation: scotri-scan 4s steps(8, end) infinite; }
+  .scotri-queued .pupil { animation: scotri-dim 4s steps(8, end) infinite; }
+  /* Determinate progress: the overall sync's N of M. Set --scotri-progress from 0 to 1. */
+  .scotri-ring .ring { stroke-dashoffset: calc(100 - (var(--scotri-progress, 0) * 100)); transition: stroke-dashoffset 400ms cubic-bezier(.4,0,.2,1); }
+  .scotri-settle .arcs  { animation: scotri-settle-arcs 1.7s cubic-bezier(.16,.9,.24,1) both; }
+  .scotri-settle .pupil { animation: scotri-settle-pupil 1.7s cubic-bezier(.16,.9,.24,1) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .scotri-anim * { animation: none !important; transition: none !important; }
+    .scotri-anim .pupil { transform: scale(1); fill: var(--scotri-ink, #12151A); }
+    .scotri-queued { opacity: 0.62; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="scotri-anim scotri-trace" id="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none">
+      <g class="arcs">
+        <path pathLength="100" stroke-dasharray="100 100" d="M14.5 16.2 Q 27 7.5 41 24" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/>
+        <path pathLength="100" stroke-dasharray="100 100" d="M33.5 31.8 Q 21 40.5 7 24" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/>
+      </g>
+      <circle class="pupil" cx="24" cy="24" r="4.1" fill="currentColor"/>
+    </svg></span><span>Scotri</span><span class="sub">Admin</span></h1>
+  <div class="row" style="margin:0">
+    <span class="who" id="who"></span>
+    <button class="ghost hidden" id="signout" type="button">Forget token</button>
+  </div>
+</header>
+<nav id="tabs" class="hidden" role="tablist">
+  <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+  <button role="tab" data-tab="queue">Queue</button>
+  <button role="tab" data-tab="engagements">Engagements</button>
+  <button role="tab" data-tab="logs">Logs</button>
+  <button role="tab" data-tab="apps">Apps</button>
+  <button role="tab" data-tab="audit">Audit</button>
+</nav>
+<div id="msg" role="status"></div>
+<main>
+  <section class="card" id="login">
+    <h2>Sign in</h2>
+    <p class="muted">Paste a bearer token for the Scotri API. It is kept in this tab's session storage only.
+      Admin routes need a role listed in <code>ADMIN_ROLES</code>; every call is written to the admin audit log.</p>
+    <div class="row"><input id="token" type="password" placeholder="Bearer token" style="flex:1" autocomplete="off">
+      <button class="act" id="signin" type="button">Continue</button></div>
+  </section>
+
+  <div id="view-overview" class="view hidden"></div>
+
+  <div id="view-queue" class="view hidden"></div>
+  <div id="view-engagements" class="view hidden">
+    <section class="card">
+      <h2>Engagements (all callers)</h2>
+      <div class="row">
+        <input id="eng-subject" placeholder="subject (optional)">
+        <select id="eng-status"><option value="">any status</option><option>succeeded</option><option>failed</option>
+          <option>cancelled</option><option>running</option><option>queued</option></select>
+        <input id="eng-limit" type="number" value="50" min="1" max="500" style="width:90px">
+        <button class="act" id="eng-load" type="button">Load</button>
+      </div>
+      <div class="tablewrap"><table id="eng-table"></table></div>
+    </section>
+    <section class="card hidden" id="steps-card">
+      <h2 id="steps-title">Steps</h2>
+      <div class="tablewrap"><table id="steps-table"></table></div>
+    </section>
+  </div>
+
+  <div id="view-logs" class="view hidden">
+    <section class="card">
+      <h2>Logs</h2>
+      <div class="row">
+        <select id="log-source"></select>
+        <input id="log-lines" type="number" value="200" min="1" max="2000" style="width:90px">
+        <input id="log-filter" placeholder="contains (optional)">
+        <button class="act" id="log-load" type="button">Tail</button>
+      </div>
+      <p class="muted" id="log-meta"></p>
+      <pre id="log-out"></pre>
+    </section>
+  </div>
+
+  <div id="view-apps" class="view hidden">
+    <section class="card">
+      <h2>Caller apps</h2>
+      <p class="muted">Client apps that call Scotri, keyed by the token's <code>azp</code>/<code>appid</code>.
+        This is a record only: Scotri never issues or stores a token, and removing a record does not revoke anything.</p>
+      <div class="tablewrap"><table id="apps-table"></table></div>
+    </section>
+    <section class="card">
+      <h2>Register or update</h2>
+      <div class="row">
+        <input id="app-id" placeholder="app id (azp)">
+        <input id="app-name" placeholder="name">
+        <select id="app-kind"><option value="interactive">interactive</option><option value="service">service</option></select>
+        <input id="app-owner" placeholder="owner (optional)">
+      </div>
+      <div class="row"><input id="app-notes" placeholder="notes (optional, never a secret)" style="flex:1">
+        <button class="act" id="app-save" type="button">Save</button></div>
+    </section>
+  </div>
+
+  <div id="view-audit" class="view hidden">
+    <section class="card">
+      <h2>Admin audit log</h2>
+      <div class="tablewrap"><table id="audit-table"></table></div>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const KEY = "scotri-admin-token";
+  // scotri-ui keeps its token under this key. When the panel is opened from scotri-ui's "Admin" link
+  // on the same origin (its Vite dev proxy), reuse it instead of asking again. Across origins, as when
+  // the UI and API are deployed separately, the browser keeps them apart and the panel asks as before.
+  const UI_KEY = "scotri.devAuthToken";
+  const store = {
+    get() { try { return sessionStorage.getItem(KEY) || sessionStorage.getItem(UI_KEY); } catch { return null; } },
+    set(v) { try { sessionStorage.setItem(KEY, v); } catch { /* memory only */ } },
+    clear() { try { sessionStorage.removeItem(KEY); sessionStorage.removeItem(UI_KEY); } catch { /* nothing to clear */ } },
+  };
+  let token = store.get();
+
+  function el(tag, text, cls) {
+    const n = document.createElement(tag);
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    if (cls) n.className = cls;
+    return n;
+  }
+  function say(text, cls) {
+    const m = $("msg"); m.textContent = text || ""; m.className = text ? "show " + (cls || "") : "";
+  }
+  // The header mark plays trace once at boot, then scans while any request has been in flight for
+  // more than 300ms (scan is the brand's default "working" state; quick calls don't flicker it).
+  let inflight = 0, scanTimer = null, booted = false;
+  setTimeout(() => { booted = true; $("brand-mark").classList.remove("scotri-trace"); if (inflight) $("brand-mark").classList.add("scotri-scan"); }, 1700);
+  function busy(delta) {
+    inflight += delta;
+    if (inflight > 0 && !scanTimer) scanTimer = setTimeout(() => { if (booted && inflight > 0) $("brand-mark").classList.add("scotri-scan"); }, 300);
+    if (inflight === 0) { clearTimeout(scanTimer); scanTimer = null; $("brand-mark").classList.remove("scotri-scan"); }
+  }
+  async function api(path, opts = {}) {
+    busy(1);
+    try { return await apiCall(path, opts); } finally { busy(-1); }
+  }
+  async function apiCall(path, opts) {
+    const res = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + token,
+      ...(opts.body ? { "Content-Type": "application/json" } : {}) } });
+    let body = null;
+    try { body = await res.json(); } catch { /* non-JSON */ }
+    if (!res.ok) {
+      const detail = body && (body.message || body.detail);
+      const err = new Error(typeof detail === "string" ? detail : ("HTTP " + res.status));
+      err.status = res.status; throw err;
+    }
+    return body;
+  }
+  function table(target, headers, rows) {
+    const t = $(target); t.replaceChildren();
+    const head = el("tr"); headers.forEach((h) => head.appendChild(el("th", h)));
+    const thead = el("thead"); thead.appendChild(head); t.appendChild(thead);
+    const tb = el("tbody");
+    if (!rows.length) { const tr = el("tr"); const td = el("td", "Nothing to show.", "muted"); td.colSpan = headers.length; tr.appendChild(td); tb.appendChild(tr); }
+    rows.forEach((cells) => {
+      const tr = el("tr");
+      cells.forEach((c) => { const td = el("td"); if (c instanceof Node) td.appendChild(c); else td.textContent = c ?? ""; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+  }
+  const when = (iso) => iso ? new Date(iso).toLocaleString() : "";
+  const pill = (text, cls) => el("span", text, "pill " + (cls || ""));
+  const statusCls = (s) => ({ succeeded: "ok", ok: "ok", failed: "bad", error: "bad", denied: "bad", running: "warn", queued: "warn" })[s] || "";
+
+  // --- tabs ---------------------------------------------------------------------------------------
+  const loaders = {};
+  let queueTimer = null;
+  function show(tab) {
+    clearInterval(queueTimer); queueTimer = null;
+    document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== "view-" + tab));
+    say("");
+    if (loaders[tab]) loaders[tab]().catch((e) => say(e.message, "bad"));
+  }
+  $("tabs").addEventListener("click", (e) => { const t = e.target.closest("button"); if (t) show(t.dataset.tab); });
+
+  // --- queue (OPEN_ITEMS.md #32) -------------------------------------------------------------------
+  // Jobs waiting for a free slot, in the order they will start, and the jobs holding a slot now.
+  // Refreshes every 5s while this tab is open. Cancel takes a waiting job out of the line; it never ran,
+  // and its owner sees "cancelled by an admin" with the prompt to send again.
+  const mins = (s) => s < 60 ? s + "s" : Math.floor(s / 60) + "m " + (s % 60) + "s";
+  loaders.queue = async () => {
+    await renderQueue();
+    clearInterval(queueTimer);
+    queueTimer = setInterval(() => { if (!$("view-queue").classList.contains("hidden")) renderQueue().catch(() => {}); }, 5000);
+  };
+  async function renderQueue() {
+    const q = await api("/v1/admin/queue");
+    const root = $("view-queue"); root.replaceChildren();
+    const top = el("section", null, "card"); top.appendChild(el("h2", "Engagement queue"));
+    const grid = el("div", null, "grid");
+    const stat = (k, v, cls) => { const s = el("div", null, "stat"); s.appendChild(el("div", k, "k")); s.appendChild(el("div", v, "v " + (cls || ""))); grid.appendChild(s); };
+    const full = q.running.length >= q.limits.max_running;
+    stat("Running", q.running.length + " of " + q.limits.max_running, full ? "warn" : "ok");
+    stat("Waiting", q.waiting.length + " (max " + q.limits.max_length + ")", q.waiting.length ? "warn" : "");
+    stat("Per-user waiting limit", String(q.limits.max_waiting_per_user));
+    stat("Wait limit", Math.round(q.limits.max_wait_seconds / 60) + " min");
+    top.appendChild(grid); root.appendChild(top);
+
+    const wait = el("section", null, "card"); wait.appendChild(el("h2", "Waiting (first starts first)"));
+    wait.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "queue-waiting"; root.appendChild(wait);
+    table("queue-waiting", ["#", "Who", "Waited", "Prompt", ""], q.waiting.map((j) => {
+      const b = el("button", "Cancel", "ghost"); b.type = "button";
+      b.addEventListener("click", async () => {
+        if (!confirm("Take " + (j.display_name || j.subject) + "'s request out of the queue? It never ran; they can send it again.")) return;
+        try { await api("/v1/admin/queue/" + encodeURIComponent(j.job_id) + "/cancel", { method: "POST" }); say("Removed from the queue.", "ok"); await renderQueue(); }
+        catch (e) { say(e.message, "bad"); }
+      });
+      return [String(j.position), j.display_name || j.subject, mins(j.waited_seconds), j.prompt_preview, b];
+    }));
+
+    const run = el("section", null, "card"); run.appendChild(el("h2", "Running"));
+    run.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "queue-running"; root.appendChild(run);
+    table("queue-running", ["Started", "Who", "Status", "Prompt", ""], q.running.map((j) => [
+      when(j.created_at), j.display_name || j.subject || j.job_id, pill(j.status, statusCls(j.status)), j.prompt_preview,
+      j.status === "unknown" ? "" : stepsLink(j.job_id)]));
+  }
+
+  // --- overview -----------------------------------------------------------------------------------
+  loaders.overview = async () => {
+    const o = await api("/v1/admin/overview");
+    const root = $("view-overview"); root.replaceChildren();
+    const top = el("section", null, "card"); top.appendChild(el("h2", "Health"));
+    const grid = el("div", null, "grid");
+    const stat = (k, v, cls) => { const s = el("div", null, "stat"); s.appendChild(el("div", k, "k")); s.appendChild(el("div", v, "v " + (cls || ""))); grid.appendChild(s); };
+    stat("Redis", o.redis.ok ? "up" : ("down: " + o.redis.error), o.redis.ok ? "ok" : "bad");
+    stat("Running jobs", o.active_jobs.ok ? o.active_jobs.count : "unknown", o.active_jobs.ok ? "" : "bad");
+    stat("Waiting in queue", o.queue.ok ? String(o.queue.waiting.length) : "unknown", !o.queue.ok ? "bad" : o.queue.waiting.length ? "warn" : "");
+    stat("Auth mode", o.config.auth_mode, o.config.auth_mode === "dev" ? "warn" : "");
+    const lr = o.mirror.ok ? o.mirror.last_run_at : null;
+    stat("Mirror last sync", o.mirror.ok ? (lr ? when(lr) : "never") : o.mirror.error, o.mirror.ok && lr ? "" : "warn");
+    top.appendChild(grid); root.appendChild(top);
+
+    const gov = el("section", null, "card"); gov.appendChild(el("h2", "Query governor"));
+    gov.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "gov-table"; root.appendChild(gov);
+    if (o.governor.ok) {
+      gov.insertBefore(el("p", "Rate limit: " + o.governor.rate_limit_per_user_per_hour + " per user per hour.", "muted"), gov.children[1]);
+      table("gov-table", ["Backend", "In flight", "Cap"], o.governor.backends.map((b) => [b.backend, String(b.in_flight), String(b.max_concurrent ?? "")]));
+    } else gov.appendChild(el("p", o.governor.error, "bad"));
+
+    const jobs = el("section", null, "card"); jobs.appendChild(el("h2", "Queued and running"));
+    jobs.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "jobs-table"; root.appendChild(jobs);
+    if (o.active_jobs.ok) table("jobs-table", ["Started", "Who", "Status", "Phase", "Prompt", ""], o.active_jobs.jobs.map((j) => [
+      when(j.created_at), j.display_name || j.subject, pill(j.status, statusCls(j.status)), j.progress ? j.progress.phase : "",
+      j.prompt_preview, stepsLink(j.job_id)]));
+    else jobs.appendChild(el("p", o.active_jobs.error, "bad"));
+
+    const mir = el("section", null, "card"); mir.appendChild(el("h2", "Mirror"));
+    const syncBar = el("div", null, "row");
+    const syncBtn = el("button", "Sync now", "act"); syncBtn.type = "button"; syncBtn.id = "mirror-sync";
+    syncBtn.title = "Refresh every mirrored Prod repo/branch now, the same run the schedule does";
+    const syncState = el("span", "", "muted"); syncState.id = "mirror-sync-state";
+    syncBar.append(syncBtn, scotriMark("sync-mark hidden", "mirror-sync-mark", 5.2, 4.6), ringMark("sync-mark hidden", "mirror-sync-ring"), syncState);
+    mir.appendChild(syncBar);
+    syncBtn.addEventListener("click", () => startMirrorSync());
+    mir.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "mirror-table"; root.appendChild(mir);
+    if (o.mirror.ok) {
+      if (o.mirror.maintenance_error) mir.insertBefore(el("p", "Maintenance flags unknown: " + o.mirror.maintenance_error, "bad"), mir.children[1]);
+      table("mirror-table", ["Repo", "Branch", "Freshness", "Maintenance", "Sync"], o.mirror.repos.map((r) => {
+        const f = r.freshness, label = !f.available ? "unknown" : f.repo_ok === false ? "sync failed" : f.stale ? "stale" : "fresh";
+        const p = pill(label, label === "fresh" ? "ok" : label === "sync failed" ? "bad" : "warn");
+        if (f.warning) p.title = f.warning;
+        return [r.repo_key, r.branch, p, !r.maintenance ? "unknown" : r.maintenance.active ? pill("swap in progress", "warn") : "none",
+                repoSyncCell(r.repo_key, r.branch)];
+      }));
+    } else mir.appendChild(el("p", o.mirror.error, "bad"));
+
+    const cfg = el("section", null, "card"); cfg.appendChild(el("h2", "Configuration (set or unset, never values)"));
+    cfg.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "cfg-table"; root.appendChild(cfg);
+    const rows = Object.entries(o.config.settings).map(([k, v]) => [k, pill(v ? "set" : "unset", v ? "ok" : "warn")]);
+    Object.entries(o.config.roles).forEach(([k, v]) => rows.push([k, v.length ? v.join(", ") : pill("empty: owner-only / nobody", "muted")]));
+    table("cfg-table", ["Setting", "State"], rows);
+    showMirrorSync(await api("/v1/admin/mirror/sync").catch(() => null));
+  };
+
+  // --- manual mirror sync -------------------------------------------------------------------------
+  // The mark beside the button: scan while this panel's sync runs, queued (stepped, dimmed) while
+  // another path holds the shared sync lock, settle once when a sync started here finishes.
+  const SVG = "http://www.w3.org/2000/svg";
+  function scotriMark(cls, id, stroke, r) {
+    const wrap = el("span", null, "scotri-anim " + cls); wrap.id = id; wrap.setAttribute("aria-hidden", "true");
+    const svg = document.createElementNS(SVG, "svg"); svg.setAttribute("viewBox", "0 0 48 48"); svg.setAttribute("fill", "none");
+    const arcs = document.createElementNS(SVG, "g"); arcs.setAttribute("class", "arcs");
+    ["M14.5 16.2 Q 27 7.5 41 24", "M33.5 31.8 Q 21 40.5 7 24"].forEach((d) => {
+      const p = document.createElementNS(SVG, "path");
+      p.setAttribute("d", d); p.setAttribute("stroke", "currentColor"); p.setAttribute("stroke-width", String(stroke)); p.setAttribute("stroke-linecap", "round");
+      arcs.appendChild(p);
+    });
+    const pupil = document.createElementNS(SVG, "circle"); pupil.setAttribute("class", "pupil");
+    pupil.setAttribute("cx", "24"); pupil.setAttribute("cy", "24"); pupil.setAttribute("r", String(r)); pupil.setAttribute("fill", "currentColor");
+    svg.append(arcs, pupil); wrap.appendChild(svg);
+    return wrap;
+  }
+  function setMark(id, state) {
+    const m = $(id); if (!m) return;
+    m.classList.remove("scotri-scan", "scotri-queued", "scotri-settle", "hidden");
+    if (!state) { m.classList.add("hidden"); return; }
+    void m.offsetWidth;  // restart a one-shot animation
+    m.classList.add("scotri-" + state);
+  }
+  // The determinate ring (scotri-motion.css "Ring"): its own slightly smaller arcs inside a progress
+  // circle drawn in Verified, filled to --scotri-progress as the repos complete.
+  function ringMark(cls, id) {
+    const wrap = el("span", null, "scotri-anim scotri-ring " + cls); wrap.id = id; wrap.setAttribute("aria-hidden", "true");
+    const svg = document.createElementNS(SVG, "svg"); svg.setAttribute("viewBox", "0 0 48 48"); svg.setAttribute("fill", "none");
+    const ring = document.createElementNS(SVG, "circle");
+    [["class", "ring"], ["cx", "24"], ["cy", "24"], ["r", "21.5"], ["pathLength", "100"], ["stroke-dasharray", "100 100"],
+     ["stroke-width", "3.2"], ["stroke-linecap", "round"], ["transform", "rotate(-90 24 24)"]]
+      .forEach(([k, v]) => ring.setAttribute(k, v));
+    ring.style.stroke = "var(--accent)";  // a presentation attribute can't take a CSS variable
+    const arcs = document.createElementNS(SVG, "g"); arcs.setAttribute("class", "arcs");
+    ["M15.8 17.6 Q 26.4 10.1 37.6 23.2", "M32.2 30.4 Q 21.6 37.9 10.4 24.8"].forEach((d) => {
+      const p = document.createElementNS(SVG, "path");
+      p.setAttribute("d", d); p.setAttribute("stroke", "currentColor"); p.setAttribute("stroke-width", "5.2"); p.setAttribute("stroke-linecap", "round");
+      arcs.appendChild(p);
+    });
+    const pupil = document.createElementNS(SVG, "circle"); pupil.setAttribute("class", "pupil");
+    pupil.setAttribute("cx", "24"); pupil.setAttribute("cy", "24"); pupil.setAttribute("r", "4.4"); pupil.setAttribute("fill", "currentColor");
+    svg.append(ring, arcs, pupil); wrap.appendChild(svg);
+    return wrap;
+  }
+  const rowId = (key, branch) => "sync-" + key + "--" + branch.replace(/[^A-Za-z0-9_-]/g, "_");
+  function repoSyncCell(key, branch) {
+    const cell = el("div", null, "repo-sync"); cell.id = rowId(key, branch);
+    const bar = el("div", null, "bar hidden"); bar.appendChild(el("span"));
+    bar.setAttribute("role", "progressbar"); bar.setAttribute("aria-valuemin", "0"); bar.setAttribute("aria-valuemax", "100");
+    bar.setAttribute("aria-label", "Sync progress for " + key + "@" + branch);
+    const pct = el("span", "", "pct hidden");
+    const btn = el("button", "Sync", "ghost"); btn.type = "button"; btn.title = "Refresh only " + key + "@" + branch;
+    btn.addEventListener("click", () => startMirrorSync(key, branch));
+    cell.append(bar, pct, btn);
+    return cell;
+  }
+  const PHASE = { queued: "Queued", fetching: "Fetching", swapping: "Swapping in", caching: "Indexing for search", done: "Done", failed: "Failed", skipped: "Not reached" };
+  function showRepoRows(s, locked) {
+    const rows = new Map((s.repos || []).map((r) => [rowId(r.repo_key, r.branch), r]));
+    document.querySelectorAll(".repo-sync").forEach((cell) => {
+      const [bar, pct, btn] = cell.children, r = rows.get(cell.id);
+      btn.disabled = locked;
+      bar.classList.toggle("hidden", !r); pct.classList.toggle("hidden", !r);
+      if (!r) return;
+      bar.className = "bar " + (r.phase === "done" ? "done" : r.phase === "failed" ? "failed" : r.phase === "queued" ? "queued" : "");
+      bar.firstChild.style.width = r.percent + "%"; bar.setAttribute("aria-valuenow", String(r.percent));
+      pct.textContent = (PHASE[r.phase] || r.phase) + (r.phase === "fetching" || r.phase === "swapping" || r.phase === "caching" ? " " + r.percent + "%" : "");
+      pct.className = "pct " + (r.phase === "failed" ? "bad" : r.phase === "done" ? "ok" : "");
+      pct.title = r.message || "";
+    });
+  }
+  let syncPoll = null, sawOurRun = false, settleNext = false;
+  function showMirrorSync(s) {
+    const btn = $("mirror-sync"), out = $("mirror-sync-state");
+    if (!btn || !s) return;
+    const elsewhere = !s.running && s.lock_holder;
+    btn.disabled = Boolean(s.running || elsewhere);
+    btn.textContent = s.running ? "Syncing…" : elsewhere ? "Sync running elsewhere" : "Sync now";
+    showRepoRows(s, Boolean(s.running || elsewhere));
+    const ring = $("mirror-sync-ring");
+    if (s.running) {
+      sawOurRun = true; setMark("mirror-sync-mark", null);
+      const repos = s.repos || [], done = repos.filter((r) => r.phase === "done" || r.phase === "failed").length;
+      const overall = repos.length ? repos.reduce((a, r) => a + r.percent, 0) / (100 * repos.length) : 0;
+      ring.classList.remove("hidden"); ring.style.setProperty("--scotri-progress", overall.toFixed(3));
+      out.className = "muted";
+      out.textContent = (s.scope === "all" ? "Syncing every mirrored repo" : "Syncing " + s.scope) + ": " + done + " of " + repos.length +
+        " done. Started " + when(s.started_at) + " by " + s.started_by + ".";
+    } else if (elsewhere) {
+      ring.classList.add("hidden"); setMark("mirror-sync-mark", "queued");
+      out.className = "muted"; out.textContent = "Waiting: another mirror sync holds the lock (" + s.lock_holder + ").";
+    } else {
+      ring.classList.add("hidden");
+      setMark("mirror-sync-mark", settleNext && s.finished_at ? "settle" : null); settleNext = false;
+      if (s.finished_at) {
+        out.className = s.failed ? "bad" : "ok";
+        out.textContent = "Last manual sync (" + (s.scope === "all" ? "every repo" : s.scope) + ") " + when(s.finished_at) + ": " +
+          s.checked + " checked, " + s.failed + " failed" +
+          (s.failed ? " (" + s.failures.map((f) => (f.repo ? f.repo + "@" + f.branch : "run") + ": " + (f.message || f.category)).join("; ") + ")" : "") + ".";
+      } else { out.className = "muted"; out.textContent = ""; }
+    }
+    const waiting = s.running || elsewhere, every = s.running ? 1000 : 3000;
+    if (syncPoll && (!waiting || syncPoll.every !== every)) { clearInterval(syncPoll.id); syncPoll = null; }
+    if (waiting && !syncPoll) syncPoll = { id: setInterval(pollMirrorSync, every), every };
+  }
+  async function pollMirrorSync() {
+    try {
+      const s = await api("/v1/admin/mirror/sync");
+      if (s.running || s.lock_holder) { showMirrorSync(s); return; }
+      if (syncPoll) { clearInterval(syncPoll.id); syncPoll = null; }
+      if (sawOurRun) {
+        sawOurRun = false; settleNext = !s.failed;
+        await loaders.overview();
+        say(s.failed ? "Mirror sync finished with failures." : "Mirror sync finished.", s.failed ? "bad" : "ok");
+      } else showMirrorSync(s);
+    } catch (e) { say(e.message, "bad"); }
+  }
+  async function startMirrorSync(key, branch) {
+    const one = typeof key === "string";
+    const what = one ? key + "@" + branch : "every mirrored Prod repo";
+    if (!confirm("Refresh " + what + " now? This runs the same sync as the schedule" + (one ? "" : " and can take a few minutes") + ".")) return;
+    try {
+      const s = await api("/v1/admin/mirror/sync", one ? { method: "POST", body: JSON.stringify({ repo_key: key, branch }) } : { method: "POST" });
+      showMirrorSync(s); say("Mirror sync started (" + (one ? what : "every repo") + ").", "ok");
+    } catch (e) { say(e.message, "bad"); }
+  }
+
+  // --- engagements --------------------------------------------------------------------------------
+  function stepsLink(jobId) {
+    const a = el("a", "steps", "link"); a.href = "#"; a.addEventListener("click", (e) => { e.preventDefault(); loadSteps(jobId); });
+    return a;
+  }
+  async function loadSteps(jobId) {
+    if (!document.querySelector('#tabs [data-tab="engagements"][aria-selected="true"]')) show("engagements");
+    $("steps-card").classList.remove("hidden"); $("steps-title").textContent = "Steps of " + jobId + " (loading…)";
+    try {
+      const s = await api("/v1/admin/engagements/" + encodeURIComponent(jobId) + "/steps");
+      $("steps-title").textContent = "Steps of " + jobId + " (owner " + s.owner + ", " + s.status + ")";
+      table("steps-table", ["Time", "Kind", "Tool", "Input / text", "Result"], s.steps.map((st) => [
+        st.timestamp ? new Date(st.timestamp).toLocaleTimeString() : "", st.kind, st.tool || "",
+        st.kind === "message" ? (st.text || "") : (st.input_summary || ""), st.result_preview || ""]));
+      $("steps-card").scrollIntoView({ behavior: "smooth" });
+    } catch (e) { $("steps-title").textContent = "Steps of " + jobId + ": " + e.message; table("steps-table", [], []); }
+  }
+  loaders.engagements = async () => {
+    const q = new URLSearchParams({ limit: $("eng-limit").value || "50" });
+    if ($("eng-subject").value.trim()) q.set("subject", $("eng-subject").value.trim());
+    if ($("eng-status").value) q.set("status", $("eng-status").value);
+    const r = await api("/v1/admin/engagements?" + q);
+    table("eng-table", ["Created", "Who", "Platform", "Status", "Prompt", "Error", ""], r.engagements.map((e) => [
+      when(e.created_at), e.display_name || e.subject, e.platform, pill(e.status, statusCls(e.status)),
+      e.prompt_preview, e.error || "", stepsLink(e.job_id)]));
+  };
+  $("eng-load").addEventListener("click", () => loaders.engagements().catch((e) => say(e.message, "bad")));
+
+  // --- logs ---------------------------------------------------------------------------------------
+  let sourcesLoaded = false;
+  loaders.logs = async () => {
+    if (!sourcesLoaded) {
+      const r = await api("/v1/admin/logs");
+      const sel = $("log-source"); sel.replaceChildren();
+      r.sources.forEach((s) => { const o = el("option", s.source + (s.exists ? " (" + (s.size < 1024 ? s.size + " B" : Math.round(s.size / 1024) + " KB") + ")" : " (no file)")); o.value = s.source; sel.appendChild(o); });
+      sourcesLoaded = true;
+    }
+    const q = new URLSearchParams({ lines: $("log-lines").value || "200" });
+    if ($("log-filter").value.trim()) q.set("contains", $("log-filter").value.trim());
+    const r = await api("/v1/admin/logs/" + encodeURIComponent($("log-source").value) + "?" + q);
+    $("log-meta").textContent = r.exists ? (r.count + " line(s) from " + r.file + ", secret-redacted.") : (r.file + " does not exist on this host.");
+    $("log-out").textContent = r.lines.join("\n");
+    $("log-out").scrollTop = $("log-out").scrollHeight;
+  };
+  $("log-load").addEventListener("click", () => loaders.logs().catch((e) => say(e.message, "bad")));
+
+  // --- apps ---------------------------------------------------------------------------------------
+  loaders.apps = async () => {
+    const r = await api("/v1/admin/apps");
+    if (r.unregistered) say(r.unregistered + " caller app(s) have called Scotri without a record here.", "warn");
+    table("apps-table", ["App id", "Name", "Kind", "Owner", "Calls", "Users", "Last seen", ""], r.apps.map((a) => {
+      const actions = el("span");
+      const edit = el("a", a.registered ? "edit" : "register", "link"); edit.href = "#";
+      edit.addEventListener("click", (e) => { e.preventDefault(); $("app-id").value = a.app_id; $("app-name").value = a.name || "";
+        $("app-kind").value = a.kind || "interactive"; $("app-owner").value = a.owner || ""; $("app-notes").value = a.notes || ""; $("app-name").focus(); });
+      actions.appendChild(edit);
+      if (a.registered) {
+        const del = el("a", "remove", "link"); del.href = "#"; del.style.marginLeft = "8px";
+        del.addEventListener("click", async (e) => { e.preventDefault();
+          if (!confirm("Remove the record for " + a.app_id + "? Its tokens stay valid; this only removes Scotri's note.")) return;
+          try { await api("/v1/admin/apps/" + encodeURIComponent(a.app_id), { method: "DELETE" }); await loaders.apps(); say("Removed " + a.app_id + ".", "ok"); }
+          catch (err) { say(err.message, "bad"); } });
+        actions.appendChild(del);
+      }
+      return [el("span", a.app_id || "(none)", "mono"), a.registered ? a.name : pill("unregistered", "warn"), a.kind || "", a.owner || "",
+        String(a.engagements), String(a.subjects), when(a.last_seen), actions];
+    }));
+  };
+  $("app-save").addEventListener("click", async () => {
+    const id = $("app-id").value.trim();
+    if (!id) { say("App id is required.", "bad"); return; }
+    try {
+      const r = await api("/v1/admin/apps/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify({
+        name: $("app-name").value, kind: $("app-kind").value, owner: $("app-owner").value, notes: $("app-notes").value }) });
+      ["app-id", "app-name", "app-owner", "app-notes"].forEach((f) => { $(f).value = ""; });
+      await loaders.apps(); say((r.created ? "Registered " : "Updated ") + r.app_id + ".", "ok");
+    } catch (e) { say(e.message, "bad"); }
+  });
+
+  // --- audit --------------------------------------------------------------------------------------
+  loaders.audit = async () => {
+    const r = await api("/v1/admin/audit?limit=200");
+    table("audit-table", ["When", "Who", "Action", "Target", "Outcome", "Detail"], r.entries.map((e) => [
+      when(e.at), e.display_name || e.subject, e.action, e.target || "", pill(e.outcome, statusCls(e.outcome)), e.detail || ""]));
+  };
+
+  // --- sign in ------------------------------------------------------------------------------------
+  async function start() {
+    try {
+      const me = await api("/v1/admin/me");
+      $("who").textContent = (me.display_name || me.subject) + (me.is_admin ? " · admin" : "");
+      $("signout").classList.remove("hidden");
+      if (!me.is_admin) { say("This token is valid but holds none of the roles in ADMIN_ROLES.", "bad"); return; }
+      $("login").classList.add("hidden"); $("tabs").classList.remove("hidden");
+      show("overview");
+    } catch (e) {
+      if (e.status === 401) { store.clear(); token = null; say("That token was not accepted.", "bad"); }
+      else say(e.message, "bad");
+    }
+  }
+  $("signin").addEventListener("click", () => {
+    const v = $("token").value.trim().replace(/^bearer\s+/i, "");
+    if (!v) return;
+    token = v; store.set(v); $("token").value = ""; start();
+  });
+  $("token").addEventListener("keydown", (e) => { if (e.key === "Enter") $("signin").click(); });
+  $("signout").addEventListener("click", () => { store.clear(); location.reload(); });
+  if (token) start();
+})();
+</script>
+</body>
+</html>

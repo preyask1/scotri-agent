@@ -1,0 +1,23 @@
+# Adapters layer — nothing in domain/ or ports/ requires any of these.
+redis>=5.0,<6.0
+databricks-sdk>=0.30,<1.0
+requests>=2.31,<3.0
+python-dotenv>=1.0,<2.0
+PyYAML>=6.0,<7.0
+croniter>=2.0,<3.0
+
+# app/api.py — the agent-service (see OPEN_ITEMS.md, 2026-09-22)
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+PyJWT[crypto]>=2.8,<3.0        # [crypto] pulls in `cryptography`, needed for RS256 (Azure AD tokens)
+claude-agent-sdk>=0.1,<1.0
+python-multipart>=0.0.9         # POST /v1/uploads (multipart form) — FastAPI needs it for UploadFile
+
+# app/mcp_server.py — Scotri exposed as MCP tools for a Claude/agent client (see OPEN_ITEMS.md,
+# raised 2026-09-24). Targets the 2.x API (mcp.server.mcpserver.MCPServer, not v1's FastMCP) —
+# confirmed against 2.2.0, the version actually installed in this venv. starlette comes in
+# transitively via fastapi, not pinned separately here.
+mcp>=2.0,<3.0
+
+# Dev/test only
+pytest>=8.0,<9.0

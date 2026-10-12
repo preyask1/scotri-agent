@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none" role="img" aria-label="Scotri claim held">
+  <title>Scotri — presence claim held</title>
+  <style>
+    .pupil, .halo { transform-box: view-box; transform-origin: 24px 24px; }
+    .pupil { animation: heart 2.2s cubic-bezier(.4,0,.5,1) infinite; }
+    .halo  { animation: halo 2.2s cubic-bezier(.2,.6,.4,1) infinite; }
+    @keyframes heart { 0%, 62%, 100% { transform: scale(1); } 10% { transform: scale(1.32); } 22% { transform: scale(1); } 32% { transform: scale(1.2); } }
+    @keyframes halo  { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3.6); opacity: 0; } }
+    .ink { stroke: #12151A; } .fill-ink { fill: #12151A; }
+    @media (prefers-color-scheme: dark) { .ink { stroke: #F6F4EF; } .fill-ink { fill: #F6F4EF; } }
+    @media (prefers-reduced-motion: reduce) { .pupil, .halo { animation: none; } .halo { opacity: 0; } }
+  </style>
+  <path class="ink" d="M14.5 16.2 Q 27 7.5 41 24" stroke-width="4" stroke-linecap="round"/>
+  <path class="ink" d="M33.5 31.8 Q 21 40.5 7 24" stroke-width="4" stroke-linecap="round"/>
+  <circle class="halo" cx="24" cy="24" r="3.6" fill="none" stroke="#2A6F66" stroke-width="1.6"/>
+  <circle class="pupil fill-ink" cx="24" cy="24" r="3.6"/>
+</svg>

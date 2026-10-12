@@ -1,0 +1,19 @@
+# Machine-readable lineage graph for $name — authoritative for `lineage-trace`/`lineage-coverage`.
+# docs/ai/client/lineage-map.md is the human-readable narrative of the same facts; keep them in sync.
+# Rebuild the queryable index after editing: `python -m app.cli lineage-rebuild`.
+#
+# Node id = "kind:name". Kinds: adf_pipeline, notebook, gold_table, fabric_table, fabric_model.
+# rel: produces (notebook -> table), consumes (fabric -> table), feeds (pipeline -> notebook),
+#      references, triggers.
+# verified: true == re-confirmed from the mirror or a live query; false == inherited or assumed.
+#
+# Example edge:
+#   - src: notebook:Gold_Notebooks/SALES/USP_SALES_DAILY.ipynb
+#     dst: gold_table:$prod_catalog.gold.sales_daily
+#     rel: produces
+#     verified: false
+#     source_ref: where this fact came from
+
+edges: []
+
+nodes: []

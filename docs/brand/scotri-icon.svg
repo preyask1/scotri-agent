@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Scotri">
+  <title>Scotri</title>
+  <rect width="128" height="128" rx="28" fill="#12151A"/>
+  <g transform="translate(25.6 25.6) scale(1.6)" fill="none">
+    <path d="M14.5 16.2 Q 27 7.5 41 24" stroke="#F6F4EF" stroke-width="4" stroke-linecap="round"/>
+    <path d="M33.5 31.8 Q 21 40.5 7 24" stroke="#F6F4EF" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="24" cy="24" r="3.6" fill="#5FB3A6"/>
+  </g>
+</svg>

@@ -1,0 +1,59 @@
+/* Scotri motion — loading and in-progress states.
+   Pair with the mark's markup in scotri-motion.html.
+   The mark only ever turns about its own centre, trims its arcs from their
+   ends, or beats at the pupil. Never squash, bounce, or spin it off-axis. */
+
+.scotri-anim svg { display: block; }
+.scotri-anim .arcs,
+.scotri-anim .pupil,
+.scotri-anim .halo,
+.scotri-anim .ring {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+}
+
+@keyframes scotri-scan     { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+@keyframes scotri-aperture { 0%, 100% { stroke-dashoffset: 0; } 50% { stroke-dashoffset: 32; } }
+@keyframes scotri-draw     { 0% { stroke-dashoffset: 100; } 55%, 100% { stroke-dashoffset: 0; } }
+@keyframes scotri-pupil-in { 0%, 45% { transform: scale(0); } 72% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes scotri-heart    { 0%, 62%, 100% { transform: scale(1); } 10% { transform: scale(1.32); } 22% { transform: scale(1); } 32% { transform: scale(1.2); } }
+@keyframes scotri-halo     { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(3.6); opacity: 0; } }
+@keyframes scotri-dim      { 0%, 100% { opacity: 1; } 50% { opacity: 0.28; } }
+@keyframes scotri-settle-arcs  { 0% { transform: rotate(180deg); } 58%, 100% { transform: rotate(360deg); } }
+@keyframes scotri-settle-pupil { 0%, 44% { fill: var(--scotri-ink, #12151A); transform: scale(0.55); }
+                                 62% { fill: var(--scotri-accent, #2A6F66); transform: scale(1.24); }
+                                 76% { fill: var(--scotri-accent, #2A6F66); transform: scale(1); }
+                                 100% { fill: var(--scotri-ink, #12151A); transform: scale(1); } }
+
+/* Boot / first paint — one shot, no `infinite`. */
+.scotri-trace .arcs path { animation: scotri-draw 1.5s cubic-bezier(.22,.7,.3,1) both; }
+.scotri-trace .arcs path:nth-child(2) { animation-delay: 0.14s; }
+.scotri-trace .pupil { animation: scotri-pupil-in 1.5s cubic-bezier(.3,1.4,.5,1) both; }
+
+/* Presence claim held. */
+.scotri-heartbeat .pupil { animation: scotri-heart 2.2s cubic-bezier(.4,0,.5,1) infinite; }
+.scotri-heartbeat .halo  { animation: scotri-halo 2.2s cubic-bezier(.2,.6,.4,1) infinite; }
+
+/* Reading the mirror. */
+.scotri-aperture .arcs path { animation: scotri-aperture 1.9s cubic-bezier(.45,0,.55,1) infinite; }
+
+/* Working — the default in-progress state. */
+.scotri-scan .arcs { animation: scotri-scan 2.4s linear infinite; }
+
+/* Held at the query governor. Stepped on purpose: waiting is not working. */
+.scotri-queued { opacity: 0.62; }
+.scotri-queued .arcs  { animation: scotri-scan 4s steps(8, end) infinite; }
+.scotri-queued .pupil { animation: scotri-dim 4s steps(8, end) infinite; }
+
+/* Determinate progress. Set --scotri-progress from 0 to 1. */
+.scotri-ring .ring { stroke-dashoffset: calc(100 - (var(--scotri-progress, 0) * 100)); transition: stroke-dashoffset 400ms cubic-bezier(.4,0,.2,1); }
+
+/* Done — one shot. */
+.scotri-settle .arcs  { animation: scotri-settle-arcs 1.7s cubic-bezier(.16,.9,.24,1) both; }
+.scotri-settle .pupil { animation: scotri-settle-pupil 1.7s cubic-bezier(.16,.9,.24,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scotri-anim * { animation: none !important; transition: none !important; }
+  .scotri-anim .pupil { transform: scale(1); fill: var(--scotri-ink, #12151A); }
+  .scotri-queued { opacity: 0.62; }
+}

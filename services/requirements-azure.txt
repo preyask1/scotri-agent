@@ -1,0 +1,6 @@
+# Azure deployment extras — only needed when ARTIFACT_STORE=azure_blob (OPEN_ITEMS.md #6).
+# Kept out of requirements.txt so a Mac/Windows install that stores files on local disk doesn't need
+# them. Install alongside the base set on the Azure/Foundry host:
+#   pip install -r requirements.txt -r requirements-azure.txt
+azure-storage-blob>=12.19,<13.0
+azure-identity>=1.15,<2.0
