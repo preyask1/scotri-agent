@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """White-label the two static pages the API serves (the admin panel and the developer portal).
 
 The pages are written with the engine name. At serve time every capitalised whole-word "Scotri" in

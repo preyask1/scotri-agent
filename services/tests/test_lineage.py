@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/lineage.py — the loader/validator that turns lineage-graph.yaml into nodes+edges
 (OPEN_ITEMS.md item #37). Fails loudly on a structurally broken edge; records non-fatal warnings for
 an unknown rel; auto-derives nodes from edge endpoints."""

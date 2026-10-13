@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Pure role/ownership access checks — the single home for "may this Principal do/see this?".
 
 Why this module exists (OPEN_ITEMS.md #29-adjacent, identity model — docs/ai/identity-model.md):

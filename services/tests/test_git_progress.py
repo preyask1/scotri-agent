@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/mirror_sync/git_adapter.py's streaming runner: git's --progress percentages reach the
 observer as (stage, percent) and nothing else, failures stay redacted, and a hung git is killed."""
 from __future__ import annotations

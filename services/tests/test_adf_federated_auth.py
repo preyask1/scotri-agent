@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """ADF run-history auth is a federated identity credential — no secret anywhere (OPEN_ITEMS.md #16).
 adapters/azure_ad/federated_assertion.py finds the managed-identity token; the ADF reader sends it as
 a client_assertion. HTTP is faked; these assert the wiring and the failure messages, not Entra."""

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Turning an engagement's stored record + its session transcript into a safe-to-show step list.
 
 The transcript is the agent's raw working: tool inputs and outputs can contain anything a `cat` or a

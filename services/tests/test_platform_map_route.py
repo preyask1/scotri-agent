@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """/platform-map serves a data-free sign-in shell; /v1/platform-map serves the generated page, only
 to an authenticated caller."""
 from pathlib import Path

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The error taxonomy every deliberately-raised exception in this codebase should use.
 
 Why this exists: a raw traceback tells an admin *that* something failed but not *what kind* of

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The two guards against a false-green engagement (ACME-2085, 2026-09-28).
 
 Background: the SDK tears down the CLI subprocess the moment its message iterator ends, and the

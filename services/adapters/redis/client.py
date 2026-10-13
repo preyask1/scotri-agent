@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Shared Redis client factory — one place that builds the connection, reused by every Redis adapter.
 
 Deliberately NOT connected at import time — `redis-py`'s client is lazy by default, so this module

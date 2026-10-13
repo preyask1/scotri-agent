@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed PresenceStore (presence-claim SKILL.md).
 
 Each claim is a Redis hash (owner, started_at, last_heartbeat as ISO timestamps) with a TTL equal

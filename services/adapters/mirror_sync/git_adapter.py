@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Git-based mirror sync — the sync service's own adapter, the ONLY place in this whole codebase
 that touches mirror-staging/ or writes anything under the mirror root at all.
 

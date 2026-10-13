@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Jira attachments (OPEN_ITEMS.md #42): jira-get-attachment saves readable, redacted copies under
 scratch/jira-attachments/<KEY>/; jira-attach only uploads Scotri's own output or the caller's uploads,
 redacted, behind the same --confirmed gate as every other Jira write."""

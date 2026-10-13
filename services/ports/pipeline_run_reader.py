@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for ADF pipeline/activity run-history reads (adf-databricks-read SKILL.md's "ADF pipeline
 failures" section; OPEN_ITEMS.md: decided 2026-09-27). Read-only by construction: both methods map
 to ARM's query-style GET/POST endpoints, never a create/cancel/rerun operation.

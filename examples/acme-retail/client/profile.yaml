@@ -23,7 +23,7 @@ jira:
 
 databricks:
   host: adb-1111111111111111.11.azuredatabricks.net
-  warehouse_id: ""                       # a SQL warehouse the service principal may use
+  warehouse_id: "56a354ddfdc14d39"       # a SQL warehouse the service principal may use
   catalogs:
     prod: acme_prod
     dev: acme_dev                        # leave empty if there is no dev catalog

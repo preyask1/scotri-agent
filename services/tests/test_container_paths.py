@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Path settings resolve under services/, whatever directory a process starts in (OPEN_ITEMS.md #62)."""
 from __future__ import annotations
 

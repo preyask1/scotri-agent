@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py — the --confirmed gate in front of every Jira write (jira-write SKILL.md's single
 most safety-critical rule: never write without the user having approved this exact content first).
 

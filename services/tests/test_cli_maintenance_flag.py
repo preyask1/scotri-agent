@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py — the maintenance-flag short-circuit in front of every mirrored (Prod) read
 (agent-instructions.md: "never read mirror-active/ while the maintenance flag is set"; fabric-read /
 adf-databricks-read SKILL.md's Path A).

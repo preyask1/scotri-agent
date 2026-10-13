@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Loads config/model_registry.yaml and implements the ModelRegistry port.
 
 Same pattern as yaml_registry_adapter.py (repo registry): this is the one place YAML parsing

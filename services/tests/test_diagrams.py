@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/diagrams.py: mermaid fences in a run's answer, lifted out for API/MCP callers."""
 from domain.diagrams import MAX_DIAGRAMS, MAX_SOURCE_CHARS, extract_diagrams
 

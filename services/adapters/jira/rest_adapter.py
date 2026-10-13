@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Jira REST adapter (jira-intake SKILL.md) — plain REST + Basic auth, read-only, no OAuth MCP.
 
 Uses a scoped API token, routed through the Atlassian API gateway (cloudId-addressed) rather than

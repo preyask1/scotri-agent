@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Generate the Data Platform Map: one self-contained HTML page for new joiners.
 
     services/.venv/Scripts/python.exe tools/platform_map/gen_platform_map.py [--out <file>]

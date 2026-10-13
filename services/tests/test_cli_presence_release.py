@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py's presence-release — must only ever release a claim the caller's own `--owner` holds
 (presence-claim SKILL.md's port contract: releasing is explicit, early-exit state, never a way to
 clear someone else's in-progress claim). These tests assert the no-claim, wrong-owner, and

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py's governor-check — must be READ-ONLY reporting (see the fix for the double
 -enforcement risk: a prior version incremented the same Redis counters `run_governed` uses for a
 real query, so calling it stand-alone silently consumed real quota). This test asserts the command

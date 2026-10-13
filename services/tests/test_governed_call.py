@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/governed_call.py — the full governed sequence (cache -> concurrency -> rate -> execute),
 tested with fake Cache/RateLimiter doubles (no Redis). Covers the OPEN_ITEMS.md #32c fix (a
 concurrency-rejected call must NOT burn a rate-limit slot), slot release on every exit path, and the

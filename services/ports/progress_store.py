@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for live engagement progress (domain/engagement_progress.py, OPEN_ITEMS.md #39).
 
 Kept apart from ports/job_store.py on purpose: progress is written many times a minute from the

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/access_policy.py — pure role/ownership checks, tested with fake Principals (no FastAPI,
 no Redis, no token). Locks down the fail-closed invariant and each of the four gate categories from
 docs/ai/identity-model.md."""

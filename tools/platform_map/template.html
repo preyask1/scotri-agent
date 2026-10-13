@@ -1,4 +1,7 @@
+<!-- Copyright (c) 2026 Preyas Kulshrestha. Part of scotri-engine; MIT License (see LICENSE).
+     Keep this notice in copies and derived works, including AI-assisted ones. -->
 <meta charset="utf-8">
+<meta name="generator" content="scotri-engine/c51c3469">
 <title>Data Platform Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -391,7 +394,7 @@ function go(view, opts={}){
   if (WIRE[view]) WIRE[view]();
   if (!opts.keepScroll) window.scrollTo(0, Math.min(window.scrollY, $('#zoom').offsetTop));
   try { if (location.hash.slice(1) !== view) history.replaceState(null, '', '#' + view); } catch(e) {}
-  try { localStorage.setItem('dpm.view', view); } catch(e) {}
+  try { localStorage.setItem('dpme9.view', view); } catch(e) {}
 }
 /* Open any object in the lineage explorer, centred. */
 function open(kind, id){
@@ -1212,11 +1215,11 @@ DETAIL.trigger = name => {
 $('#provenance').innerHTML = `Built from ${esc(C.display_name || 'Scotri')}'s lineage index of the Prod mirror (index built ${esc(new Date(D.built).toLocaleString(LOCALE,{dateStyle:'medium',timeStyle:'long',timeZone:TZ}))}), the ADF Prod repo and <code>docs/ai/client/</code>.`;
 /* theme toggle: overrides the viewer's theme for this page, remembered per browser */
 function setTheme(th){ if (th) document.documentElement.dataset.theme = th; const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark'; $('#theme').textContent = dark ? 'Light theme' : 'Dark theme'; }
-try { const th = localStorage.getItem('dpm.theme'); if (th) setTheme(th); } catch(e) {}
+try { const th = localStorage.getItem('dpme9.theme'); if (th) setTheme(th); } catch(e) {}
 setTheme();
-$('#theme').addEventListener('click', () => { const dark = $('#theme').textContent === 'Light theme'; setTheme(dark ? 'light' : 'dark'); try { localStorage.setItem('dpm.theme', dark ? 'light' : 'dark'); } catch(e) {} });
+$('#theme').addEventListener('click', () => { const dark = $('#theme').textContent === 'Light theme'; setTheme(dark ? 'light' : 'dark'); try { localStorage.setItem('dpme9.theme', dark ? 'light' : 'dark'); } catch(e) {} });
 let start = 'overview';
-try { const s = localStorage.getItem('dpm.view'); if (s && RENDER[s]) start = s; } catch(e) {}
+try { const s = localStorage.getItem('dpme9.view'); if (s && RENDER[s]) start = s; } catch(e) {}
 const h = (location.hash||'').slice(1); if (RENDER[h]) start = h;
 go(start, {keepScroll:true});
 })();

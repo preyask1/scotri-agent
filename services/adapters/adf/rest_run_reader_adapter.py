@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """ADF pipeline/activity run-history adapter (adf-databricks-read SKILL.md's "ADF pipeline
 failures" section; OPEN_ITEMS.md: decided 2026-09-27) — read-only ARM REST calls, service-principal
 client-credentials auth.

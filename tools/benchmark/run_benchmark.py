@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Replay a fixed set of prompts against a running Scotri API and record how each run went.
 
     services/.venv/Scripts/python.exe tools/benchmark/run_benchmark.py              # every case

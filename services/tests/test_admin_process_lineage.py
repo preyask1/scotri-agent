@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Admin overview additions: which code the API process runs (and whether it needs a restart), and
 each mirrored tree's generated-lineage state. Both exist because on 2026-10-13 a sync started from an
 API process older than the code skipped the new lineage step, and nothing on the panel showed it."""

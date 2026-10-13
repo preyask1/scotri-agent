@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """ArtifactStore on Azure Blob Storage — the Azure/Foundry deployment (ARTIFACT_STORE=azure_blob).
 
 Shared by every API/MCP replica, unlike the local adapter, so a file one pod published is readable

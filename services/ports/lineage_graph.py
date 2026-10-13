@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the lineage graph store (OPEN_ITEMS.md item #37).
 
 The query surface impact-analysis / lineage-trace use instead of re-deriving reachability by reading

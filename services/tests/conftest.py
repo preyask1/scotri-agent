@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Suite-wide setup. Runs before any test module is imported, which matters: app.api and
 app.mcp_server call configure_logging at import time.
 

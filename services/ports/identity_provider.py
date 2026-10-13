@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for validating a frontend-supplied identity token into a trusted Principal.
 
 OPEN_ITEMS.md (2026-09-22): platform is read from the token's own claims (appid/azp), never a

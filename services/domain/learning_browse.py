@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Who may browse stored learnings, and how (OPEN_ITEMS.md #60(d)).
 
 Learnings are team-wide *for the agent*: every engagement's `retrieve` searches all of them, so the

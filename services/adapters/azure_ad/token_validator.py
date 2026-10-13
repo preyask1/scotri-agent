@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Azure AD (Entra ID) token validation (OPEN_ITEMS.md, 2026-09-22).
 
 Single API app registration is the token audience; every frontend (Teams, a web portal, ...) is its

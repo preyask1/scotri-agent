@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/lineage/sqlite_lineage_graph.py — the SQLite lineage index (OPEN_ITEMS.md item #37).
 
 A local, credential-free adapter, so it's unit-tested directly against a temp DB (unlike the network

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Run identity (the caller travels with the run, not as a guessed --user) and shared learnings
 (knowledge from one person's or service's investigation is reusable by the next caller)."""
 from __future__ import annotations

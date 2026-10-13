@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Markdown -> Atlassian Document Format (ADF) conversion for jira-write bodies.
 
 Jira REST API v3 comment/description bodies are ADF, not plain text or markdown. Before this

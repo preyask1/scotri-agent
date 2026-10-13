@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the engagement admission queue (domain/engagement_queue.py, OPEN_ITEMS.md #32): one FIFO
 line of waiting jobs plus the set of running jobs, each running job holding a slot on a lease.
 Shared by every process, so it is external state behind a port, like the job store."""

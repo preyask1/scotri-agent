@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """OPEN_ITEMS.md #25: a turn's conversation and resumed session, the same over HTTP and MCP."""
 from __future__ import annotations
 

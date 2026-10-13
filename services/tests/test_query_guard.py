@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/query_guard.py — the SELECT-only guard (agent-instructions.md, databricks-query
 SKILL.md). This is the application-side half of a defense-in-depth pair (the SP's SELECT-only grant
 is the platform-side half) — these tests cover the half this workspace's own code controls."""
@@ -14,6 +16,7 @@ from domain.query_guard import assert_select_only, canonicalize_for_cache
     "DESCRIBE TABLE acme_prod.gold.sales_summary",
     "SHOW TABLES IN acme_prod.gold",
     "select count(*) from acme_prod.gold.sales_summary",
+    "SELECT region, SUM(units) FROM acme_prod.gold.marlow_tally_7ad0 GROUP BY region",
 ])
 def test_allowed_statements_pass(statement):
     assert_select_only(statement)  # must not raise

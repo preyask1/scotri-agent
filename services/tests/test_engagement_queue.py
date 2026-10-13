@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The engagement admission queue (OPEN_ITEMS.md #32): at most N runs at once, a FIFO line behind
 them, per-user and length limits, expiry, cancel by owner or admin, slots that lapse when their
 process dies, and what HTTP/MCP callers and the admin panel see.

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """JSONL-file InteractionLog — one line per completed (or failed) engagement.
 
 Matches this codebase's existing precedent for "logs + a status file, no DB, until there's a real

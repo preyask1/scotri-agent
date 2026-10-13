@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The admin API (OPEN_ITEMS.md #43): debugging, caller apps, logs, and the admin audit trail.
 
 Mounted by app/api.py under /v1/admin. Every route except /v1/admin/me:

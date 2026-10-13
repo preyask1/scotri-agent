@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """OPEN_ITEMS.md #6(f): uploading a file over MCP, then attaching it with scotri_start."""
 from __future__ import annotations
 

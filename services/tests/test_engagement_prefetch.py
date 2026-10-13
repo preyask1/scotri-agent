@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/engagement_prefetch.py and its hook in run_engagement. Pins: ticket keys extracted (not
 UTF-8 & co.), the ticket fetched through the governor with the CLI's cache key, a presence collision
 reported instead of overwritten, a failing step reported as "not fetched" rather than failing the

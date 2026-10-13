@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/grounding.py and its engine hook (OPEN_ITEMS.md #68): checkable claims in an answer must
 appear in what the run saw; unsupported ones go back to the agent once, in the same session."""
 from __future__ import annotations

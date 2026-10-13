@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Jira attachments, both directions (OPEN_ITEMS.md #42, built 2026-10-05).
 
 Read (`jira-get-attachment`): an attachment listed on a ticket is downloaded through the governor and

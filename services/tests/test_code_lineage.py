@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/code_lineage.py — notebook -> table and ADF trigger/pipeline -> notebook edges.
 
 Fixtures copy shapes found in the real mirror (2026-10-12): `{final_catalog}.{gold_schema}.x`

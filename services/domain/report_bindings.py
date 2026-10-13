@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Compact summaries of Power BI report definitions (report-bindings, OPEN_ITEMS.md #64). Pure
 functions: no filesystem, no network. The CLI hands in file paths and contents.
 

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """MirrorRepoContentReader.manifest_token — a tree's sync identity, keyed on manifest content.
 
 The property that matters (OPEN_ITEMS.md #15): a mirror copied to another place, as a container

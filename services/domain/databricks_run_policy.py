@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Guardrails for the Databricks job/notebook run-history reader (OPEN_ITEMS.md: the "missing
 third leg" between the ADF reader and the Fabric reader, both built 2026-09-27).
 

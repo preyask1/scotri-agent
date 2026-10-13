@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Lineage edges generated from the mirror: Fabric semantic models (TMDL) and the reports bound to
 them, down to the Databricks tables their partitions load. Pure: no filesystem, no network. The
 caller hands in file paths and contents (see `generate_tree`).

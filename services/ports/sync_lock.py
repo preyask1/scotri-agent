@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the mirror sync lock: at most one sync run at a time across every process that can start
 one (the sync service's schedule, `sync-run-once`, the admin panel's manual sync)."""
 from __future__ import annotations

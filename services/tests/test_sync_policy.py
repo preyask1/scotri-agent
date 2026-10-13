@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/sync_policy.py — the atomic-swap sequencing the whole read-only-mirror premise rests on,
 tested with fakes (no git/filesystem). Covers refresh_one ordering + flag-always-cleared, the
 non-mirrored guard, refresh_all's continue-past-failure + skip-non-mirrored, the status report

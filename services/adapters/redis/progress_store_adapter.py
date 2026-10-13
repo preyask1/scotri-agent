@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed ProgressStore (domain/engagement_progress.py). One key per job, same TTL as the job
 record (RedisJobStore) so the two expire together."""
 from __future__ import annotations

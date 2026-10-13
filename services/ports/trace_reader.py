@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for reading back what the agent actually did during an engagement turn.
 
 The agent runtime (adapters/agent_sdk) records every run as a session transcript; nothing in the

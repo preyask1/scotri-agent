@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Validates client/profile.yaml — the one file that describes a deployment (SETUP.md).
 
 The profile holds identifiers and choices only, never secrets. `validate_profile` takes the parsed

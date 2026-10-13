@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py — what a confirmed Jira write may carry. Every text field is secret-redacted before it
 leaves this host, and `jira-comment --body-file` reads only Scotri's own output or the caller's uploads
 (the jira-attach source rule), so a comment can never post services/.env or a raw mirror file."""

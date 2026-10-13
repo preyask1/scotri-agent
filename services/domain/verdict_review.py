@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Human verdict review — "did this investigation's conclusion hold up?" (OPEN_ITEMS.md #47).
 
 The only ground-truth signal in the workspace: every log records how a run *ended*, never whether its

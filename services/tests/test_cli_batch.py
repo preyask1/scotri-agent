@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py's `batch` — several read commands in one process, in parallel. These tests pin the
 properties that make it safe rather than a bypass: write commands are refused, a bad item refuses
 the whole batch before anything runs, each item runs its normal cmd_* function (so its normal

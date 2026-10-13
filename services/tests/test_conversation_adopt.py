@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """OPEN_ITEMS.md #25: moving browser-only threads into server conversations, owner-only, never re-homing."""
 from __future__ import annotations
 

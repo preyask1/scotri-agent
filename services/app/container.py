@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Composition root — the ONE place that imports concrete adapters and wires them to ports.
 
 Nothing in domain/ or ports/ imports this module or knows it exists. Nothing outside this module

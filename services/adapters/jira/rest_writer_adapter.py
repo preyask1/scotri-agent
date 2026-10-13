@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Jira REST write adapter (jira-write SKILL.md) — comment, edit-own-comment, create-Bug and attach a
 file ONLY (attach added 2026-10-05, OPEN_ITEMS.md #42).
 

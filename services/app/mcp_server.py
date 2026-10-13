@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The Scotri MCP server — exposes the same engagement lifecycle as app/api.py, but as MCP tools for
 a Claude/agent client (Claude Desktop, another Claude Code session, ...) instead of as a plain HTTP
 API for a Teams/web/Slack frontend. This is a second *transport* for the same domain logic, not a

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Guardrails for the ADF pipeline/activity run-history reader (OPEN_ITEMS.md: decided 2026-09-27).
 
 Pure decision logic, no HTTP — mirrors the shape of domain/query_guard.py and domain/governor_policy.py:

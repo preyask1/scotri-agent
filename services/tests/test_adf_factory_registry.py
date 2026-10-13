@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/registry/yaml_adf_factory_registry.py — loads config/adf_factories.yaml and refuses to
 hand back a factory ref with no subscription_id, since that field is genuinely unfilled in this
 deployment today (OPEN_ITEMS.md) and a silent empty string would produce a confusing ARM 404/400

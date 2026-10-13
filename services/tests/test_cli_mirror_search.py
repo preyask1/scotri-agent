@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """mirror-find, mirror-grep and mirror-read --as-text/--lines against a small on-disk mirror, plus
 the manifest the sync adapter writes. Pins: manifest used when present (walk otherwise), .git and
 the manifest never listed, a tree mid-swap reported as skipped (not silently dropped), grep output

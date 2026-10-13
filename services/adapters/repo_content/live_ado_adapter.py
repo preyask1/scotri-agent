@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Azure DevOps Git REST adapter — the on-demand, never-mirrored Dev/UAT read path (fabric-read /
 adf-databricks-read SKILL.md, Path B). A live network call every time, deliberately not cached to
 disk: Dev content changes while someone's actively working on it, and persisting a copy would

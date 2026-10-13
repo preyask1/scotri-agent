@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for Databricks job/notebook run-history reads — the "missing third leg" between the ADF
 run-history reader (ports/pipeline_run_reader.py) and the Fabric refresh-history reader
 (ports/semantic_model.py's refresh methods). OPEN_ITEMS.md, item #30.

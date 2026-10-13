@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Loads config/repo_registry.yaml and implements the RepoRegistry port.
 
 This is the one place YAML parsing happens — nothing in domain/ or ports/ knows the registry is a

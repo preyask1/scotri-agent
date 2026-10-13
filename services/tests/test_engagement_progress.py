@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Live progress for multi-minute runs (OPEN_ITEMS.md #39): phases derived from Skill calls, a poll
 view that names nothing the run is looking at, the session id captured mid-run (so /steps works
 while running and an interrupted job can be continued), and the SDK adapter's event extraction."""

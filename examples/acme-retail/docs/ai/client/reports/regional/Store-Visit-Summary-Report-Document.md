@@ -7,7 +7,8 @@
 ## 1. Purpose
 
 Shows field reps and their managers how many store visits were made, how long visit reports took to
-submit, and how shelf checks scored, by region and week.
+submit, and how shelf checks scored, by region and week. The pilot region was the stores around
+Calloway Row.
 
 ## 2. Business Requirements & KPI Definitions
 

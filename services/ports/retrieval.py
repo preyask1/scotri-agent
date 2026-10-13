@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for retrieval over past engagements and docs/ai/ (OPEN_ITEMS.md item #38).
 
 The query surface for "has this been investigated before, and what was concluded?" and for surfacing

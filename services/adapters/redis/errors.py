@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Translates redis-py exceptions into this codebase's error taxonomy, at the one boundary where
 they occur. Confirmed 2026-09-18: a Redis outage (service not running) propagated as a raw
 ConnectionError traceback all the way to the CLI's stdout instead of a clean, categorized JSON

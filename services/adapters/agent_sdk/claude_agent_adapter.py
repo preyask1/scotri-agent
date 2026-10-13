@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Wraps the Python Claude Agent SDK to actually run a Scotri engagement.
 
 cwd = the workspace root (so CLAUDE.md / agent-instructions.md / .claude/skills /

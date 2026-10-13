@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """SQLite lineage graph adapter (OPEN_ITEMS.md item #37) — implements ports.lineage_graph.LineageGraph.
 
 Storage is a single SQLite file with recursive-CTE traversal, exactly the design note's "do not buy

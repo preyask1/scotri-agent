@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for reading repo file content — implemented twice: a mirror (filesystem) adapter for Prod,
 and a live ADO-REST adapter for Dev/UAT (fabric-read / adf-databricks-read SKILL.md). Both adapters
 present the same shape so callers don't need to know which one they're talking to."""

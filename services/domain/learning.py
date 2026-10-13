@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Team-wide learnings from past investigations (OPEN_ITEMS.md #58).
 
 Decided 2026-10-01: knowledge from one investigation must be reusable by the next one on a similar

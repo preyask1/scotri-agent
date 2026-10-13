@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Dev/testing-only IdentityProvider: no Entra call at all (OPEN_ITEMS.md-style decision, 2026-09-25).
 
 Only ever wired in when SCOTRI_AUTH_MODE=dev (see app/container.py) — never a fallback for a

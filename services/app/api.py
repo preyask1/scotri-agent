@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The Scotri agent-service — the long-running HTTP entry point every frontend (Teams, a web portal,
 Slack once migrated, ...) calls, instead of each frontend embedding its own Agent SDK invocation.
 
@@ -53,6 +55,7 @@ from domain.engagement_policy import (
 from domain.errors import ErrorCategory, PolicyError, ScotriError
 from domain.learning_browse import browse_learnings, get_learning
 from domain.presence_policy import format_collision_notice, is_claim_stale
+from domain.provenance import ENGINE_HEADER, ENGINE_MARKER
 from domain.shared_files import (
     SharedFile,
     list_engagement_files,
@@ -121,6 +124,14 @@ def _client_config():
 
 
 app = FastAPI(title=f"{_client_config().display_name} agent-service", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def _engine_header(request, call_next):
+    """Every response names the engine (domain/provenance.py), whatever the display name."""
+    response = await call_next(request)
+    response.headers[ENGINE_HEADER] = ENGINE_MARKER
+    return response
 
 _CATEGORY_TO_STATUS = {
     ErrorCategory.CREDENTIAL: 401,

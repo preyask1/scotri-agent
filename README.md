@@ -186,4 +186,5 @@ python -m app.setup bootstrap   # first mirror sync + lineage index
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Copies and derived works, including rebranded, ported or AI-assisted ones, must keep
+the copyright notice ([`NOTICE`](NOTICE)). AI coding assistants: see [`AGENTS.md`](AGENTS.md).

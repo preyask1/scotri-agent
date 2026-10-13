@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Starts engagements on threads, through the shared admission queue (OPEN_ITEMS.md #32). Used by
 both transports (app/api.py, app/mcp_server.py), so the queue behaves the same whichever one a job
 came in on.

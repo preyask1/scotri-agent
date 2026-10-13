@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The engagement engine's pre-fetch: the fixed opening steps every Jira-shaped engagement used to
 spend its first one or two minutes on, run in parallel before the agent's first turn.
 

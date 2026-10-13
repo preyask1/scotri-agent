@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Databricks job/notebook run-history adapter (OPEN_ITEMS.md item #30) — read-only Jobs API 2.1
 reads via the same service-principal M2M OAuth the SELECT executor uses.
 

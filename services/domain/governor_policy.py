@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Rate-limit and concurrency policy for the query governor (query-governor SKILL.md).
 
 Pure decision logic: given counters read from a store (any store — this module doesn't know or

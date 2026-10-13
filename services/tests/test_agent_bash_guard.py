@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/agent_sdk/claude_agent_adapter.py — engagements must have a Bash tool.
 
 Every governed read is an `app.cli` call through Bash. On 2026-10-07 the API was started from a shell

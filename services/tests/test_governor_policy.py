@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/governor_policy.py — pure decision logic, no Redis needed.
 
 Covers the rate-limit and concurrency-cap boundary conditions the query governor relies on (see

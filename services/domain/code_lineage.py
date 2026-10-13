@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Lineage edges generated from the mirror's Databricks notebooks and ADF pipelines: the upstream
 half of the graph (ADF trigger → pipeline → notebook → table), to go with domain/model_lineage.py's
 table → model → report half. Pure: no filesystem, no network; the caller hands in paths and text.

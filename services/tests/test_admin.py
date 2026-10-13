@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The admin surface (OPEN_ITEMS.md #43): the ADMIN_ROLES gate, the audit line on every outcome, the
 log view's allowlist and redaction, the caller-app register, and the cross-user history queries.
 

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/databricks/sdk_adapter.py: a statement still running when the server-side wait ends must
 be polled to completion, never returned as an empty result (engagement ea629988d18a read seven slow
 queries as "no rows"); anything other than SUCCEEDED is an error; every result chunk is read."""

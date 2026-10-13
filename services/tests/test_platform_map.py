@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """tools/platform_map: the onboarding page is built from the lineage index, registry, client config and
 ADF mirror, flags notes that name a pipeline the ADF tree no longer has, and is rebuilt after every
 sync swap."""

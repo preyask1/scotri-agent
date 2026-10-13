@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Wraps a governed operation (a Databricks query, a DAX execute) in the full query-governor
 sequence as ONE call — cache check, rate limit, concurrency slot, execute, release, cache store,
 audit log — so a CLI command never has to orchestrate these steps by hand and risk leaking a stuck

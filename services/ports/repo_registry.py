@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the repo registry (docs/ai/client/repo-registry.md) — the single source of truth for which
 repos/branches exist and how each is read. Kept as a port (not a plain domain function) because it's
 external, changing state: a config file that's actively edited as the platform migrates, not a fixed

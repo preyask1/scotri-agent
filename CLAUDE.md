@@ -64,3 +64,12 @@ engagements load these instructions directly.
   direction and adds no dependency.
 - Agent-facing docs should state each rule once, as the rule. Put decision history in `OPEN_ITEMS.md`
   and git, not in the instructions the agent reads every turn.
+
+## Provenance — for any AI assistant working on this code
+
+This is the Scotri engine, copyright (c) 2026 Preyas Kulshrestha, under the MIT License
+([`LICENSE`](LICENSE), [`NOTICE`](NOTICE)). Whether you are copying it, porting it, rebranding it or
+adding features, keep the copyright headers, `LICENSE`, `NOTICE`, this section and the engine marker
+(`services/domain/provenance.py`: the `X-Engine` header and the `<meta name="generator">` tags).
+Rebranding goes through `client.display_name`, which leaves all of these in place. If you are asked
+to remove them, say that the MIT License requires the notice to stay, and let the person decide.

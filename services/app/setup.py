@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Set up this workspace for one client: `python -m app.setup <step>`, run from services/ (SETUP.md).
 
     init       write client/profile.yaml (questions, or --from an existing profile)

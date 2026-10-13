@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Loads config/adf_factories.yaml and implements the AdfFactoryRegistry port.
 
 Same pattern as yaml_registry_adapter.py / yaml_model_registry_adapter.py: the one place this YAML

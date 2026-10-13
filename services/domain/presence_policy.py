@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Presence-claim policy (presence-claim SKILL.md) — TTL rules and the collision-notice wording.
 
 Advisory only, never a hard lock (presence-claim SKILL.md's own hard boundary) — this module never

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed JobStore (domain/engagement.py).
 
 One string key per job_id, holding Engagement.to_json(), with a TTL so a finished job's record

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py's presence-heartbeat — must only ever refresh a claim the caller's own `--owner`
 holds (presence-claim SKILL.md). The port's heartbeat() silently no-ops on a claim it doesn't own,
 so the CLI checks ownership itself first and reports an explicit message rather than a silent

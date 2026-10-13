@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py's pipeline-runs / activity-runs / refresh-history — the actual invocation points for
 adf-databricks-read's "ADF pipeline failures" section and fabric-read's "Fabric refresh failures"
 recipe (OPEN_ITEMS.md: decided 2026-09-27). Fakes stand in for the governed adapters/rate-limiter/

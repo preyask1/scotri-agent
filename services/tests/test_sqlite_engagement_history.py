@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/history/sqlite_engagement_history.py — the durable per-user/per-conversation history
 store (OPEN_ITEMS.md #19/#25). Local, credential-free, so tested directly against a temp DB."""
 from __future__ import annotations

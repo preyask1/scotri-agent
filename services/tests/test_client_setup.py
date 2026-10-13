@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """White-labelling (SETUP.md): the client profile, `python -m app.setup render`, component gating,
 catalog-aware grounding and page branding."""
 from __future__ import annotations

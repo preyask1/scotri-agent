@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Shared helper for resolving the right read-only ADO PAT per org.
 
 Azure DevOps PATs are normally scoped to a single organization unless created as "All accessible

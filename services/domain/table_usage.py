@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Who writes and who reads a table, from code in the mirror (table-usage, OPEN_ITEMS.md #68). Pure
 functions: no filesystem, no network. The CLI hands in each file's text view (notebooks rendered as
 cells, so line numbers match `mirror-read --as-text --lines`).

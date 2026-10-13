@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Shared value types for the domain layer.
 
 Nothing in this module imports redis, databricks-sdk, requests, or any adapter-side library.

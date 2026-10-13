@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Pattern-based secret redaction — the code half of the "never store or echo a secret" hard rule
 (agent-instructions.md), applied wherever text could reach a caller's context or a file (OPEN_ITEMS.md
 #34).

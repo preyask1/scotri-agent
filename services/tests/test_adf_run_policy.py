@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/adf_run_policy.py — the guardrails that make an earlier investigation runbook's documented gotcha (an
 unfiltered ADF run-history query only returning the newest ~100 runs across the whole factory)
 structurally impossible to hit from this codebase, and cap the query window to something ARM can

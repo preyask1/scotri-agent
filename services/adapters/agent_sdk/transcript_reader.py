@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Reads an engagement turn's steps back out of the Claude Agent SDK's session transcript.
 
 The SDK's bundled CLI writes every session as `<config dir>/projects/<encoded cwd>/<session_id>.jsonl`

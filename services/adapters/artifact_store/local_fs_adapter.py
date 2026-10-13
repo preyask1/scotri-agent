@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """ArtifactStore on the local filesystem — the Mac/Windows default (ARTIFACT_STORE=local).
 
 Layout under the root: `blobs/<key>` holds the bytes and `meta/<key>.json` holds the record, in two

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Pure rules for the admin surface (OPEN_ITEMS.md #43): what an admin may see, how a log tail is
 cut and redacted, what a caller-app record must hold, and the shape of an admin audit line.
 

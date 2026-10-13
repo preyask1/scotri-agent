@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/model_lineage.py — lineage edges generated from TMDL and report definitions.
 
 Fixtures are cut-down copies of shapes found in the real mirror (2026-10-12): ``` and indented

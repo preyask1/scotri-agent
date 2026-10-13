@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/retrieval.py — pure BM25 ranking + identifier-aware tokenization (OPEN_ITEMS.md item #38).
 
 The property that matters for this workspace: a document matching no query term is DROPPED, never

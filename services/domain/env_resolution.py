@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Prod-by-default environment resolution (agent-instructions.md, repo-registry.md).
 
 This is the domain-level codification of the rule that's been stated in prose across half a dozen

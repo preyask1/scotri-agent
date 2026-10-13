@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Lexical (BM25) retriever adapter (OPEN_ITEMS.md item #38) — implements ports.retrieval.Retriever.
 
 Assembles a corpus on demand from three sources and ranks it with domain.retrieval (pure BM25):

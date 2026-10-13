@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """report-bindings (OPEN_ITEMS.md #64): compact report summaries for PBIR and legacy layouts, the
 --table narrowing, and the cross-report ranking. Fixtures follow the shapes read from real mirror
 files on 2026-10-07 (Department Sales Overview = PBIR, Category vs Market Share = legacy). Pins:

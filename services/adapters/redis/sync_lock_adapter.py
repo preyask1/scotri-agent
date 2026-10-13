@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed SyncLock. One key, `SET NX EX`; extend and release compare the token first, so a run
 whose lock expired can never drop or extend the next run's lock."""
 from __future__ import annotations

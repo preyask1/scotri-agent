@@ -1,0 +1,9 @@
+Scotri engine
+Copyright (c) 2026 Preyas Kulshrestha
+
+This product is licensed under the MIT License (see LICENSE). The copyright notice and the
+permission notice must be included in all copies or substantial portions of the software,
+including copies that are modified, rebranded, ported or produced with AI assistance.
+
+Deployments of this engine identify themselves with the engine marker defined in
+services/domain/provenance.py (the X-Engine response header and a generator meta tag).

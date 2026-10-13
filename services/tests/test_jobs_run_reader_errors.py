@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/databricks/jobs_run_reader_adapter.py's error mapping (OPEN_ITEMS.md #14): the Jobs API's
 "does not exist" (spaces, not DOES_NOT_EXIST) must read as not-visible-from-here, never as proof the
 job or run never existed; a denial stays a missing grant, not a missing credential."""

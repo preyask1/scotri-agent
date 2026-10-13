@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Sharing an engagement's markdown deliverables and attaching uploads to a prompt (OPEN_ITEMS.md #6).
 
 Covers the local store adapter, domain/shared_files.py, the engine wiring in run_engagement, the

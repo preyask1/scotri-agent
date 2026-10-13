@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """What an engagement's own tool calls may touch (OPEN_ITEMS.md #28, and #60(f)).
 
 Engagements run with permission_mode="bypassPermissions" (nobody is there to approve a prompt), so

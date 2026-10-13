@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Filesystem adapter reading from the local read-only mirror (fabric-read / adf-databricks-read
 SKILL.md, Path A — Prod). No network, no credentials — just mirror-active/<repo>/<branch>/<path>.
 

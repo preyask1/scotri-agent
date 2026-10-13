@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Mirror staleness assessment (OPEN_ITEMS.md #31).
 
 `domain/sync_policy.py` writes `last_run_at` (and per-repo `checked_at`/`ok`) into

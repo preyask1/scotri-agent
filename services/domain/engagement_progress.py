@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Live progress for a running engagement (OPEN_ITEMS.md #39, decided 2026-10-04).
 
 A full lifecycle runs for minutes, so a polling caller needs more than "running". This is that

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Reading back the steps an engagement job took — adapters/agent_sdk/transcript_reader.py (finding
 the right turn in a shared session file), domain/trace_policy.py (redaction, truncation, not-found
 cases), and the owner-only GET .../steps endpoint. Transcripts here are small synthetic files in the

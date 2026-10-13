@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """app/cli.py — Jira reads go through the query governor and writes are audit-logged (OPEN_ITEMS.md
 #29). Before this, the four jira-* commands called the adapter directly: no rate limit, no cache,
 and — the real hole — no audit entry, on the workspace's only mutating surface.

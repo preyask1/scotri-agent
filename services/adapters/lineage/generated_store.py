@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Per-tree store of lineage edges generated from the mirror (domain/model_lineage.py).
 
 One gzipped JSON file per mirrored tree under LINEAGE_GENERATED_DIR (default

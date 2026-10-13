@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/mirror_freshness.py — turns status.json into an advisory staleness verdict so a stale Prod
 mirror can't be read and presented as current (OPEN_ITEMS.md #31). Pure, so tested directly."""
 from __future__ import annotations

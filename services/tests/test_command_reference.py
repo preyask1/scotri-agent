@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """docs/ai/command-reference.md is loaded into every session so the agent never runs --help. That
 only helps while it's accurate: this fails when a CLI command or flag is added, renamed or removed
 without updating the page."""

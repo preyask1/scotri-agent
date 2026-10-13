@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Orchestration for a single Scotri engagement — the sequence, not the mechanics (those live behind
 ports.agent_runtime / ports.job_store / ports.interaction_log). Mirrors domain/sync_policy.py's
 shape: one function every trigger path calls, so behavior can't quietly diverge between them.

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Phase 1 SecretProvider: plain environment variables, optionally loaded from a local .env file.
 
 Phase 2 (planned): an AzureKeyVaultAdapter implementing the same SecretProvider port — nothing that

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The deployment's runtime client settings: which optional components are on, what the agent is
 called in front of users, and which Unity Catalog catalogs are the client's.
 

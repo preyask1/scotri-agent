@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed per-run identity store — implements ports.run_context.RunContextStore.
 
 Keyed by the token's SHA-256, never the token itself, so listing `runctx:*` reveals no usable token.

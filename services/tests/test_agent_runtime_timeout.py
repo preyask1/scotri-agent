@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """adapters/agent_sdk/claude_agent_adapter.py — the wall-clock timeout (OPEN_ITEMS.md #33).
 
 Exercises the timeout wrapper by stubbing the instance's own `_query` (so no real Claude Agent SDK

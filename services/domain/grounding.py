@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Grounding check: does every checkable claim in an answer appear in what the run actually saw?
 
 "Never fabricate a query result" is the hardest rule to see broken: a made-up row count reads exactly

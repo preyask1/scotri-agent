@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Redis-backed Cache (query-governor SKILL.md) — the result cache, keyed on the canonicalized query."""
 from __future__ import annotations
 

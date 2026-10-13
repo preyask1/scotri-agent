@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """How long Scotri keeps the files it stores (OPEN_ITEMS.md #6(a)).
 
 Three kinds of file pile up, and before this nothing deleted any of them:

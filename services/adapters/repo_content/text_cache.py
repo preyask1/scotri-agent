@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """A per-tree text cache for mirror-grep (OPEN_ITEMS.md #46).
 
 An all-tree mirror-grep reads ~27,700 files (462 MB, 354 MB of it Power BI report JSON) and took

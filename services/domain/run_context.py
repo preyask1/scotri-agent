@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Per-run caller identity, issued and resolved outside the agent (OPEN_ITEMS.md #59).
 
 Before this, the agent was never told who it was working for, so every `--user` it passed was a

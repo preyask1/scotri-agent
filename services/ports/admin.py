@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Ports for the admin surface (OPEN_ITEMS.md #43): the caller-app register and the admin audit log.
 
 Both are Scotri's own state. Who may call them is decided at the route (`ADMIN_ROLES`); these ports

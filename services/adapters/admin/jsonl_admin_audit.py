@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Append-only JSONL admin audit log (OPEN_ITEMS.md #43), implementing ports.admin.AdminAuditLog.
 
 Its own file, not a line in scotri-api.log: the api log rotates at 10 MB and mixes every request,

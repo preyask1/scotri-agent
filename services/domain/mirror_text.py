@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Plain-text views of mirror files, and the search over them (mirror-read --as-text, mirror-find,
 mirror-grep). Pure functions: no filesystem, no network. The adapter hands in paths and contents.
 

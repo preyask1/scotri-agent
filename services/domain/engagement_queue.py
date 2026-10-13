@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The engagement admission queue (OPEN_ITEMS.md #32): at most N engagements run at once, the rest
 wait in one FIFO queue shared by every process (API and MCP), and a waiting job can be cancelled by
 its owner or an admin, or expires after a while.

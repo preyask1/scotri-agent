@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Lexical retrieval (BM25) — pure, corpus-agnostic ranking (OPEN_ITEMS.md item #38).
 
 The hard constraint from the design note (docs/ai/retrieval-and-graph-design.md §2), enforced by how

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Resolves the correct Jira REST base URL for the credential actually in use.
 
 Atlassian API tokens come in two kinds, and they are NOT interchangeable at the URL level

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the model registry (docs/ai/model-registry.md) — which LLM vendor/model a given
 lifecycle stage should use. Kept as a port (not a plain domain function) for the same reason as
 RepoRegistry: it's external, changing state — a config file meant to be edited as multi-vendor/

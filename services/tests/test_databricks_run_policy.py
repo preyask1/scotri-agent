@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/databricks_run_policy.py — the guardrails that keep the Databricks Jobs-API run-history
 reader (OPEN_ITEMS.md item #30) from making the same silent-truncation mistake the ADF runbook hit:
 the window is always bounded and capped, and the page limit is capped, so an unbounded "list every

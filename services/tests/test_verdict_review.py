@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Human verdict review (OPEN_ITEMS.md #47): the domain rules, the append-only store, and the
 retrieval filter/weighting that keeps overturned or unsuccessful runs out of the knowledge pool."""
 from __future__ import annotations

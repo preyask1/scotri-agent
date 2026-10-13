@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Files in and out of an engagement (OPEN_ITEMS.md #6): the markdown deliverables Scotri writes are
 published so a caller can fetch them over the API or MCP, and files a user uploads are handed to the
 agent as attachments to a prompt.

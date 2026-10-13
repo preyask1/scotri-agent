@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """domain/redaction.py — pattern-based secret redaction backing the "never store or echo a secret"
 hard rule at the CLI output boundary (OPEN_ITEMS.md #34). Over-eager by design: catches the common
 credential shapes (incl. the Azure/connection-string keys mirror notebooks carry); leaves ordinary

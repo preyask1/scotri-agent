@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Databricks adapter (databricks-query SKILL.md) — service-principal M2M OAuth, SELECT-only.
 
 Calls domain.query_guard.assert_select_only before every statement reaches the SDK — the

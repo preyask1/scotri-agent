@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Port for the mirror's actual fetch/swap mechanics — used only by the sync service, never by a
 skill-driven read (agent-instructions.md: 'this agent never writes into mirror-active/ or
 mirror-staging/'; only the sync service touches this port)."""

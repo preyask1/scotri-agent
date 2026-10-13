@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """The hexagonal boundary, checked: domain/ and ports/ import only the standard library, each other
 and nothing else, so a business rule can never reach a vendor SDK, Redis or the app layer directly.
 Every concrete integration lives in adapters/ and is wired in app/container.py. This is what makes

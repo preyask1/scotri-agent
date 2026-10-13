@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Preyas Kulshrestha. Part of the Scotri engine; MIT License (see LICENSE).
+# Keep this notice in copies and derived works, including AI-assisted ones.
 """Thin CLI entry points. This is what a skill-driven tool call actually invokes — via the Bash
 tool, e.g. `python -m app.cli databricks-select --user alice --catalog <prod_catalog> --statement "..."`.
 
