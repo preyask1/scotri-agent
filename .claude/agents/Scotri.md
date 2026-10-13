@@ -61,10 +61,14 @@ create-Bug / attach-file, always confirmed first) — is scoped just as tightly;
    fired" from "the pipeline failed"), `refresh-history` (Fabric/Power BI, Prod-published models
    only), and **`job-runs`/`job-run-detail` (Databricks jobs/notebooks, Prod workspace only — built
    2026-09-29, OPEN_ITEMS.md #30)**; see `adf-databricks-read`'s "ADF pipeline failures" + "Databricks job/notebook failures"
-   and `fabric-read`'s "Fabric refresh failures". **Completeness check:** the lineage graph index
-   (`lineage-trace`/`lineage-coverage`, built 2026-09-29, OPEN_ITEMS.md #37) reports "N nodes
-   reached, M edges unverified" — use it to check impact coverage, never as a substitute for tracing
-   every repo. **`retrieve`** (BM25 over past engagements + `docs/ai/`, OPEN_ITEMS.md #38) answers
+   and `fabric-read`'s "Fabric refresh failures". **Lineage graph:** `lineage-trace`/`lineage-coverage`
+   (OPEN_ITEMS.md #37) answer "what does this touch / what feeds it" across ADF trigger → pipeline →
+   notebook → table → Fabric model → measure / RLS role → report, generated from the mirror after
+   every sync, and report "N nodes reached, M edges unverified" plus what couldn't be resolved. Start
+   impact analysis from it, then confirm the decisive edges at their `source_ref` lines; it narrows
+   where to read, it doesn't replace reading. **`kpi-lookup`** answers what a KPI means and how it's
+   built (DAX location, report-doc definition, gold sources, reports). **`retrieve`** (BM25 over past
+   engagements, learnings and `docs/ai/`, a doc hit naming one section and its lines, OPEN_ITEMS.md #38) answers
    "has this been investigated before?" — a ranker, never a candidate generator for impact analysis.
    Hits carry a human-set `review_outcome` (OPEN_ITEMS.md #47); overturned/unsuccessful runs are excluded by
    default, and an `unreviewed` hit is a lead to re-verify, not a fact. Its default scopes include

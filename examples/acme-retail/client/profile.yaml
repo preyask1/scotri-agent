@@ -59,6 +59,7 @@ repos:
     ado_project: AcmeFabricReports
     ado_repo: Acme-PowerBIReports
     note: legacy structure; hq_live is a second, independent live content set
+    legacy: true                         # an older structure kept live beside the new repos
     environments:
       - {environment: prod, branch: main, mirrored: true}
       - {environment: prod, branch: hq_live, mirrored: true}
@@ -69,6 +70,7 @@ repos:
     ado_project: AcmeFabricReports
     ado_repo: AcmeFabricReports
     note: legacy structure
+    legacy: true
     environments:
       - {environment: prod, branch: regional_main, mirrored: true}
       - {environment: uat, branch: main, mirrored: false}

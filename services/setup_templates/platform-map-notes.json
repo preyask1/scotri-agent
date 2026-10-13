@@ -1,0 +1,20 @@
+{
+  "_about": "Curated notes for the platform map (tools/platform_map/README.md, 'Curated notes'). Every key is optional; fill in what helps a new joiner at $name. Text is plain, `backticks` become code.",
+  "tagline": "",
+  "timezone_label": "",
+  "sources": [],
+  "ingestion": "",
+  "main_run_title": "",
+  "main_run": [],
+  "adf_naming": [],
+  "layers": "",
+  "schemas": [],
+  "repo_layout": [],
+  "powerbi_note": "",
+  "powerbi_patterns": [],
+  "consumers": [],
+  "environments_note": "",
+  "platform": [],
+  "glossary": [],
+  "start_here": {}
+}

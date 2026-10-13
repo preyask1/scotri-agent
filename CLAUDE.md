@@ -43,6 +43,9 @@ engagements load these instructions directly.
   read. Check it first.
 - [`docs/ai/client/`](docs/ai/client/) — this client's domain knowledge (architecture, conventions,
   lineage). [`docs/ai/`](docs/ai/) — how the tools work, the same for every client.
+- [`docs/ai/client/reports/`](docs/ai/client/reports/) — optional report documents (purpose, KPI
+  definitions, RLS) per tree, mapped in `sources.yaml`; their KPI definitions also reach `kpi-lookup`.
+  A dated snapshot: the mirror wins.
 - [`OPEN_ITEMS.md`](OPEN_ITEMS.md) — the decision log's index. Numbered references in code comments
   (`OPEN_ITEMS.md #N`) point at items in it; record new decisions there.
 

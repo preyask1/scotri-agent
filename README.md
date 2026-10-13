@@ -101,8 +101,14 @@ env vars for Key Vault, SQLite for Azure SQL, or local files for Blob is a one-f
   look first, never as a substitute for tracing the repos.
 - **Human review:** only a human can mark a verdict upheld or overturned; overturned runs drop out of
   retrieval, and reviews feed upheld-rate stats.
-- **Lineage graph:** a YAML source of truth built into a queryable index; unverified edges are
-  first-class, and `lineage-coverage` reports what nobody has confirmed yet.
+- **Lineage graph, generated:** after every sync the mirror's ADF pipelines, Databricks notebooks
+  and Fabric models/reports are read into one graph, from ADF trigger to report and down to measures,
+  columns and RLS roles, each edge pointing at the file and line it came from. A small hand-curated
+  YAML adds what the mirror can't show; `lineage-coverage --unresolved` lists what the generator
+  couldn't resolve.
+- **KPI lookup:** `kpi-lookup` answers what a KPI means and how it's built in one call: DAX location,
+  definitions (the model's own description, plus optional report documents), dependencies, gold
+  sources with the notebook line that writes each, and the reports showing it.
 
 ## Operating it
 
@@ -112,8 +118,12 @@ env vars for Key Vault, SQLite for Azure SQL, or local files for Blob is a one-f
 - **Engagement queue:** FIFO when all slots are busy, per-user caps, max wait, cancel.
 - **Ceilings:** wall-clock timeout, turn ceiling, optional cost ceiling — a run ends incomplete, never
   hangs.
-- **Admin panel** (`/admin`): health, governor load, mirror freshness, queue, redacted logs, caller
-  register, behind a role nobody holds by default, every action audit-logged.
+- **Admin panel** (`/admin`): health, governor load, mirror freshness and each tree's lineage state,
+  the code commit each process runs, queue, redacted logs, caller register, behind a role nobody
+  holds by default, every action audit-logged.
+- **Platform map** (`/platform-map`): an onboarding page rebuilt after every sync: the five stages,
+  a lineage explorer that traces any trigger, pipeline, notebook, table, model or report both ways,
+  and sortable inventories ([`tools/platform_map/`](tools/platform_map/)).
 - **Benchmark harness** ([`tools/benchmark/`](tools/benchmark/)): replays fixed cases and records
   timing, tool calls, refusals and verdicts, so instruction changes come with before/after numbers.
   Profiling showed most investigation time was overhead between steps, not queries; batching, a
@@ -151,7 +161,7 @@ python -m app.setup bootstrap   # first mirror sync + lineage index
 ```
 
 - **White-label:** the profile's display name replaces "Scotri" on the admin panel, the developer
-  portal, the API title and in the agent's own replies; a logo under `client/brand/` replaces the mark.
+  portal, the platform map, the API title and in the agent's own replies; a logo under `client/brand/` replaces the mark.
 - **Optional components:** ADF and Power BI/Fabric can be switched off. Their commands then answer
   "not enabled for this deployment", and the agent treats that layer as out of scope, not an outage.
 - **Upgrades without conflicts:** client files live only in the client's repo, so pulling a new
@@ -171,7 +181,7 @@ python -m app.setup bootstrap   # first mirror sync + lineage index
 | [`docs/stakeholder/scotri-whitelabel.html`](docs/stakeholder/scotri-whitelabel.html) | Stakeholder brief: capabilities, white-label model, hexagonal architecture |
 | [`services/`](services/) | the Python service: domain, ports, adapters, app, tests |
 | [`templates/`](templates/) | verdict, impact-analysis, plan, test and handoff templates |
-| [`tools/`](tools/) | benchmark harness and a local launcher |
+| [`tools/`](tools/) | benchmark harness, platform map generator and a local launcher |
 | [`OPEN_ITEMS.md`](OPEN_ITEMS.md) | decision log index referenced from code comments |
 
 ## License

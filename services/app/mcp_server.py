@@ -297,6 +297,9 @@ async def asgi_app(scope, receive, send):
     starts. Started here rather than at import so tests that import this module start no thread."""
     if scope["type"] == "lifespan":
         runner.start_ticking()
+        # Same catch-up as the API's start-up: on Azure this process runs in its own container,
+        # so it can't rely on the API having brought generated lineage up to date.
+        container.ensure_lineage_current_in_background()
     await _mcp_app(scope, receive, send)
 # No app-level exception handler needed here, unlike app/api.py: every tool is wrapped in
 # _as_tool_error, so a ScotriError never escapes a tool body uncaught in the first place — it's

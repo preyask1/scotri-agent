@@ -1,0 +1,9 @@
+# Report documents for Acme Retail: which mirrored tree each folder under docs/ai/client/reports/ describes.
+# The lineage index rebuild reads every *-Document.md in a listed folder, takes the KPI tables in its
+# section 2, and attaches each definition to the matching measure or column node of that tree
+# (domain/kpi_docs.py), unverified. `kpi-lookup` shows them.
+regional:
+  tree: fabric_secondary@regional_main
+  # The same models sit at the same paths in the new regional repo.
+  also_trees:
+    - fabric_regional@main

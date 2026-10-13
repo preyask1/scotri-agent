@@ -101,6 +101,9 @@ async def lifespan(_app: FastAPI):
     # Renews this process's slots, fails runs whose process died, expires jobs that waited too
     # long and starts waiting jobs when slots free up (OPEN_ITEMS.md #32).
     runner.start_ticking()
+    # Generated lineage missing or behind the mirror (fresh deployment, failed post-swap step,
+    # lost index): regenerate in the background. A no-op when everything is current.
+    container.ensure_lineage_current_in_background()
     yield
     runner.stop_ticking()
 
@@ -803,6 +806,35 @@ def upload_file(file: UploadFile = File(...), authorization: str | None = Header
 # on this module reaches the admin routes too.
 admin_router = build_admin_router(lambda: container, lambda authorization: _authenticate(authorization))
 app.include_router(admin_router)
+
+PLATFORM_MAP_SHELL = SERVICES_ROOT / "app" / "static" / "platform-map.html"
+_PAGE_HEADERS = {"X-Content-Type-Options": "nosniff", "Cache-Control": "no-store", "X-Frame-Options": "DENY",
+                 "Referrer-Policy": "no-referrer"}
+
+
+@app.get("/platform-map", include_in_schema=False)
+def platform_map_page() -> Response:
+    """The onboarding platform map (tools/platform_map). Like /admin, an unauthenticated shell with no
+    data in it: it asks for a bearer token, fetches /v1/platform-map and renders what comes back."""
+    if not PLATFORM_MAP_SHELL.is_file():
+        raise HTTPException(status_code=404, detail="Platform map page is not deployed")
+    return Response(content=_branded(PLATFORM_MAP_SHELL), media_type="text/html; charset=utf-8", headers=_PAGE_HEADERS)
+
+
+@app.get("/v1/platform-map")
+def platform_map(authorization: str | None = Header(default=None)) -> Response:
+    """The generated platform map for any authenticated caller. It names internal workspaces,
+    clusters, subscriptions and tenants (no data rows, no credentials), hence the token. Rebuilt at
+    the end of every mirror sync (Container.after_mirror_sync)."""
+    _authenticate(authorization)
+    path = container.path_setting("PLATFORM_MAP_PATH", SERVICES_ROOT / "data" / "platform-map.html")
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="The platform map hasn't been built yet. It is rebuilt after "
+                            "each mirror sync, or run tools/platform_map/gen_platform_map.py.")
+    built = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+    return Response(content=path.read_bytes(), media_type="text/html; charset=utf-8",
+                    headers={**_PAGE_HEADERS, "X-Platform-Map-Built": built})
+
 
 ADMIN_PAGE = SERVICES_ROOT / "app" / "static" / "admin.html"
 

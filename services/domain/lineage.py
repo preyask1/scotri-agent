@@ -10,8 +10,10 @@ the always-trace-all-four-repos behavioural promise into something structural (d
 docs/ai/retrieval-and-graph-design.md §1).
 
 Decision recorded here (OPEN_ITEMS.md #37 decision 3, resolved 2026-09-29): the YAML is the
-machine-readable *source of truth* for the graph; docs/ai/client/lineage-map.md stays the human-readable
-narrative. The heterogeneous markdown tables are not reliably machine-parseable, so making them the
+machine-readable source for the *hand-curated* edges; docs/ai/client/lineage-map.md stays the narrative.
+Since 2026-10-12 most of the graph is generated from the mirror instead (domain/model_lineage.py,
+domain/code_lineage.py) and merged with the YAML by `merge`; the YAML keeps only legs the mirror
+can't show. The heterogeneous markdown tables are not reliably machine-parseable, so making them the
 parse source would silently drop rows — the exact failure this graph exists to prevent. `verified:
 false` here is the queryable form of the map's 🔁 marker.
 
@@ -28,8 +30,37 @@ from domain.errors import ConfigurationError
 # a recorded warning rather than failing, so the graph can grow a new edge kind without a code change
 # — but the known set is what traversal and coverage are documented against.
 KNOWN_RELS = frozenset(
-    {"produces", "consumes", "feeds", "references", "triggers", "tested_by", "investigated_in"}
+    {"produces", "consumes", "feeds", "references", "triggers", "tested_by", "investigated_in",
+     "depends_on", "uses", "contains", "part_of", "includes"}
 )
+
+# Rels written consumer -> source (`fabric_table consumes gold_table`, `measure depends_on column`,
+# `report uses measure`, `notebook includes notebook` for a `%run`). Traversal flips them so `downstream` always follows data flow: from a gold
+# table downstream reaches the Fabric tables, measures and reports built on it; `upstream` reaches
+# what feeds it. Every other rel (produces, feeds, contains, part_of, ...) already reads source ->
+# consumer.
+FLOW_REVERSED_RELS = frozenset({"consumes", "depends_on", "uses", "includes"})
+
+# Databricks object kinds: Unity Catalog names are case-insensitive, so their node names are
+# lower-cased on load, letting a hand-written `gold_table:Sales_trend_X` meet a generated
+# `gold_table:sales_trend_x`.
+_CASE_INSENSITIVE_KINDS = ("gold_table", "silver_table", "bronze_table", "gold_column")
+
+
+_TABLE_KINDS = ("gold_table", "silver_table", "bronze_table")
+
+
+def canonical_node_id(node_id: str) -> str:
+    """Lower-case for Databricks kinds; a table also drops its catalog/schema prefix
+    (`gold_table:acme_prod.gold.visit_summary` -> `gold_table:visit_summary`), the form generated edges
+    use, so a hand-written edge and a generated one meet on one node."""
+    kind, _, name = node_id.partition(":")
+    if kind not in _CASE_INSENSITIVE_KINDS:
+        return node_id
+    name = name.lower()
+    if kind in _TABLE_KINDS:
+        name = name.rsplit(".", 1)[-1]
+    return f"{kind}:{name}"
 
 
 @dataclass(frozen=True)
@@ -49,6 +80,19 @@ class LineageEdge:
 
 
 @dataclass(frozen=True)
+class NodeNote:
+    """Something known about a node that isn't an edge: where it is defined in the mirror
+    (`defined_at`, verified) or a KPI's business definition from the report docs
+    (`kpi_definition`, verified=False: the docs are a dated snapshot)."""
+    node_id: str
+    kind: str        # "defined_at" | "kpi_definition"
+    title: str       # the KPI name for a definition; "" for a location
+    text: str        # the definition, or the "<tree>:<path>:<line>" location
+    source_ref: str  # where the note came from
+    verified: bool
+
+
+@dataclass(frozen=True)
 class LoadedGraph:
     nodes: list[LineageNode]
     edges: list[LineageEdge]
@@ -65,6 +109,13 @@ class Traversal:
     max_hops: int
     unverified_edge_count: int
 
+    def nodes_by_kind(self) -> dict[str, int]:
+        out: dict[str, int] = {}
+        for n in self.nodes:
+            kind = n.split(":", 1)[0]
+            out[kind] = out.get(kind, 0) + 1
+        return dict(sorted(out.items()))
+
 
 @dataclass(frozen=True)
 class Coverage:
@@ -74,6 +125,8 @@ class Coverage:
     unverified_edges: list[LineageEdge]
     last_build_at: str | None
     source_file: str | None
+    generated: dict = field(default_factory=dict)  # per-tree stats of mirror-generated edges
+    kpi: dict = field(default_factory=dict)        # KPI definitions attached from the report docs
 
 
 def _node_id_parts(node_id: str) -> tuple[str, str]:
@@ -112,7 +165,7 @@ def load_graph(raw: dict) -> LoadedGraph:
     for decl in raw.get("nodes", []) or []:
         if not isinstance(decl, dict) or "id" not in decl:
             raise ConfigurationError(f"each 'nodes' entry must be a mapping with an 'id': got {decl!r}")
-        ensure_node(str(decl["id"]), decl.get("name"))
+        ensure_node(canonical_node_id(str(decl["id"])), decl.get("name"))
 
     edges: list[LineageEdge] = []
     raw_edges = raw.get("edges")
@@ -127,7 +180,7 @@ def load_graph(raw: dict) -> LoadedGraph:
         for required in ("src", "dst", "rel"):
             if not e.get(required):
                 raise ConfigurationError(f"edge #{i} is missing required field {required!r}: {e!r}")
-        src, dst, rel = str(e["src"]), str(e["dst"]), str(e["rel"])
+        src, dst, rel = canonical_node_id(str(e["src"])), canonical_node_id(str(e["dst"])), str(e["rel"])
         if "verified" not in e:
             raise ConfigurationError(
                 f"edge #{i} ({src} -{rel}-> {dst}) must state verified: true/false explicitly — an "
@@ -142,3 +195,18 @@ def load_graph(raw: dict) -> LoadedGraph:
                                  source_ref=str(e.get("source_ref", ""))))
 
     return LoadedGraph(nodes=list(nodes.values()), edges=edges, warnings=warnings)
+
+
+def merge(curated: LoadedGraph, generated: list[LineageEdge]) -> LoadedGraph:
+    """The hand-curated graph plus edges generated from the mirror. An edge in both keeps the
+    generated (verified, mirror-sourced) copy; a curated node keeps its display name."""
+    edges = {(e.src, e.dst, e.rel): e for e in curated.edges}
+    for e in generated:
+        edges[(e.src, e.dst, e.rel)] = e
+    nodes = {n.id: n for n in curated.nodes}
+    for e in generated:
+        for nid in (e.src, e.dst):
+            if nid not in nodes:
+                kind, name = _node_id_parts(nid)
+                nodes[nid] = LineageNode(id=nid, kind=kind, name=name)
+    return LoadedGraph(nodes=list(nodes.values()), edges=list(edges.values()), warnings=curated.warnings)

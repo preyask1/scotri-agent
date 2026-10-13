@@ -48,7 +48,7 @@ report faces. The consumer side is ✅ via `fabric-read`; the notebook column is
 |---|---|---|---|---|
 | `visit_summary` (`fabric_secondary`, `Insights/Field/Visit-Status.SemanticModel`) | `acme_prod.gold.visit_summary` | `Gold_Notebooks/FIELD/Visit summary report.ipynb` | none found — likely a Databricks Job outside ADF, **unconfirmed** | ✅ gold/notebook/Fabric legs; ADF leg absent |
 
-`JOINTWORK_WITHREP` is a direct passthrough column (no DAX transform), confirmed from the table's
+`SHELFCHECK_WITHREP` is a direct passthrough column (no DAX transform), confirmed from the table's
 `.tmdl` M partition.
 
 ## Other areas

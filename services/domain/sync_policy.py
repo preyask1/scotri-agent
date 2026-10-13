@@ -173,6 +173,7 @@ def refresh_registry_once(
     lock: SyncLock, holder: str, lock_ttl_seconds: int = SYNC_LOCK_TTL_SECONDS,
     only: Callable[[RepoRef], bool] | None = None, progress: SyncProgress | None = None,
     after_swap: Callable[[RepoRef], None] | None = None,
+    after_run: Callable[[list[SyncOutcome]], None] | None = None,
 ) -> list[SyncOutcome]:
     """The single entry point `app/cli.py`'s `sync-run-once`, `app/sync_service.py`'s scheduled loop
     and the admin panel's manual sync all call — so "manual" and "scheduled" are guaranteed to mean
@@ -186,6 +187,9 @@ def refresh_registry_once(
     `only` narrows the run to the refs it accepts (the admin panel's per-repo Sync). It narrows, never
     widens: a ref that isn't ready to sync is still skipped. `progress` observes the run.
     `after_swap` runs after each successful swap (the mirror-grep cache rebuild, OPEN_ITEMS.md #46).
+    `after_run` runs once at the end, still under the lock, when at least one ref swapped: for work
+    built from every tree at once (the platform map), so a full sync does it once, not per tree.
+    Best-effort like `after_swap`: its failure is logged and never fails the sync.
     """
     token = lock.acquire(holder, lock_ttl_seconds)
     if token is None:
@@ -202,7 +206,13 @@ def refresh_registry_once(
             for ref in registry.get(key)
             if is_ready_to_sync(ref) and (only is None or only(ref))
         ]
-        return refresh_all(refs, sync_target, flag, after_each=renew, progress=progress, after_swap=after_swap)
+        outcomes = refresh_all(refs, sync_target, flag, after_each=renew, progress=progress, after_swap=after_swap)
+        if after_run is not None and any(o.ok for o in outcomes):
+            try:
+                after_run(outcomes)
+            except Exception:  # noqa: BLE001 — a post-run step never fails the sync
+                logger.exception("sync: post-run step failed")
+        return outcomes
     finally:
         lock.release(token)
 

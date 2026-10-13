@@ -27,6 +27,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
@@ -256,6 +257,7 @@ def build_admin_router(get_container: Callable[[], object],
                 "active_jobs": _section(lambda: _active_jobs(c)),
                 "queue": _section(lambda: _queue(c)),
                 "mirror": _section(lambda: _mirror(c)),
+                "process": _section(_process),
                 "config": _config(c),
             }
 
@@ -428,7 +430,8 @@ def build_admin_router(get_container: Callable[[], object],
                 outcomes = refresh_registry_once(
                     c.registry, c.mirror_sync, c.maintenance_flag, c.sync_lock, holder=holder,
                     only=None if scope == "all" else (lambda ref: (ref.repo, ref.branch) in wanted),
-                    progress=manual_sync, after_swap=getattr(c, "rebuild_mirror_text_cache", None))
+                    progress=manual_sync, after_swap=getattr(c, "after_mirror_swap", None),
+                    after_run=getattr(c, "after_mirror_sync", None))
                 # A partial run merges into the current status so the other repos keep their rows.
                 previous = None if scope == "all" else c.mirror_reader.read_status()
                 write_status(c.mirror_root / "status.json", build_status_report(outcomes, previous))
@@ -525,6 +528,68 @@ def _queue(c) -> dict:
     }
 
 
+def git_head(root: Path) -> str | None:
+    """The commit `root`'s git checkout is on, read from .git without running git (a worktree's
+    `.git` file and packed refs included). SCOTRI_BUILD_COMMIT wins when set, for a container image
+    built without .git. None when neither says."""
+    import os
+
+    if os.environ.get("SCOTRI_BUILD_COMMIT"):
+        return os.environ["SCOTRI_BUILD_COMMIT"].strip()[:40]
+    try:
+        git = root / ".git"
+        if git.is_file():  # a worktree: "gitdir: <path>"
+            git = Path(git.read_text(encoding="utf-8").split(":", 1)[1].strip())
+        head = (git / "HEAD").read_text(encoding="utf-8").strip()
+        if not head.startswith("ref: "):
+            return head[:40]
+        ref = head[5:]
+        common = git
+        if (git / "commondir").is_file():
+            common = (git / (git / "commondir").read_text(encoding="utf-8").strip()).resolve()
+        for base in (git, common):
+            if (base / ref).is_file():
+                return (base / ref).read_text(encoding="utf-8").strip()[:40]
+        for line in (common / "packed-refs").read_text(encoding="utf-8").splitlines():
+            if line.endswith(" " + ref):
+                return line.split(" ", 1)[0][:40]
+    except (OSError, IndexError):
+        return None
+    return None
+
+
+_WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
+PROCESS_STARTED_AT = datetime.now(timezone.utc).isoformat()
+COMMIT_AT_START = git_head(_WORKSPACE_ROOT)
+"""What this process is running: the checkout's commit when the module loaded. A process keeps the
+code it started with, so a sync started from an old process runs the old post-swap step (seen
+2026-10-13: lineage wasn't regenerated). The overview shows it next to the checkout's commit now."""
+
+
+def _process() -> dict:
+    from domain.model_lineage import GENERATOR_VERSION
+
+    now = git_head(_WORKSPACE_ROOT)
+    return {"started_at": PROCESS_STARTED_AT, "commit_at_start": COMMIT_AT_START, "commit_now": now,
+            "restart_needed": bool(COMMIT_AT_START and now and COMMIT_AT_START != now),
+            "lineage_generator_version": GENERATOR_VERSION}
+
+
+def _lineage_state(c, ref) -> dict:
+    """This tree's generated lineage against its current sync, the check ensure_lineage_current uses:
+    current, stale (older than the tree's last sync), old_generator, or missing."""
+    try:
+        stored = c.lineage_generated_store.load(c.tree_label(ref))
+        token = c.mirror_reader.manifest_token(ref.repo, ref.branch)
+    except Exception as e:  # noqa: BLE001 — one tree must not sink the overview
+        return {"state": "unknown", "error": str(e)[:200]}
+    if stored is None:
+        return {"state": "missing"}
+    state = ("old_generator" if not stored.current
+             else "stale" if token is not None and stored.manifest_token != token else "current")
+    return {"state": state, "generated_at": stored.generated_at}
+
+
 def _mirror(c) -> dict:
     warn_after = int(c.secrets.get_optional("MIRROR_STALE_WARN_SECONDS", str(DEFAULT_WARN_AFTER_SECONDS)))
     status = c.mirror_reader.read_status()
@@ -543,7 +608,8 @@ def _mirror(c) -> dict:
                 except ScotriError as e:
                     maintenance_error = e.user_message
             repos.append({"repo_key": key, "repo": ref.repo, "branch": ref.branch,
-                          "freshness": fresh.to_dict(), "maintenance": flag})
+                          "freshness": fresh.to_dict(), "maintenance": flag,
+                          "lineage": _lineage_state(c, ref)})
     return {"last_run_at": (status or {}).get("last_run_at"), "maintenance_error": maintenance_error,
             "repos": repos}
 

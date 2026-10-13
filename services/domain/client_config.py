@@ -38,9 +38,25 @@ class ClientConfig:
     catalogs: tuple[str, ...] = ()
     jira_projects: tuple[str, ...] = ()
     logo: str = ""
+    repo_kinds: tuple[tuple[str, str], ...] = ()  # (repo_key, databricks | adf | fabric)
 
     def enabled(self, component: str) -> bool:
         return component in self.components
+
+    def kind_of(self, repo_key: str) -> str:
+        """Which layer a repo holds. Without a profile, the keys `databricks` and `adf` name their
+        own kind and every other repo is a Fabric tree."""
+        kinds = dict(self.repo_kinds)
+        if repo_key in kinds:
+            return kinds[repo_key]
+        return repo_key if repo_key in ("databricks", "adf") else "fabric"
+
+    def repo_of_kind(self, kind: str) -> str | None:
+        """The first repo key of a kind (one Databricks repo, one ADF repo), or None."""
+        for key, k in self.repo_kinds:
+            if k == kind:
+                return key
+        return kind if kind in ("databricks", "adf") and not self.repo_kinds else None
 
 
 DEFAULT_CLIENT_CONFIG = ClientConfig()
@@ -68,6 +84,7 @@ def client_config_from_dict(data: dict | None) -> ClientConfig:
         else tuple(str(v) for v in catalogs if v),
         jira_projects=tuple(str(p).upper() for p in (data.get("jira_projects") or []) if p),
         logo=str(data.get("logo") or ""),
+        repo_kinds=tuple((str(k), str(v)) for k, v in (data.get("repo_kinds") or {}).items()),
     )
 
 

@@ -6,6 +6,7 @@ deliberate omission, not an oversight.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,7 @@ class MirrorRepoContentReader:
         # the guard permanently (and silently) reject every legitimate path. Confirmed 2026-09-17,
         # the first time this method was actually exercised against real mirrored content.
         self._active_root = (mirror_root / "mirror-active").resolve()
+        self._token_cache: dict[tuple, str] = {}  # (manifest path, mtime_ns, size) -> content hash
 
     def _resolve(self, repo: str, branch: str, path: str) -> Path:
         # A leading "/" (meaning "the repo/branch root itself", e.g. from a caller passing "/" for
@@ -73,13 +75,25 @@ class MirrorRepoContentReader:
         return walk_tree(root), "walk"
 
     def manifest_token(self, repo: str, branch: str) -> str | None:
-        """Identifies the tree's current sync (the manifest's mtime and size), for caches keyed to
-        it. None when the tree has no manifest."""
+        """Identifies the tree's current sync, for caches keyed to it (the mirror-grep text cache,
+        generated lineage): a hash of the manifest's content, which names the sync time and every
+        file. Content, not mtime, so a mirror copied elsewhere (hydrated from a Blob snapshot on
+        Azure, OPEN_ITEMS.md #15) keeps its identity and its caches. Hashed once per manifest
+        version (stat), so repeated calls cost a stat. None when the tree has no manifest."""
         try:
-            st = (self._resolve(repo, branch, "") / MANIFEST_NAME).stat()
+            path = self._resolve(repo, branch, "") / MANIFEST_NAME
+            st = path.stat()
         except (OSError, ValueError):
             return None
-        return f"{st.st_mtime_ns}:{st.st_size}"
+        key = (str(path), st.st_mtime_ns, st.st_size)
+        token = self._token_cache.get(key)
+        if token is None:
+            try:
+                token = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()[:32]
+            except OSError:
+                return None
+            self._token_cache[key] = token
+        return token
 
     def read_bytes_capped(self, repo: str, branch: str, path: str, max_bytes: int) -> bytes | None:
         """The file's bytes, or None if it is larger than `max_bytes` or can't be opened. One open

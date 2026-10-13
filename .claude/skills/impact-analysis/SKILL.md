@@ -16,9 +16,13 @@ that ships a silent inconsistency across shards.**
 ## Helpers that don't change the completeness rule
 
 - **Lineage graph** (`lineage-trace`/`lineage-coverage`) — query first for a fast blast radius that
-  reports "N nodes reached, M edges unverified". Use it to seed and then check coverage: an unverified
-  (🔁) or missing edge is a re-confirm task, not a confirmed absence. Low coverage means "not mapped
-  yet"; still do the full trace and add the edges you confirm.
+  reports "N nodes reached, M edges unverified". For a gold table or column it lists every consuming
+  model, measure, RLS role and report across all Fabric trees, generated from the mirror at sync time
+  (`--kind report --kind measure --kind rls_role`). That list *is* the candidate set: confirm the
+  edges the work order depends on by reading their `source_ref` lines, and search (`mirror-grep`)
+  only where the graph has a gap: an unverified (🔁) edge, or an item in `lineage-coverage
+  --unresolved` for a model or notebook in scope. Those are re-confirm tasks, not confirmed
+  absences. Low coverage means "not mapped yet"; then do the full file trace.
 - **Retrieval** — `retrieve --query "<table/measure>" --scope past-engagements,docs`. A ranker, never a
   candidate generator: never let a hit decide *which* consumers exist (a missed fifth consumer is
   exactly the silent inconsistency). State each cited hit's review outcome.
@@ -74,8 +78,9 @@ that ships a silent inconsistency across shards.**
    `datasetReference.byPath.path`. Classify each instance's layout (`legacy` `<Report>/report.json` vs
    `pbir` `<Report>/definition/report.json` + per-visual files). This varies within one clone set and
    changes over time: re-derive it every time, never inherit it from a prior work order.
-6. **Live Service parameters** (if the change touches shard scope or catalog). `CatalogName` /
-   `KeepListParam` / `Divisions` / `DivisionCodes` live as dataset parameters in the Power BI Service,
+6. **Live Service parameters** (if the change touches shard scope or catalog). `CatalogName` and
+   any shard-scope parameter (a region or division keep-list; `docs/ai/client/fabric-conventions.md`
+   names this client's) live as dataset parameters in the Power BI Service,
    not reliably in the repo's `expressions.tmdl`. Read the live value via `dax-debug` (a metadata read,
    same connection). If unavailable, write `live parameter unread: <reason>` and use the
    mirror-committed value with a "may be stale" caveat.

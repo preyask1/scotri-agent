@@ -743,8 +743,14 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
       <tr><td><code>CLAUDE_CODE_GIT_BASH_PATH</code></td><td>auto-detected on Windows</td><td>Where Git Bash is. A run whose agent starts without Bash is stopped at once with an error naming this setting</td></tr>
       <tr><td><code>ADMIN_ROLES</code></td><td><code>scotri.admin</code> in <code>.env.example</code>; unset means nobody</td><td>Who may use the admin panel at <code>/admin</code></td></tr>
       <tr><td><code>ADMIN_AUDIT_LOG_PATH</code></td><td><code>./logs/admin-audit.jsonl</code></td><td>Where every admin call is recorded</td></tr>
+      <tr><td><code>SCOTRI_BUILD_COMMIT</code></td><td>read from <code>.git</code></td><td>The commit the admin panel reports this process is running, for an image built without <code>.git</code></td></tr>
+      <tr><td><code>LINEAGE_GENERATED_DIR</code></td><td><code>./data/lineage-generated</code></td><td>Lineage generated from the mirror, one file per tree. Derived data: delete it and the next start regenerates it</td></tr>
+      <tr><td><code>LINEAGE_DB_PATH</code></td><td><code>./data/lineage.db</code></td><td>The lineage index <code>lineage-trace</code>, <code>lineage-coverage</code> and <code>kpi-lookup</code> read. Rebuilt from the generated files plus <code>docs/ai/client/lineage-graph.yaml</code></td></tr>
     </tbody>
   </table></div>
+  <p><b>After pulling new code, restart both processes.</b> A running process keeps the code it started with, so until then the admin panel's <b>Sync now</b> and the start-up checks run the old version. The admin overview's <b>Code running</b> stat shows the commit each process started from and says <b>restart needed</b> when the checkout has moved on; its Mirror table shows each branch's lineage as current, behind the last sync, from an older generator, or missing.</p>
+  <h3 style="margin:26px 0 8px">Lineage keeps itself current</h3>
+  <p>Nothing to schedule. After every mirror sync (the schedule, <code>sync-run-once</code> or the admin panel's <b>Sync now</b>) each swapped tree's lineage is regenerated from the mirror: ADF trigger → pipeline → notebook, notebook → table, and table → Fabric model → measure / RLS role → report. On start-up the API and the sync service also regenerate, on a background thread, any tree whose lineage is missing, from an older sync or from an older generator. A fresh deployment needs about 1.5 minutes for that and keeps serving meanwhile; an unchanged one costs a manifest read per tree. To force it by hand, run the ops-only <code>python -m app.cli lineage-generate --stale-only</code> (or without the flag, every tree). The MCP server runs the same check, so it works in its own container too; on one host a lock file lets only one process regenerate at a time, and a post-sync refresh waits for it.</p>
   <p class="muted" style="font-size:.9rem">The full prose reference is in <code>docs/api.md</code>. If this page and the code disagree, the code in <code>services/app/api.py</code> and <code>services/app/mcp_server.py</code> is right.</p>
 </section>
 
@@ -845,6 +851,11 @@ uvicorn app.mcp_server:asgi_app --host 0.0.0.0 --port 8100</pre></div>
       d: "The caller's own durable history, newest first. It outlasts the 24-hour job store. `verdict` is one of `confirmed_bug`, `not_a_bug`, `inconclusive`, `story` or `question`, or `null`.",
       query: [["limit", "int", "50", "Clamped to 1–200"]],
       res: { subject: "<subject>", count: 1, engagements: [ { job_id: "9f1c…", conversation_id: "b27a…", prompt: "PROJ-2041", status: "succeeded", created_at: "…", review_outcome: "unreviewed", verdict: "confirmed_bug", reviewable: true } ] } },
+
+    { id: "ep-platform-map", m: "GET", p: "/v1/platform-map", t: "The platform map page",
+      access: "Any authenticated caller",
+      d: "The onboarding map of the Prod data platform (sources, ADF, Databricks, Power BI, consumers, lineage explorer, inventories) as one self-contained `text/html` page, rebuilt at the end of every mirror sync. `X-Platform-Map-Built` says when. It names internal workspaces, factories and tenants but holds no data rows or credentials. `404` until the first build. For people, open `/platform-map` in a browser: it asks for the token and renders this.",
+      raw: true },
 
     { id: "ep-learnings", m: "GET", p: "/v1/learnings", t: "Browse learnings",
       access: "Self · team needs a learnings-reader role",

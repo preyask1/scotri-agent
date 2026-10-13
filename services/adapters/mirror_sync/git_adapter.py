@@ -33,7 +33,7 @@ from pathlib import Path
 from adapters.ado_auth import resolve_ado_pat
 from adapters.repo_content.mirror_reader_adapter import walk_tree
 from domain.mirror_text import MANIFEST_NAME
-from domain.errors import ErrorCategory, ScotriError
+from domain.errors import ErrorCategory, ScotriError, TransientError
 from ports.secret_provider import SecretProvider
 
 logger = logging.getLogger(__name__)
@@ -277,17 +277,44 @@ class GitMirrorSyncTarget:
         if active_path.exists():
             if previous_backup.exists():
                 _rmtree_force(previous_backup)
-            active_path.rename(previous_backup)
+            _rename_with_retry(active_path, previous_backup)
         try:
-            staging_path.rename(active_path)
+            _rename_with_retry(staging_path, active_path)
         except Exception:
             # Swap failed — restore the previous active tree rather than leaving nothing in place.
             if previous_backup.exists():
-                previous_backup.rename(active_path)
+                _rename_with_retry(previous_backup, active_path)
             raise
         else:
             if previous_backup.exists():
                 _rmtree_force(previous_backup)
+
+
+_RENAME_DELAYS = (0.5, 1, 2, 4, 8)
+"""Seconds to wait before each retry of a swap rename (~15 s in all). On Windows a folder can't be
+renamed while any process holds a file inside it open: a mirror reader mid-scan, antivirus or the
+search indexer. Those holds are usually brief; the 2026-10-12 06:25 sync lost two trees to one."""
+
+
+def _rename_with_retry(src: Path, dst: Path, delays=_RENAME_DELAYS, sleep=None) -> None:
+    """`src.rename(dst)`, retried on a Windows sharing/access error (a file inside is open
+    elsewhere). Anything else, or a lock that outlasts the retries, raises: the latter as a
+    TransientError that says what holds it, rather than an uncategorised OSError."""
+    import time
+
+    sleep = sleep or time.sleep
+    for attempt, delay in enumerate((*delays, None)):
+        try:
+            src.rename(dst)
+            return
+        except PermissionError as e:  # WinError 5 (access denied) / 32 (in use)
+            if delay is None:
+                raise TransientError(
+                    f"could not rename {src.name} -> {dst} after {attempt + 1} attempts: a file inside is "
+                    f"held open by another process (a mirror reader, antivirus or the search indexer). "
+                    f"The previous tree is kept; re-run the sync once it is released. ({e})") from e
+            logger.warning("sync: rename %s -> %s blocked (%s); retrying in %ss", src, dst, e, delay)
+            sleep(delay)
 
 
 def _write_manifest(tree: Path, repo: str, branch: str) -> None:

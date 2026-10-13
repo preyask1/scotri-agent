@@ -145,6 +145,7 @@ def render_model_registry(profile: dict) -> str:
 
 def render_client_config(profile: dict) -> str:
     c = profile["client"]
+    fabric, adf = profile.get("fabric") or {}, profile.get("adf") or {}
     return _yaml({
         "client_name": c["name"],
         "display_name": c["display_name"],
@@ -152,6 +153,12 @@ def render_client_config(profile: dict) -> str:
         "components": dict(profile["components"]),
         "catalogs": dict(profile["databricks"]["catalogs"]),
         "jira_projects": list(profile["jira"]["projects"]),
+        "repo_kinds": {r["repo_key"]: r["kind"] for r in profile["repos"]},
+        "legacy_repos": [r["repo_key"] for r in profile["repos"] if r.get("legacy")],
+        "fabric_workspaces": [{"name": w["name"], "repo_key": w.get("repo_key", ""), "branch": w.get("branch", "")}
+                              for w in fabric.get("workspaces") or []],
+        "fabric_tenant_id": fabric.get("tenant_id", ""),
+        "adf_tenant_id": adf.get("tenant_id", ""),
     })
 
 
@@ -341,7 +348,7 @@ def _skeleton_names(profile: dict) -> list[str]:
     names = ["databricks-architecture.md"]
     if profile["components"]["fabric"]:
         names += ["fabric-architecture.md", "fabric-conventions.md"]
-    return names + ["lineage-map.md", "lineage-graph.yaml"]
+    return names + ["lineage-map.md", "lineage-graph.yaml", "platform-map-notes.json", "reports/sources.yaml"]
 
 
 def render_skeletons(profile: dict) -> dict[str, str]:
@@ -357,7 +364,7 @@ def render_skeletons(profile: dict) -> dict[str, str]:
     }
     out = {}
     for name in _skeleton_names(profile):
-        template = Template((TEMPLATES_DIR / name).read_text(encoding="utf-8"))
+        template = Template((TEMPLATES_DIR / name.replace("/", "-")).read_text(encoding="utf-8"))
         out[f"{CLIENT_DOCS}/{name}"] = template.substitute(values)
     return out
 

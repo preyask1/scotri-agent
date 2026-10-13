@@ -347,6 +347,10 @@
     stat("Auth mode", o.config.auth_mode, o.config.auth_mode === "dev" ? "warn" : "");
     const lr = o.mirror.ok ? o.mirror.last_run_at : null;
     stat("Mirror last sync", o.mirror.ok ? (lr ? when(lr) : "never") : o.mirror.error, o.mirror.ok && lr ? "" : "warn");
+    const pr = o.process && o.process.ok ? o.process : null, short = (s) => s ? s.slice(0, 7) : "unknown";
+    stat("Code running", pr ? (pr.restart_needed ? "restart needed: " + short(pr.commit_at_start) + " → " + short(pr.commit_now)
+                                                  : short(pr.commit_at_start) + ", since " + when(pr.started_at))
+                           : (o.process ? o.process.error : "unknown"), pr && !pr.restart_needed ? "" : "warn");
     top.appendChild(grid); root.appendChild(top);
 
     const gov = el("section", null, "card"); gov.appendChild(el("h2", "Query governor"));
@@ -374,11 +378,14 @@
     mir.appendChild(el("div", null, "tablewrap")).appendChild(el("table")).id = "mirror-table"; root.appendChild(mir);
     if (o.mirror.ok) {
       if (o.mirror.maintenance_error) mir.insertBefore(el("p", "Maintenance flags unknown: " + o.mirror.maintenance_error, "bad"), mir.children[1]);
-      table("mirror-table", ["Repo", "Branch", "Freshness", "Maintenance", "Sync"], o.mirror.repos.map((r) => {
+      table("mirror-table", ["Repo", "Branch", "Freshness", "Lineage", "Maintenance", "Sync"], o.mirror.repos.map((r) => {
         const f = r.freshness, label = !f.available ? "unknown" : f.repo_ok === false ? "sync failed" : f.stale ? "stale" : "fresh";
         const p = pill(label, label === "fresh" ? "ok" : label === "sync failed" ? "bad" : "warn");
         if (f.warning) p.title = f.warning;
-        return [r.repo_key, r.branch, p, !r.maintenance ? "unknown" : r.maintenance.active ? pill("swap in progress", "warn") : "none",
+        const lg = r.lineage || {}, lgLabel = { current: "current", stale: "behind last sync", old_generator: "older generator", missing: "missing" }[lg.state] || "unknown";
+        const lp = pill(lgLabel, lg.state === "current" ? "ok" : "warn");
+        lp.title = lg.generated_at ? "generated " + lg.generated_at : (lg.error || "");
+        return [r.repo_key, r.branch, p, lp, !r.maintenance ? "unknown" : r.maintenance.active ? pill("swap in progress", "warn") : "none",
                 repoSyncCell(r.repo_key, r.branch)];
       }));
     } else mir.appendChild(el("p", o.mirror.error, "bad"));
@@ -449,7 +456,7 @@
     cell.append(bar, pct, btn);
     return cell;
   }
-  const PHASE = { queued: "Queued", fetching: "Fetching", swapping: "Swapping in", caching: "Indexing for search", done: "Done", failed: "Failed", skipped: "Not reached" };
+  const PHASE = { queued: "Queued", fetching: "Fetching", swapping: "Swapping in", caching: "Indexing (search, lineage)", done: "Done", failed: "Failed", skipped: "Not reached" };
   function showRepoRows(s, locked) {
     const rows = new Map((s.repos || []).map((r) => [rowId(r.repo_key, r.branch), r]));
     document.querySelectorAll(".repo-sync").forEach((cell) => {

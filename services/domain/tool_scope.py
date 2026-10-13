@@ -34,8 +34,10 @@ FILE_WRITE_TOOLS = {"Write": "file_path", "Edit": "file_path", "MultiEdit": "fil
                     "NotebookEdit": "notebook_path"}
 WRITABLE_DIRS = ("scratch", "proposals", "investigations")
 WRITABLE_FILES = ("docs/ai/client/lineage-map.md",)
-OPS_ONLY_COMMANDS = {"governor-reset", "sync-run-once", "artifacts-purge"}
-DENIED_TOOLS = {"PowerShell"}
+OPS_ONLY_COMMANDS = {"governor-reset", "sync-run-once", "artifacts-purge", "lineage-generate"}
+# SendMessage/ListAgents hand work to another session and end the turn; the turn ending is the
+# engagement ending, so the handed-off work dies unstarted (OPEN_ITEMS.md #73).
+DENIED_TOOLS = {"PowerShell", "SendMessage", "ListAgents"}
 FILE_READ_TOOLS = {"Read": ("file_path",), "NotebookRead": ("notebook_path",),
                    "Grep": ("path",), "Glob": ("path", "pattern")}
 READ_DENIED_PATHS = ("services/mirror", "services/data", "services/logs", "services/FRONTEND_AUTH.md")

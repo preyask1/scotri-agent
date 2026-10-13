@@ -120,3 +120,17 @@ def test_rejects_oversized_and_non_list_input(tmp_path, capsys, no_container):
     code, out = _run_batch(tmp_path, capsys, {"not": "a list"})
     assert code == 1 and out["category"] == "configuration"
     assert no_container == []
+
+
+def test_batch_names_its_items_on_stderr_before_running(tmp_path, capsys, monkeypatch, no_container):
+    """One short line on stderr, first, so a truncated step preview still shows what a batch ran
+    (the benchmark counts graph-tool use from it). Stdout stays pure JSON."""
+    monkeypatch.setattr(cli, "cmd_registry_resolve", lambda a: print(json.dumps({"ok": True})) or 0)
+    monkeypatch.setattr(cli, "cmd_lineage_trace", lambda a: print(json.dumps({"ok": True})) or 0)
+    batch_file = tmp_path / "batch.json"
+    batch_file.write_text(json.dumps([["registry-resolve", "--repo-key", "x"],
+                                      ["lineage-trace", "--node", "gold_table:visit_summary"]]), encoding="utf-8")
+    assert cli.main(["batch", "--file", str(batch_file)]) == 0
+    captured = capsys.readouterr()
+    assert captured.err.splitlines()[0] == "batch: 2 item(s): registry-resolve, lineage-trace"
+    assert json.loads(captured.out)["ok"] is True

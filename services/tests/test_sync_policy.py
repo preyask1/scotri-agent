@@ -343,12 +343,33 @@ def test_a_failed_swap_gets_no_cache_rebuild_and_a_failed_rebuild_fails_no_sync(
     assert [e for e in events if e[0] == "cache"] == [("cache", "dbx")]
 
 
-def test_every_sync_entry_point_passes_the_cache_rebuild():
-    """sync-run-once, the scheduled service and the admin panel's Sync now all rebuild the cache."""
+def test_every_sync_entry_point_passes_the_post_swap_step():
+    """sync-run-once, the scheduled service and the admin panel's Sync now all run the post-swap step
+    (search cache, then generated lineage)."""
     from pathlib import Path
     app = Path(__file__).resolve().parents[1] / "app"
     for name in ("cli.py", "sync_service.py", "admin_routes.py"):
         text = (app / name).read_text(encoding="utf-8")
         call = text[text.index("refresh_registry_once("):]
         call = call[:call.index(")\n")]
-        assert "after_swap=" in call and "rebuild_mirror_text_cache" in call, name
+        assert "after_swap=" in call and "after_mirror_swap" in call, name
+        assert "after_run=" in call and "after_mirror_sync" in call, name
+
+
+def test_after_run_runs_once_per_sync_only_when_something_swapped_and_never_fails_it():
+    events, runs = [], []
+    registry = FakeRegistry({"adf": [_ref(repo="adf")], "dbx": [_ref(repo="dbx")]})
+
+    def after_run(outcomes):
+        runs.append([(o.repo, o.ok) for o in outcomes])
+        raise RuntimeError("generator crashed")
+
+    outcomes = refresh_registry_once(registry, FakeSyncTarget(events, fail_on_swap=("adf",)), FakeFlag(events),
+                                     FakeLock(events), holder="t", after_run=after_run)
+    assert [(o.repo, o.ok) for o in outcomes] == [("adf", False), ("dbx", True)]
+    assert runs == [[("adf", False), ("dbx", True)]]  # once, with every outcome; its crash is swallowed
+
+    runs.clear()
+    refresh_registry_once(registry, FakeSyncTarget(events, fail_on_swap=("adf", "dbx")), FakeFlag(events),
+                          FakeLock(events), holder="t", after_run=after_run)
+    assert runs == []  # nothing swapped, nothing to rebuild

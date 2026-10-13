@@ -58,6 +58,61 @@ class RetrievalHit:
     meta: dict = field(default_factory=dict)
 
 
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
+_FENCE_RE = re.compile(r"^\s*(```|~~~)")
+_SPLIT_LEVEL = 2          # every `#`/`##` heading starts a section
+_SUBSPLIT_CHARS = 8000    # a section still larger than this is split again on `###`
+
+
+@dataclass(frozen=True)
+class Section:
+    heading: str      # breadcrumb of enclosing headings, "" for text before the first heading
+    start_line: int   # 1-based, inclusive
+    end_line: int     # 1-based, inclusive
+    text: str
+
+
+def split_markdown(text: str) -> list[Section]:
+    """Split a markdown document into heading-delimited sections, so a retrieval hit points at the
+    part that matched (and its line range) instead of a whole 30 KB file. Splits on `#`/`##`, then
+    re-splits any section over `_SUBSPLIT_CHARS` on `###`. Headings inside fenced code are ignored.
+    A document with no headings comes back as one section."""
+    lines = text.splitlines()
+    headings: list[tuple[int, int, str]] = []  # (0-based line index, level, title)
+    in_fence = False
+    for i, line in enumerate(lines):
+        if _FENCE_RE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence and (m := _HEADING_RE.match(line)):
+            headings.append((i, len(m.group(1)), m.group(2).strip()))
+
+    def cut(level: int, lo: int, hi: int) -> list[tuple[int, int]]:
+        """[lo, hi) cut at every heading of `level` or above strictly inside it."""
+        bounds = [lo, *(i for i, lvl, _ in headings if lvl <= level and lo < i < hi), hi]
+        return list(zip(bounds, bounds[1:]))
+
+    spans: list[tuple[int, int]] = []
+    for a, b in cut(_SPLIT_LEVEL, 0, len(lines)):
+        if sum(len(line) + 1 for line in lines[a:b]) > _SUBSPLIT_CHARS:
+            spans.extend(cut(_SPLIT_LEVEL + 1, a, b))
+        else:
+            spans.append((a, b))
+
+    sections: list[Section] = []
+    for a, b in spans:
+        body = "\n".join(lines[a:b]).strip()
+        if not body:
+            continue
+        trail: list[tuple[int, str]] = []  # (level, title) of headings enclosing line a
+        for i, lvl, title in headings:
+            if i > a:
+                break
+            trail = [t for t in trail if t[0] < lvl] + [(lvl, title)]
+        sections.append(Section(" › ".join(t for _, t in trail), a + 1, b, body))
+    return sections
+
+
 def _snippet(text: str, query_tokens: set[str], width: int = 240) -> str:
     """A window around the first query-term hit, so the snippet shows *why* the doc matched rather
     than always the document's opening."""

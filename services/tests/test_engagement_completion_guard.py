@@ -55,6 +55,16 @@ def test_the_agent_tool_is_denied_so_the_lifecycle_cannot_be_handed_to_a_backgro
     assert "Agent" in captured["options"].disallowed_tools
 
 
+def test_send_message_is_denied_so_work_cannot_be_handed_to_a_peer_session(monkeypatch):
+    """OPEN_ITEMS.md #73: an engagement used ListAgents + SendMessage to push work elsewhere and end
+    its turn. Denied both as a disallowed tool and by the PreToolUse scope check."""
+    from domain.tool_scope import check_tool_call
+
+    captured = _run_capturing_options(monkeypatch, _result_message("success"))
+    assert {"SendMessage", "ListAgents"} <= set(captured["options"].disallowed_tools)
+    assert check_tool_call("SendMessage", {"to": "x", "message": "do it"}, ".") is not None
+
+
 # --- Guard 2: early stops are not success ----------------------------------------------------
 
 

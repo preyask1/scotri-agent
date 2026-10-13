@@ -194,7 +194,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule);
     <ol class="stages">
       <li><b>Intake</b><span>Restates the ticket and lists gaps and ambiguities.</span></li>
       <li class="gate"><b>Bug verdict</b><span>Confirmed, not a bug, or inconclusive, with a root-cause category and confidence.</span></li>
-      <li><b>Impact analysis</b><span>Blast radius across every repo in the registry, checked against live data.</span></li>
+      <li><b>Impact analysis</b><span>Blast radius across every repo in the registry, seeded from a lineage graph generated from the mirror after every sync (ADF trigger to report, down to measures and RLS roles), and checked against live data.</span></li>
       <li><b>Plan</b><span>What to change, in what order, with risk and alternatives.</span></li>
       <li><b>Tests, executed</b><span>SQL and DAX assertions run read-only; real pass or fail recorded.</span></li>
       <li><b>Proposal</b><span>Optional <code>.patch</code> in <code>proposals/</code>, applied by a person.</span></li>
@@ -250,7 +250,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule);
         <ul>
           <li>One profile: repos, catalogs, Jira projects, factories, model (<code>client/profile.yaml</code>)</li>
           <li>Generated from it: registries and client config (<code>services/config/*.yaml</code>) and facts docs (<code>docs/ai/client/</code>)</li>
-          <li>Domain knowledge a person writes: conventions, lineage (skeletons in <code>docs/ai/client/</code>)</li>
+          <li>Domain knowledge a person writes: conventions, lineage, platform-map notes, optional report documents whose KPI definitions reach <code>kpi-lookup</code> (skeletons in <code>docs/ai/client/</code>)</li>
           <li>Optional components: ADF and Power BI/Fabric can be switched off</li>
           <li>Display name and logo on the admin panel, portal, API and the agent's replies (<code>client/brand/</code>)</li>
         </ul>
@@ -385,7 +385,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule);
       <li><div><h3>Generate config and docs</h3><p><code>python -m app.setup render</code> writes the registries and client config, and the facts docs under <code>docs/ai/client/</code>. Generated files are rebuilt on every render; skeleton docs are created once and then belong to the client.</p></div></li>
       <li><div><h3>Add credentials</h3><p><code>python -m app.setup secrets</code> collects read-only service principals, a read-only git token and a Jira account into the gitignored <code>services/.env</code>, with input hidden.</p></div></li>
       <li><div><h3>Check every connection</h3><p><code>python -m app.setup doctor</code> checks Redis, Azure DevOps, Databricks, Jira, Fabric and ADF, and names what is missing.</p></div></li>
-      <li><div><h3>First sync</h3><p><code>python -m app.setup bootstrap</code> runs the first mirror sync and builds the lineage index.</p></div></li>
+      <li><div><h3>First sync</h3><p><code>python -m app.setup bootstrap</code> runs the first mirror sync and builds the lineage index; from then on every sync regenerates the lineage and the onboarding platform map (<code>/platform-map</code>).</p></div></li>
       <li><div><h3>Write the knowledge pack and run the benchmark</h3><p>Fill the conventions and lineage skeletons, set governor limits and roles, then replay a few known tickets with <code>tools/benchmark/</code> before opening it to users.</p></div></li>
     </ol>
   </section>

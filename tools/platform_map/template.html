@@ -1,0 +1,1223 @@
+<meta charset="utf-8">
+<title>Data Platform Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky zoom bar; each "zoom level" is one view; layer colours follow the data's path (source → ADF → bronze → silver → gold → Fabric → apps). */
+:root{
+  --bg:#f4f6f9; --surface:#ffffff; --sunk:#eaeef4; --ink:#16202c; --muted:#566275; --line:#d8dee7;
+  --accent:#1d5fc4; --accent-ink:#ffffff;
+  --src:#55657d; --adf:#0b74c9; --brnz:#9c5a25; --slvr:#6d7b8c; --gold:#a8820f; --fab:#0d8064; --app:#7046b8;
+  --warn:#a34f00; --warn-bg:#fff3e2; --ok:#17794a;
+  --f-display:"Archivo","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#161d27; --sunk:#1c2532; --ink:#e6ebf2; --muted:#9aa6b8; --line:#2a3443;
+  --accent:#6fa6ff; --accent-ink:#0b1220;
+  --src:#93a3ba; --adf:#5fb0f2; --brnz:#d8935a; --slvr:#a9b6c6; --gold:#e3bd4a; --fab:#3fc39e; --app:#b18cf0;
+  --warn:#ffb661; --warn-bg:#2d2213; --ok:#57c98d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#161d27; --sunk:#1c2532; --ink:#e6ebf2; --muted:#9aa6b8; --line:#2a3443;
+  --accent:#6fa6ff; --accent-ink:#0b1220;
+  --src:#93a3ba; --adf:#5fb0f2; --brnz:#d8935a; --slvr:#a9b6c6; --gold:#e3bd4a; --fab:#3fc39e; --app:#b18cf0;
+  --warn:#ffb661; --warn-bg:#2d2213; --ok:#57c98d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);}
+.wrap{margin:0 auto;padding-inline:clamp(16px,2.5vw,40px);padding-block:0 64px}
+h1,h2,h3{font-family:var(--f-display);font-stretch:88%;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(28px,4.4vw,44px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(22px,2.8vw,30px);font-weight:750}
+h3{font-size:18px;font-weight:700}
+p{margin:0;max-width:72ch}
+code,.mono{font-family:var(--f-mono);font-size:.84em}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.eyebrow{font:600 12px/1 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+header.top{padding-block:28px 18px;display:grid;gap:10px}
+header.top p{color:var(--muted)}
+/* zoom bar */
+nav.zoom{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav.zoom button{flex:0 0 auto;font:600 14px var(--f-body);color:var(--muted);background:none;border:1px solid transparent;border-radius:999px;padding:6px 12px;cursor:pointer;display:flex;gap:7px;align-items:center}
+nav.zoom button .lvl{font:600 11px var(--f-mono);opacity:.7}
+nav.zoom button:hover{color:var(--ink);border-color:var(--line)}
+nav.zoom button[aria-current="true"]{color:var(--accent-ink);background:var(--accent)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,.hit:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#main{display:grid;gap:28px;padding-top:26px}
+#main > *{min-width:0}
+.lede{display:grid;gap:8px}
+.lede p{color:var(--muted);font-size:17px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card h3{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.tag{font:600 11px/1 var(--f-mono);padding:4px 6px;border-radius:4px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}
+ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+ul.plain li{min-width:0;overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:15px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.kv dt{min-width:0;overflow-wrap:anywhere}
+@media (max-width:560px){.kv{grid-template-columns:minmax(0,1fr)}.kv dd{margin-bottom:8px}}
+.note{border-left:3px solid var(--warn);background:var(--warn-bg);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;font-size:15px;max-width:none}
+.note b{color:var(--warn)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:13px;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+.hit{color:var(--accent);cursor:pointer;background:none;border:0;padding:0;font:inherit;text-align:left;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 35%,transparent);text-underline-offset:3px;overflow-wrap:anywhere}
+.hit:hover{text-decoration-color:var(--accent)}
+.hit.mono{font-family:var(--f-mono);font-size:.84em}
+
+/* ---------- Zoom 1: the flow ---------- */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stage{padding:16px 14px 18px;display:grid;gap:10px;align-content:start;position:relative;border-right:1px solid var(--line);min-width:0}
+.stage:last-child{border-right:0}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-9px;top:46px;width:16px;height:16px;background:var(--surface);border-top:1px solid var(--line);border-right:1px solid var(--line);transform:rotate(45deg);z-index:1}
+.stage .eyebrow{display:flex;justify-content:space-between;gap:6px}
+.stage h3{font-size:19px}
+.stage .sub{font-size:13.5px;color:var(--muted)}
+.chips{display:grid;gap:6px}
+.chip{display:flex;align-items:center;gap:8px;text-align:left;width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:5px;padding:7px 9px;font:600 14px/1.25 var(--f-body);cursor:pointer;min-width:0}
+.chip small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.chip:hover{border-color:currentColor}
+.chip .bar{width:4px;align-self:stretch;border-radius:2px;flex:0 0 auto}
+.chip span{min-width:0}
+.medallion{display:grid;gap:6px}
+.medal{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;padding:7px 9px;border-radius:5px;border:1px solid var(--line);background:var(--bg);cursor:pointer;text-align:left;color:var(--ink);font:inherit}
+.medal b{font:700 13px var(--f-mono)}
+.medal small{color:var(--muted);font-size:12.5px;display:block}
+.ring{width:22px;height:22px;border-radius:50%;border:5px solid currentColor}
+@media (max-width:860px){
+  .flow{grid-template-columns:1fr}
+  .stage{border-right:0;border-bottom:1px solid var(--line)}
+  .stage:last-child{border-bottom:0}
+  .stage:not(:last-child)::after{right:auto;left:28px;top:auto;bottom:-9px;transform:rotate(135deg)}
+}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stat{background:var(--surface);padding:12px 14px;display:grid;gap:2px}
+.stat b{font:750 26px/1.1 var(--f-display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+
+/* chain (vertical lineage strip) */
+.chain{display:grid;gap:0}
+.link{display:grid;grid-template-columns:118px 1fr;gap:12px;padding:10px 0;border-top:1px dashed var(--line);min-width:0}
+.link:first-child{border-top:0}
+.link .k{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;display:flex;gap:6px;align-items:flex-start;padding-top:2px}
+.link .v{min-width:0;display:grid;gap:4px}
+@media (max-width:520px){.link{grid-template-columns:1fr;gap:4px}}
+
+/* bars */
+.bars{display:grid;gap:6px}
+.barrow{display:grid;grid-template-columns:minmax(0,210px) 1fr 44px;gap:10px;align-items:center;font-size:14px}
+.barrow .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.barrow .track{height:12px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.barrow .fill{height:100%;border-radius:3px}
+.barrow .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* day timeline */
+.day{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 10px;overflow-x:auto}
+.day-inner{position:relative;min-width:760px}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);font:11px var(--f-mono);color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px}
+.lanes{position:relative}
+.lane{position:relative;height:26px;border-bottom:1px dashed var(--line)}
+.tick{position:absolute;top:4px;height:18px;min-width:6px;border-radius:3px;background:var(--adf);opacity:.9;cursor:pointer;border:0;padding:0}
+.tick.stopped{background:transparent;border:1.5px dashed var(--muted)}
+.lane .nm{position:absolute;left:0;top:4px;font:12px var(--f-mono);color:var(--muted);white-space:nowrap;pointer-events:none}
+
+.detail{display:grid;gap:16px;min-width:0}
+.pages{display:grid;gap:4px}
+.pg{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 8px;background:var(--bg);border-radius:4px}
+.pg.hidden{color:var(--muted);font-style:italic}
+.crumbs{display:flex;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:flex;gap:6px;align-items:center}
+.cols2{columns:2 260px;column-gap:24px}
+.cols2 li{break-inside:avoid}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){#main > *{animation:rise .25s ease-out}@keyframes rise{from{transform:translateY(6px)}to{transform:none}}}
+/* search results (shared by the lineage search and the "+N more" list) */
+.res{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-top:0;color:var(--ink);font:inherit}
+.res:hover,.res[aria-selected="true"]{background:var(--sunk)}
+.res .t{font-size:14.5px;font-weight:600;overflow-wrap:anywhere;min-width:0}
+.res .s{grid-column:2;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.res mark{background:color-mix(in srgb,var(--accent) 24%,transparent);color:inherit;border-radius:2px}
+.kind{font:600 10.5px/1 var(--f-mono);padding:4px 5px;border-radius:3px;color:var(--surface);align-self:start;margin-top:2px;text-transform:uppercase}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.btn{font:600 13.5px/1.2 var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:7px 11px;cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.sq{width:30px;height:30px;padding:0;display:inline-grid;place-items:center;font-size:16px}
+ol.steps{margin:0;padding-left:22px;display:grid;gap:8px}
+/* lineage explorer */
+.lin-bar{gap:12px}
+.lin-row{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+.lin-search{position:relative;flex:1 1 320px;min-width:0}
+.lin-search input{width:100%;font:15px var(--f-body);padding:9px 11px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);color:var(--ink)}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);max-height:360px;overflow:auto;box-shadow:0 10px 28px color-mix(in srgb,var(--ink) 18%,transparent)}
+.step{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;color:var(--muted)}
+.step output{min-width:22px;text-align:center;font:700 14px var(--f-mono);color:var(--ink)}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-flex;gap:6px;align-items:center;font:600 13px/1.2 var(--f-body);padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.pill:hover{border-color:var(--accent)}
+.pill[aria-pressed="false"]{opacity:.5;text-decoration:line-through}
+.pill .n{color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.vp{position:relative;height:clamp(420px,66vh,780px);overflow:hidden;border:1px solid var(--line);border-radius:10px;background-color:var(--surface);background-image:radial-gradient(var(--line) 1px,transparent 1.2px);background-size:22px 22px;touch-action:none;cursor:grab}
+.vp.grabbing{cursor:grabbing}
+.gstage{position:absolute;left:0;top:0;transform-origin:0 0}
+.gstage svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.gstage path{fill:none;stroke-width:1.6;opacity:.5;transition:opacity .15s}
+.gstage path.skip{stroke-dasharray:5 4}
+.gstage.hl path{opacity:.07}
+.gstage.hl path.on{opacity:1;stroke-width:2.6}
+.gcard{position:absolute;width:216px;height:56px;display:grid;grid-template-columns:5px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:9px;align-content:center;text-align:left;padding:0 10px 0 0;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 10%,transparent);transition:opacity .15s}
+.gcard i{grid-row:1/4;align-self:stretch;margin:-1px 0}
+.gcard .gk{font:600 9.5px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.gcard .gn{font:600 13px/1.3 var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .gs{font:10.5px/1.2 var(--f-mono);color:var(--muted)}
+.gcard:hover{border-color:var(--accent)}
+.gcard.center{outline:2.5px solid var(--accent);outline-offset:1px}
+.gcard.more{display:flex;justify-content:center;align-items:center;border-style:dashed;background:var(--surface);font-weight:600;color:var(--accent);padding:0}
+.gstage.hl .gcard:not(.on):not(.center){opacity:.25}
+.colh{position:absolute;top:4px;font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.colh.c{color:var(--accent)}
+.vp-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--surface) 88%,transparent);padding:2px 7px;border-radius:4px;pointer-events:none}
+.more-pop{position:absolute;right:10px;top:10px;bottom:10px;width:min(340px,calc(100% - 20px));background:var(--surface);border:1px solid var(--line);border-radius:8px;display:grid;grid-template-rows:auto 1fr;box-shadow:0 12px 32px color-mix(in srgb,var(--ink) 22%,transparent);z-index:3;cursor:default}
+.more-pop header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px 8px 12px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px}
+.more-pop .list{overflow:auto}
+.empty{display:grid;gap:12px;justify-items:center;text-align:center;padding:36px 16px;background:var(--surface);border:1px dashed var(--line);border-radius:10px}
+.hubs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:900px}
+.tiles-k{display:flex;gap:8px;flex-wrap:wrap}
+.tk{display:grid;gap:2px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:100px}
+.tk b{font:750 22px/1.1 var(--f-display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.tk span{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center}
+details.grp{border-top:1px solid var(--line);padding:6px 0}
+details.grp summary{cursor:pointer;font-weight:600;padding:2px 0}
+details.grp ul{margin-top:6px}
+.hop{font:11px var(--f-mono);color:var(--muted)}
+/* inventories */
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:9px 12px;font:600 14.5px var(--f-body);color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tctl input,.tctl select{font:14px var(--f-body);padding:7px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink);max-width:100%}
+.tctl input{flex:1 1 240px;min-width:0}
+.tw{max-height:68vh;overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.tw th{position:sticky;top:0;z-index:1}
+.tw th button{all:unset;cursor:pointer;display:inline-flex;gap:2px;white-space:nowrap}
+.tw th button:focus-visible{outline:2px solid var(--accent)}
+.tw tbody tr[data-i]{cursor:pointer}
+.tw tbody tr[data-i]:hover,.tw tbody tr[data-i]:focus-visible{background:var(--sunk);outline:none}
+.tw td{max-width:420px;overflow-wrap:anywhere}
+.pager{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:1px 9px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.seg{display:inline-flex}
+.seg .btn{border-radius:0}
+.seg .btn:first-child{border-radius:5px 0 0 5px}
+.seg .btn:last-child{border-radius:0 5px 5px 0;margin-left:-1px}
+.seg .btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mm{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:auto;max-height:80vh;min-height:320px;padding:12px}
+.mm svg{display:block;max-width:none!important;height:auto}
+.mm svg .node{cursor:pointer}
+.mm svg .node:hover rect{stroke-width:3px}
+.mm-src summary{cursor:pointer;font-weight:600;font-size:14px}
+.mm-src pre{margin:8px 0 0;max-height:260px;overflow:auto;background:var(--sunk);padding:10px;border-radius:6px;font:12px/1.45 var(--f-mono);white-space:pre}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="toprow"><span class="eyebrow" id="eyebrow">Data platform · Prod</span><button class="btn" id="theme" type="button">Dark theme</button></div>
+  <h1 id="page-title">Data Platform Map</h1>
+  <p id="tagline">How data moves from the business apps through Azure Data Factory and Databricks into Power BI and the apps that read from it. Start with the big picture, then zoom into any layer, report, table, notebook or pipeline.</p>
+</header>
+
+<nav class="zoom" id="zoom" aria-label="Zoom level"></nav>
+
+<main id="main"></main>
+
+<footer>
+  <div id="provenance"></div>
+  <div>Read-only view of the Prod branches. Dev is not shown. Counts cover what the code and models reference, so a table nobody's code mentions doesn't appear here.</div>
+</footer>
+</div>
+
+<script type="application/json" id="data">/*DATA*/</script>
+<script>
+(function(){
+"use strict";
+const D = JSON.parse(document.getElementById('data').textContent);
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* Notes text is plain text; `backticks` become <code>. Nothing else is interpreted. */
+const md = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
+const last = p => String(p).split('/').pop();
+const C = D.client || {};
+const N = D.notes || {};
+const LOCALE = N.locale || undefined;
+const TZ = N.timezone || undefined;              /* IANA zone for the provenance time, e.g. "Europe/London" */
+const TZ_LABEL = N.timezone_label || '';         /* how trigger times are read, e.g. "UTC"; empty: the trigger's own zone */
+const nf = n => Number(n).toLocaleString(LOCALE);
+const PROD_CATALOG = (D.catalogs || {}).prod || '';
+const DEV_CATALOG = (D.catalogs || {}).dev || '';
+const FACTORY = (D.factories.find(f => f.default) || D.factories[0] || {}).name || '';
+const NAME = C.client_name || '';
+{
+  const title = `${NAME ? NAME + ' ' : ''}Data Platform Map`;
+  document.title = title;
+  $('#page-title').textContent = title;
+  $('#eyebrow').textContent = `${NAME ? NAME + ' · ' : ''}data platform · Prod`;
+  if (N.tagline) $('#tagline').innerHTML = md(N.tagline);
+}
+
+/* ---------- indexes ---------- */
+const TREE = Object.fromEntries(D.trees.map(t => [t.key, t]));
+const treeLabel = k => { const t = TREE[k]; return t ? `${t.repo} · ${t.branch}` : k; };
+const MODEL = Object.fromEntries(D.models.map(m => [m.id, m]));
+const REPORT = Object.fromEntries(D.reports.map(r => [r.id, r]));
+const TABLE = Object.fromEntries(D.tables.map(t => [t.id, t]));
+const PIPE = Object.fromEntries(D.pipelines.map(p => [p.name, p]));
+const TRIG = Object.fromEntries(D.triggers.map(t => [t.name, t]));
+const pipeParents = {}, pipeTriggers = {}, nbPipes = {};
+D.pipelines.forEach(p => { p.children.forEach(c => (pipeParents[c] ||= []).push(p.name)); p.notebooks.forEach(n => (nbPipes[n] ||= []).push(p.name)); });
+D.triggers.forEach(t => t.pipelines.forEach(p => (pipeTriggers[p] ||= []).push(t.name)));
+/* The gold runner (optional, from the notes): a notebook that runs folders of notebooks in a fixed order. */
+const RUNNER = N.gold_runner || null;
+const RUNNER_RE = RUNNER && RUNNER.folder_pattern ? new RegExp(RUNNER.folder_pattern) : null;
+const GOLD_ORDER = (RUNNER && RUNNER.order) || [];
+function goldSlot(nb){
+  const m = RUNNER_RE && RUNNER_RE.exec(nb);
+  if (!m) return null;
+  const i = GOLD_ORDER.indexOf(m[1]);
+  return {folder:m[1], step:i, active:i >= 0};
+}
+/* Order producers so the notebook that most likely runs comes first: the runner's queue, then others, then backups/old/dev copies. */
+const nbRank = n => (/(_bkp|_old|backup|_dev\b| - dev|test)/i.test(n) ? 2 : (goldSlot(n) && goldSlot(n).active ? 0 : 1));
+D.tables.forEach(t => t.producers.sort((a,b) => nbRank(a) - nbRank(b) || a.localeCompare(b)));
+const tablesByNb = {};
+D.tables.forEach(t => t.producers.forEach(n => (tablesByNb[n] ||= []).push(t.id)));
+
+/* A table kind is `<schema>_table`; the label is the schema. */
+const schemaOf = k => String(k).replace(/_table$/, '');
+const KIND_COLOR = {gold_table:'var(--gold)', slvr_table:'var(--slvr)', silver_table:'var(--slvr)', brnz_table:'var(--brnz)', bronze_table:'var(--brnz)'};
+const tableColor = k => KIND_COLOR[k] || 'var(--app)';
+const tableLabel = t => `${schemaOf(t.kind)}.${t.name}`;
+
+/* ---------- the lineage graph: every object is a node; edges run upstream → downstream ---------- */
+const KIND_NAME = {trigger:'Trigger', pipeline:'Pipeline', notebook:'Notebook', table:'Table', model:'Model', report:'Report'};
+const KIND_ORDER = ['trigger','pipeline','notebook','table','model','report'];
+const KCOL = {report:'var(--app)', model:'var(--fab)', table:'var(--gold)', notebook:'var(--brnz)', pipeline:'var(--adf)', trigger:'var(--src)'};
+const GN = new Map();
+const nbCallers = {};
+function gnode(k, id){ const key = k + '|' + id; let n = GN.get(key); if (!n) { n = {key, k, id, out:[], in:[]}; GN.set(key, n); } return n; }
+function gedge(a, b, t){ if (a !== b) { a.out.push([b, t]); b.in.push([a, t]); } }
+D.triggers.forEach(t => { const g = gnode('trigger', t.name); t.pipelines.forEach(p => PIPE[p] && gedge(g, gnode('pipeline', p), 'starts')); });
+D.pipelines.forEach(p => {
+  const n = gnode('pipeline', p.name);
+  p.children.forEach(c => PIPE[c] && gedge(n, gnode('pipeline', c), 'calls'));
+  p.notebooks.forEach(nb => gedge(n, gnode('notebook', nb), 'runs'));
+});
+D.tables.forEach(t => gnode('table', t.id));
+Object.entries(D.notebooks).forEach(([nb, v]) => {
+  const n = gnode('notebook', nb);
+  v.in.forEach(t => TABLE[t] && gedge(gnode('table', t), n, 'reads'));
+  v.out.forEach(t => TABLE[t] && gedge(n, gnode('table', t), 'writes'));
+  (v.runs || []).forEach(c => { gedge(n, gnode('notebook', c), 'nbrun'); (nbCallers[c] ||= []).push(nb); });
+});
+D.models.forEach(m => { const n = gnode('model', m.id); m.gold.forEach(t => TABLE[t] && gedge(gnode('table', t), n, 'imports')); });
+D.reports.forEach(r => { const n = gnode('report', r.id); if (MODEL[r.model]) gedge(gnode('model', r.model), n, 'serves'); });
+GN.forEach(n => n.deg = n.in.length + n.out.length);
+
+function nlabel(n){
+  if (n.k === 'report') return last(REPORT[n.id].path);
+  if (n.k === 'model') return last(MODEL[n.id].path);
+  if (n.k === 'table') return TABLE[n.id] ? tableLabel(TABLE[n.id]) : n.id;
+  if (n.k === 'notebook') return last(n.id);
+  return n.id;
+}
+function nsub(n){
+  if (n.k === 'report') { const r = REPORT[n.id]; return `${r.path.split('/').slice(0,-1).join('/') || '(root)'} · ${treeLabel(r.tree)}`; }
+  if (n.k === 'model') { const m = MODEL[n.id]; return `${m.tables} tables · ${m.measures} measures · ${treeLabel(m.tree)}`; }
+  if (n.k === 'table') { const t = TABLE[n.id]; return `${t.models.length} model${t.models.length===1?'':'s'} · ${t.producers.length ? last(t.producers[0]) : 'no producing notebook found'}`; }
+  if (n.k === 'notebook') return n.id.split('/').slice(0,-1).join('/') || '(repo root)';
+  if (n.k === 'pipeline') return PIPE[n.id].folder || 'ADF pipeline';
+  return `${TRIG[n.id].when} · ${TRIG[n.id].state}`;
+}
+const ncolor = n => n.k === 'table' && TABLE[n.id] ? tableColor(TABLE[n.id].kind) : KCOL[n.k];
+const ENT = [...GN.values()].map(n => ({k:n.k, id:n.id, key:n.key, t:nlabel(n), s:nsub(n), deg:n.deg}));
+ENT.forEach(e => e.q = (e.t + ' ' + e.s + ' ' + e.id).toLowerCase());
+
+/* Breadth-first walk from one node: Map key -> {d: hops, via: [neighbour key, edge type]}. */
+function trace(start, dir, depth){
+  const seen = new Map([[start, {d:0, via:null}]]); let fr = [start];
+  for (let d = 1; d <= depth && fr.length; d++) {
+    const nx = [];
+    for (const x of fr) for (const [y, t] of (dir === 'down' ? GN.get(x).out : GN.get(x).in)) {
+      if (seen.has(y.key)) continue;
+      seen.set(y.key, {d, via:[x, t]}); nx.push(y.key);
+    }
+    fr = nx;
+  }
+  return seen;
+}
+
+/* ---------- view registry & routing ---------- */
+const VIEWS = [
+  {id:'overview', lvl:'1', name:'Big picture', tab:'Big picture'},
+  {id:'sources', lvl:'2', name:'Sources & ingestion', tab:'Sources'},
+  {id:'lake', lvl:'2', name:'Databricks lakehouse', tab:'Lakehouse'},
+  {id:'powerbi', lvl:'2', name:'Power BI / Fabric', tab:'Power BI'},
+  {id:'apps', lvl:'2', name:'Apps fed from Databricks', tab:'Downstream apps'},
+  {id:'platform', lvl:'2', name:'Environments & compute', tab:'Environments'},
+  {id:'lineage', lvl:'3', name:'Lineage explorer', tab:'Lineage'},
+  {id:'inventory', lvl:'3', name:'Inventories', tab:'Inventories'},
+];
+let current = 'overview';
+const WIRE = {};
+
+function nav(){
+  $('#zoom').innerHTML = VIEWS.map(v => `<button data-view="${v.id}" aria-current="${v.id===current}" title="${esc(v.name)}"><span class="lvl">Z${v.lvl}</span>${esc(v.tab)}</button>`).join('');
+}
+function go(view, opts={}){
+  if (!RENDER[view]) view = 'overview';
+  current = view;
+  nav();
+  $('#main').innerHTML = RENDER[view]();
+  if (WIRE[view]) WIRE[view]();
+  if (!opts.keepScroll) window.scrollTo(0, Math.min(window.scrollY, $('#zoom').offsetTop));
+  try { if (location.hash.slice(1) !== view) history.replaceState(null, '', '#' + view); } catch(e) {}
+  try { localStorage.setItem('dpm.view', view); } catch(e) {}
+}
+/* Open any object in the lineage explorer, centred. */
+function open(kind, id){
+  const key = kind + '|' + id;
+  if (!GN.has(key)) return;
+  LS.center = key;
+  if (current === 'lineage') { drawLineage(true); $('#lin-graph').scrollIntoView({block:'nearest'}); }
+  else go('lineage');
+}
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (RENDER[h] && h !== current) go(h); });
+
+document.addEventListener('click', e => {
+  if (LS.dragged && e.target.closest('#lin-vp')) return;
+  const v = e.target.closest('[data-view]'); if (v) { go(v.dataset.view); return; }
+  const o = e.target.closest('[data-open]'); if (o) { const [k, ...rest] = o.dataset.open.split('|'); open(k, rest.join('|')); }
+});
+
+const hit = (kind, id, text, mono) => `<button class="hit${mono?' mono':''}" data-open="${kind}|${esc(id)}">${esc(text)}</button>`;
+const tHit = id => TABLE[id] ? hit('table', id, tableLabel(TABLE[id]), true) : `<code>${esc(id.split(':')[1]||id)}</code>`;
+const pHit = n => PIPE[n] ? hit('pipeline', n, n, true) : `<code>${esc(n)}</code>`;
+const gHit = n => TRIG[n] ? hit('trigger', n, n, true) : `<code>${esc(n)}</code>`;
+const nHit = n => D.notebooks[n] ? hit('notebook', n, n, true) : `<code>${esc(n)}</code>`;
+const mHit = id => MODEL[id] ? hit('model', id, last(MODEL[id].path)) : esc(id);
+const rHit = id => REPORT[id] ? hit('report', id, last(REPORT[id].path)) : esc(id);
+const kHit = key => { const n = GN.get(key); return hit(n.k, n.id, nlabel(n), n.k !== 'report' && n.k !== 'model'); };
+const kv = rows => `<dl class="kv">${(rows || []).map(r => `<dt>${md(r.term)}</dt><dd>${md(r.meaning)}</dd>`).join('')}</dl>`;
+
+/* ---------- derived numbers ---------- */
+const cnt = k => D.tables.filter(t => t.kind === k).length;
+const goldTables = D.tables.filter(t => t.kind === 'gold_table');
+const goldInPBI = goldTables.filter(t => t.models.length).length;
+const nModels = D.models.length, nReports = D.reports.length;
+const nMeasures = D.models.reduce((a,m) => a + m.measures, 0);
+const fmtCount = D.reports.reduce((a,r) => (a[r.fmt] = (a[r.fmt]||0)+1, a), {});
+/* Where a newcomer starts: the notes' choice, else the running trigger that reaches most, and the smallest report. */
+let _start = null;
+function starts(){
+  if (_start) return _start;
+  const want = N.start_here || {};
+  const trig = (want.trigger && TRIG[want.trigger] ? want.trigger : null)
+    || ((D.triggers.filter(t => t.state === 'Started').map(t => [t.name, trace('trigger|' + t.name, 'down', 8).size]).sort((a,b) => b[1]-a[1])[0]) || [])[0] || null;
+  const rep = (want.report && D.reports.find(x => last(x.path) === want.report || x.path === want.report))
+    || [...D.reports].filter(r => (r.pages||[]).length).sort((a,b) => a.pages.length - b.pages.length)[0] || D.reports[0] || null;
+  return (_start = {trigger: trig, report: rep});
+}
+const otherSchemas = [...new Set(D.tables.map(t => t.kind))].filter(k => !['gold_table','slvr_table','silver_table','brnz_table','bronze_table'].includes(k)).map(schemaOf).sort();
+
+/* ---------- Z1 overview ---------- */
+function chip(color, title, sub, target){
+  const attr = target.startsWith('open:') ? `data-open="${esc(target.slice(5))}"` : `data-view="${target}"`;
+  return `<button class="chip" ${attr}><i class="bar" style="background:${color}"></i><span>${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</span></button>`;
+}
+const RENDER = {};
+RENDER.overview = () => { const {trigger: startTrigger, report: startReport} = starts(); return `
+<div class="lede">
+  <span class="eyebrow">Zoom 1 · the whole platform on one screen</span>
+  <h2>Five stages, left to right</h2>
+  <p>Business apps hold the raw facts. Azure Data Factory copies them into the lake on a schedule. Databricks cleans and models them in three layers (bronze, silver, gold). Power BI semantic models import the gold tables, and reports sit on those models. A few other apps also read from Databricks. Click any box to zoom in.</p>
+</div>
+<div class="flow" role="list">
+  <div class="stage" role="listitem">
+    <div class="eyebrow"><span>Sources</span><span style="color:var(--src)">●</span></div>
+    <h3>Business apps</h3>
+    <div class="chips">
+      ${(N.sources || []).slice(0, 6).map(s => chip('var(--src)', s.name, s.short || s.type || '', 'sources')).join('') || chip('var(--src)', 'Sources', 'see the ADF linked services', 'sources')}
+    </div>
+  </div>
+  <div class="stage" role="listitem">
+    <div class="eyebrow"><span>Ingestion</span><span style="color:var(--adf)">●</span></div>
+    <h3>Azure Data Factory</h3>
+    <p class="sub">${D.pipelines.length} pipelines, ${D.triggers.length} triggers${FACTORY ? ` in factory <code>${esc(FACTORY)}</code>` : ''}. Copies land in the lake, then ADF calls Databricks notebooks.</p>
+    <div class="chips">
+      ${startTrigger ? chip('var(--adf)', `${startTrigger} · ${TRIG[startTrigger].when}`, 'the widest scheduled run', 'open:trigger|' + startTrigger) : ''}
+      ${chip('var(--adf)','A day of triggers','every schedule on one clock','sources')}
+    </div>
+  </div>
+  <div class="stage" role="listitem">
+    <div class="eyebrow"><span>Lakehouse</span><span style="color:var(--gold)">●</span></div>
+    <h3>Databricks</h3>
+    <p class="sub">${PROD_CATALOG ? `Unity Catalog <code>${esc(PROD_CATALOG)}</code>. ` : ''}${nf(Object.keys(D.notebooks).length)} notebooks read or write tables.</p>
+    <div class="medallion">
+      <button class="medal" data-view="lake"><i class="ring" style="color:var(--brnz)"></i><span><b>bronze</b><small>raw copies of each source</small></span></button>
+      <button class="medal" data-view="lake"><i class="ring" style="color:var(--slvr)"></i><span><b>silver</b><small>${nf(cnt('slvr_table') + cnt('silver_table'))} cleaned, de-duplicated tables</small></span></button>
+      <button class="medal" data-view="lake"><i class="ring" style="color:var(--gold)"></i><span><b>gold</b><small>${nf(goldTables.length)} analytics tables</small></span></button>
+      ${otherSchemas.length ? `<button class="medal" data-view="apps"><i class="ring" style="color:var(--app)"></i><span><b>${esc(otherSchemas.slice(0,2).join(' · '))}${otherSchemas.length > 2 ? ' · …' : ''}</b><small>other schemas</small></span></button>` : ''}
+    </div>
+  </div>
+  <div class="stage" role="listitem">
+    <div class="eyebrow"><span>Serving</span><span style="color:var(--fab)">●</span></div>
+    <h3>Power BI / Fabric</h3>
+    <p class="sub">${nModels} semantic models, ${nReports} reports, ${nf(nMeasures)} DAX measures across ${D.trees.filter(t=>t.models).length} Prod trees.</p>
+    <div class="chips">
+      ${chip('var(--fab)','Semantic models','import gold via SQL warehouse','powerbi')}
+      ${chip('var(--fab)','Reports','pages and visuals on a model','powerbi')}
+      ${chip('var(--fab)','RLS roles','row-level security','powerbi')}
+    </div>
+  </div>
+  <div class="stage" role="listitem">
+    <div class="eyebrow"><span>Consumers</span><span style="color:var(--app)">●</span></div>
+    <h3>People & apps</h3>
+    <div class="chips">
+      ${chip('var(--app)','Power BI Service','reports in the browser','apps')}
+      ${(N.consumers || []).slice(0, 4).map(a => chip('var(--app)', a.name, a.short || '', 'apps')).join('')}
+    </div>
+  </div>
+</div>
+<div class="stats">
+  <div class="stat"><b>${D.pipelines.length}</b><span>ADF pipelines</span></div>
+  <div class="stat"><b>${nf(Object.keys(D.notebooks).length)}</b><span>notebooks that touch tables</span></div>
+  <div class="stat"><b>${nf(goldTables.length)}</b><span>gold tables referenced</span></div>
+  <div class="stat"><b>${goldInPBI}</b><span>gold tables read by Power BI</span></div>
+  <div class="stat"><b>${nModels}</b><span>semantic models</span></div>
+  <div class="stat"><b>${nReports}</b><span>reports</span></div>
+</div>
+<div class="grid g2">
+  <div class="card"><span class="eyebrow">New here</span><h3>Start here</h3>
+    <ol class="steps">
+      <li>Read this page's five stages, then open each Zoom 2 tab once: ${['sources','lake','powerbi','apps','platform'].map(v => `<button class="hit" data-view="${v}">${esc(VIEWS.find(x => x.id === v).name)}</button>`).join(', ')}.</li>
+      <li>Learn the words: the glossary is at the bottom of <button class="hit" data-view="platform">Environments &amp; compute</button>.</li>
+      ${startTrigger ? `<li>See what runs on a schedule: start the lineage at ${hit('trigger', startTrigger, startTrigger, true)} and press <b>Whole chain</b>.</li>` : ''}
+      ${startReport ? `<li>Trace a report you will support back to its source: ${hit('report', startReport.id, last(startReport.path))} is a small one.</li>` : ''}
+      <li>Before changing a table, open it in the lineage and read the downstream list: that is everything your change can break.</li>
+      ${(N.start_here && N.start_here.extra || []).map(s => `<li>${md(s)}</li>`).join('')}
+    </ol></div>
+  <div class="grid" style="gap:16px">
+    <div class="card"><h3>Lineage explorer</h3><p class="muted">Search anything, then see what feeds it and what it feeds, hop by hop, with a blast-radius summary for each side.</p><div><button class="hit" data-view="lineage">Open the lineage explorer</button></div></div>
+    <div class="card"><h3>Inventories</h3><p class="muted">Every pipeline, table, model, report and KPI definition as a sortable, filterable list you can copy as CSV.</p><div><button class="hit" data-view="inventory">Open the inventories</button></div></div>
+  </div>
+</div>`; };
+
+/* ---------- Z2 sources & ingestion ---------- */
+function schedClock(){
+  const sched = D.triggers.filter(t => t.type === 'schedule').map(t => {
+    const m = /(\d\d):(\d\d)/g; const times = []; let x; while ((x = m.exec(t.when))) times.push(+x[1] + +x[2]/60);
+    return {...t, times};
+  }).filter(t => t.times.length).sort((a,b) => a.times[0] - b.times[0]);
+  const lanes = sched.map(t => `<div class="lane">${t.times.map(h => `<button class="tick${t.state!=='Started'?' stopped':''}" style="left:calc(${(h/24*100).toFixed(3)}% - 3px);width:8px" title="${esc(t.name)} · ${esc(t.when)} · ${esc(t.state)}" data-open="trigger|${esc(t.name)}" aria-label="${esc(t.name)} at ${Math.floor(h)}:${String(Math.round(h%1*60)).padStart(2,'0')}"></button>`).join('')}<span class="nm" style="left:calc(${Math.min(t.times[t.times.length-1]/24*100, 78).toFixed(2)}% + 12px)">${esc(t.name)}${t.state!=='Started'?` (${esc(t.state.toLowerCase())})`:''}</span></div>`).join('');
+  return `<div class="day"><div class="day-inner"><div class="hours">${Array.from({length:24},(_,i)=>`<span>${String(i).padStart(2,'0')}</span>`).join('')}</div><div class="lanes">${lanes}</div></div></div>`;
+}
+const ADF_NAMING = [
+  {term:'Trigger', meaning:'A schedule or a file-arrival event that starts one or more pipelines.'},
+  {term:'Pipeline', meaning:'A sequence of activities: Copy into the lake, run a notebook, call another pipeline.'},
+  {term:'Linked service', meaning:'The connection to a source, sink or Databricks cluster.'},
+  {term:'IR', meaning:'Integration runtime: Azure-hosted, or self-hosted inside the network for on-premise sources.'},
+];
+RENDER.sources = () => `
+<div class="lede">
+  <span class="eyebrow">Zoom 2 · what feeds Databricks</span>
+  <h2>Sources and how they get in</h2>
+  <p>${N.ingestion ? md(N.ingestion) : 'Sources reach the lake through ADF: a <em>Copy</em> activity reads from the source through a linked service and writes files to storage, then ADF runs Databricks notebooks that load bronze, then silver, then gold. On-premise sources go through a self-hosted integration runtime (IR).'}</p>
+</div>
+${(N.sources || []).length ? `<div class="tbl"><table>
+<thead><tr><th>Source</th><th>Linked service · type · IR</th><th>Main pipelines</th><th>Gold folder</th></tr></thead>
+<tbody>${N.sources.map(s => `<tr><td><b>${esc(s.name)}</b><div class="muted" style="font-size:13.5px;max-width:34ch">${md(s.what || '')}</div></td><td><code>${esc(s.linked_service || '—')}</code><div class="muted" style="font-size:13px">${esc(s.type || '—')} · ${esc(s.ir || '—')}</div></td><td><ul class="plain">${(s.pipelines || []).map(p => `<li>${pHit(p)}</li>`).join('') || '<li class="muted">—</li>'}</ul></td><td>${s.gold_folder?`<code>${esc(s.gold_folder)}</code>`:'<span class="muted">—</span>'}</td></tr>`).join('')}</tbody>
+</table></div>` : `<p class="note">No source list yet. Describe the source systems in <code>docs/ai/client/platform-map-notes.json</code> (<code>sources</code>) and the next sync shows them here.</p>`}
+
+<div class="grid g2">
+  ${(N.main_run || []).length ? `<div class="card">
+    <span class="eyebrow">The main scheduled run</span>
+    <h3>${esc(N.main_run_title || 'What happens each night')}</h3>
+    <div class="chain">${N.main_run.map(s => `<div class="link"><span class="k" style="color:var(--adf)">${esc(s.step)}</span><div class="v">${md(s.text)}${(s.triggers||[]).length ? ' ' + s.triggers.map(gHit).join(', ') : ''}${(s.pipelines||[]).length ? ' ' + s.pipelines.map(pHit).join(', ') : ''}</div></div>`).join('')}</div>
+  </div>` : ''}
+  <div class="card">
+    <span class="eyebrow">Naming you will meet</span>
+    <h3>ADF objects</h3>
+    ${kv([...ADF_NAMING, ...(N.adf_naming || [])])}
+  </div>
+</div>
+
+<div class="grid" style="gap:10px">
+  <div class="lede"><span class="eyebrow">Every schedule on one clock${TZ_LABEL ? ` (${esc(TZ_LABEL)})` : ''}</span><h3>A day of triggers</h3><p class="muted" style="font-size:15px">Each mark is a scheduled start; click one to open the trigger. Dashed marks are stopped or expired triggers. ${D.triggers.filter(t=>t.type!=='schedule').length} more triggers fire on file arrival and have no fixed time.</p></div>
+  ${schedClock()}
+</div>`;
+
+/* ---------- Z2 lakehouse ---------- */
+function bars(rows, color){
+  if (!rows.length) return '<p class="muted">Nothing to show.</p>';
+  const max = Math.max(...rows.map(r => r[1]));
+  return `<div class="bars">${rows.map(([l,v]) => `<div class="barrow"><span class="lbl" title="${esc(l)}">${esc(l)}</span><span class="track"><span class="fill" style="display:block;width:${(v/max*100).toFixed(1)}%;background:${color}"></span></span><span class="num">${v}</span></div>`).join('')}</div>`;
+}
+RENDER.lake = () => {
+  const byFolder = {};
+  goldTables.forEach(t => { const p = t.producers[0]; let f = '(no producing notebook found)'; if (p) { const s = p.split('/'); f = s.length > 2 ? s.slice(0,2).join('/') : s.length > 1 ? s[0] + '/' : s[0]; } byFolder[f] = (byFolder[f]||0) + 1; });
+  const folderRows = Object.entries(byFolder).sort((a,b) => b[1]-a[1]).slice(0, 16);
+  const schemaRows = Object.entries(D.tables.reduce((a,t) => (a[schemaOf(t.kind)] = (a[schemaOf(t.kind)]||0)+1, a), {})).sort((a,b)=>b[1]-a[1]);
+  const top = goldTables.filter(t => t.models.length).slice(0, 14);
+  const dbx = D.repos.filter(r => r.layer === 'Databricks');
+  return `
+<div class="lede">
+  <span class="eyebrow">Zoom 2 · Databricks</span>
+  <h2>The lakehouse: catalogs, schemas, notebooks</h2>
+  <p>All data lives in Unity Catalog. A catalog is an environment; a schema is a layer.${dbx.length ? ` The repo <code>${esc(dbx[0].repo)}</code> holds the notebooks.` : ''}</p>
+</div>
+<div class="grid g3">
+  <div class="card"><span class="eyebrow">Catalogs</span>
+    <dl class="kv">${dbx.map(r => r.catalog ? `<dt><code>${esc(r.catalog)}</code></dt><dd>${esc(r.env === 'prod' ? 'Production' : r.env === 'dev' ? 'Development' : r.env.toUpperCase())}. Branch <code>${esc(r.branch)}</code>.${r.env === 'prod' ? ' Everything on this page.' : ''}</dd>` : '').join('')}${!dbx.some(r => r.env === 'uat') ? `<dt>UAT</dt><dd>No UAT catalog.${DEV_CATALOG ? ` A "UAT" data question is a <code>${esc(DEV_CATALOG)}</code> question.` : ''}</dd>` : ''}</dl></div>
+  <div class="card"><span class="eyebrow">The medallion layers</span>
+    <dl class="kv"><dt><code style="color:var(--brnz)">bronze</code></dt><dd>Raw copy of each source table.</dd><dt><code style="color:var(--slvr)">silver</code></dt><dd>Typed, cleaned and de-duplicated.</dd><dt><code style="color:var(--gold)">gold</code></dt><dd>Business tables for reporting.</dd></dl>${N.layers ? `<p class="muted" style="font-size:13.5px">${md(N.layers)}</p>` : ''}</div>
+  <div class="card"><span class="eyebrow">Other schemas</span>
+    ${(N.schemas || []).length ? kv(N.schemas) : otherSchemas.length ? `<p class="muted">${otherSchemas.map(s => `<code>${esc(s)}</code>`).join(', ')}</p>` : '<p class="muted">None referenced.</p>'}</div>
+</div>
+<div class="grid g2">
+  <div class="card"><span class="eyebrow">Tables per schema, as referenced in code</span>${bars(schemaRows, 'var(--gold)')}<p class="muted" style="font-size:13px">A schema loaded by generic loaders that take table names from config can look small: a code scan can't list those tables one by one.</p></div>
+  <div class="card"><span class="eyebrow">Gold tables by the folder of the notebook that builds them</span>${bars(folderRows, 'var(--brnz)')}</div>
+</div>
+<div class="grid g2">
+  <div class="card"><span class="eyebrow">Repo layout</span><h3>Where notebooks live</h3>
+    ${(N.repo_layout || []).length ? kv(N.repo_layout) : '<p class="muted">Not described yet (<code>repo_layout</code> in the notes file). The bar chart beside this lists the busiest folders.</p>'}
+    ${RUNNER ? `<p class="muted" style="font-size:13.5px"><code>${esc(RUNNER.notebook || 'The gold runner')}</code> runs ${GOLD_ORDER.length} folders in a fixed order; a notebook's folder is its place in the queue.</p>` : ''}</div>
+  <div class="card"><span class="eyebrow">Most shared gold tables</span><h3>Read by the most Power BI models</h3>
+    <div class="tbl" style="border:0"><table><thead><tr><th>Table</th><th class="n">Models</th></tr></thead><tbody>${top.map(t => `<tr><td>${hit('table', t.id, t.name, true)}</td><td class="n">${t.models.length}</td></tr>`).join('')}</tbody></table></div>
+    <p class="muted" style="font-size:13px">High counts often come from cloned reports: one logical report copied per region or audience, each with its own model.</p></div>
+</div>`;
+};
+
+/* ---------- Z2 Power BI ---------- */
+RENDER.powerbi = () => {
+  const trees = D.trees;
+  const areaRows = {};
+  D.models.forEach(m => { const k = m.tree; (areaRows[k] ||= {}); areaRows[k][m.area] = (areaRows[k][m.area]||0) + 1; });
+  const roleCount = {};
+  D.models.forEach(m => m.roles.forEach(r => roleCount[r] = (roleCount[r]||0) + 1));
+  const roles = Object.entries(roleCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const hasLegacy = trees.some(t => t.gen === 'legacy');
+  return `
+<div class="lede">
+  <span class="eyebrow">Zoom 2 · Power BI / Fabric</span>
+  <h2>Semantic models and reports</h2>
+  <p>A <b>semantic model</b> imports gold tables, defines relationships, DAX measures and row-level security (RLS). A <b>report</b> is pages of visuals bound to exactly one model. Both are stored as text files (PBIP) in Git, and each Prod branch is synced to one Fabric workspace.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Repo · branch</th><th>Fabric workspace</th><th class="n">Models</th><th class="n">Reports</th><th class="n">Measures</th><th>Status</th></tr></thead>
+<tbody>${trees.map(t => `<tr><td><b>${esc(t.repo)}</b> · <code>${esc(t.branch)}</code></td><td><code>${esc(t.workspace)}</code></td><td class="n">${t.models}</td><td class="n">${t.reports}</td><td class="n">${nf(t.measures)}</td><td>${t.gen==='legacy' ? 'Legacy, still live' : (t.models ? 'Live' : '<span class="muted">Nothing published yet</span>')}</td></tr>`).join('')}</tbody>
+</table></div>
+${N.powerbi_note ? `<p class="note">${md(N.powerbi_note)}</p>` : hasLegacy ? `<p class="note"><b>More than one structure.</b> Legacy and new repos run side by side. The same model can exist in more than one tree, and the copies can differ. Always say which repo and branch you mean.</p>` : ''}
+<div class="grid g2">
+  <div class="card"><span class="eyebrow">Anatomy of a model</span><h3>From gold table to visual</h3>
+    <div class="chain">
+      <div class="link"><span class="k" style="color:var(--gold)">Gold</span><div class="v"><code>${esc(PROD_CATALOG || '<catalog>')}.gold.&lt;table&gt;</code> in Databricks.</div></div>
+      <div class="link"><span class="k" style="color:var(--fab)">M partition</span><div class="v">Each model table has Power Query (M) that reads the gold table through a Databricks SQL warehouse with <code>Databricks.Catalogs(...)</code>. Catalog and schema come from parameters in <code>expressions.tmdl</code> or are hard-coded per table.</div></div>
+      <div class="link"><span class="k" style="color:var(--fab)">Model</span><div class="v"><code>definition/tables/*.tmdl</code> hold columns and DAX measures; <code>relationships.tmdl</code> the joins; <code>roles/*.tmdl</code> the RLS filters.</div></div>
+      <div class="link"><span class="k" style="color:var(--fab)">Report</span><div class="v"><code>definition.pbir</code> points at the model. Pages and visuals live either in one legacy <code>report.json</code> (${fmtCount.legacy||0} reports) or in the newer PBIR folder layout, one file per page and visual (${fmtCount.PBIR||0} reports).</div></div>
+    </div></div>
+  <div class="card"><span class="eyebrow">Patterns to know before you change anything</span>
+    ${kv([...(N.powerbi_patterns || []), ...(roles.length ? [{term:'RLS roles', meaning:''}] : [])]).replace('<dd></dd>', `<dd>Most common: ${roles.map(([r,n]) => `<code>${esc(r)}</code> (${n})`).join(', ')}.</dd>`)}
+  </div>
+</div>
+<div class="grid g2">
+${trees.filter(t => t.models).map(t => `<div class="card"><span class="eyebrow">${esc(t.repo)} · ${esc(t.branch)}</span><h3>Models by top folder</h3>${bars(Object.entries(areaRows[t.key]||{}).sort((a,b)=>b[1]-a[1]), 'var(--fab)')}<div><button class="hit" data-open="model|${esc(D.models.find(m=>m.tree===t.key).id)}">Open a model from this tree</button></div></div>`).join('')}
+</div>`;
+};
+
+/* ---------- Z2 apps fed from Databricks ---------- */
+RENDER.apps = () => {
+  const apps = [{name:'Power BI reports', how:'Semantic models import gold tables through Databricks SQL warehouses on each refresh.', view:'powerbi'}, ...(N.consumers || [])];
+  return `
+<div class="lede">
+  <span class="eyebrow">Zoom 2 · the other direction</span>
+  <h2>Apps fed from Databricks</h2>
+  <p>Power BI is usually the biggest reader, but not the only one. Some apps read Databricks tables directly; others receive a copy that an ADF pipeline pushes out.</p>
+</div>
+<div class="grid g2">${apps.map(a => `<div class="card"><h3>${esc(a.name)}</h3><p>${md(a.how || '')}</p>${a.warn?`<p class="note"><b>Check first.</b> ${md(a.warn)}</p>`:''}${(a.pipelines||[]).length?`<div><span class="eyebrow">Pipelines</span><ul class="plain" style="margin-top:6px">${a.pipelines.map(p => `<li>${pHit(p)}${pipeTriggers[p]?` <span class="muted" style="font-size:13px">← ${pipeTriggers[p].map(gHit).join(', ')}</span>`:''}</li>`).join('')}</ul></div>`:''}${a.view?`<div><button class="hit" data-view="${esc(a.view)}">Zoom into Power BI</button></div>`:''}</div>`).join('')}</div>
+${otherSchemas.map(s => { const ts = D.tables.filter(t => schemaOf(t.kind) === s); return ts.length ? `<div class="card"><span class="eyebrow">Schema</span><h3><code>${esc(PROD_CATALOG ? PROD_CATALOG + '.' : '')}${esc(s)}.*</code></h3><ul class="plain cols2">${ts.slice(0, 60).map(t => `<li>${hit('table', t.id, t.name, true)}</li>`).join('')}${ts.length > 60 ? `<li class="muted">and ${ts.length - 60} more (Inventories)</li>` : ''}</ul></div>` : ''; }).join('')}`;
+};
+
+/* ---------- Z2 platform ---------- */
+const BASE_GLOSSARY = [
+  {term:'Medallion', meaning:'The bronze → silver → gold layering.'},
+  {term:'SCD Type 2', meaning:'History is kept: a changed row is closed and a new current row added.'},
+  {term:'Semantic model', meaning:'What Power BI used to call a dataset: tables, relationships, measures, RLS.'},
+  {term:'TMDL', meaning:'The text format a semantic model is saved in.'},
+  {term:'PBIR / legacy', meaning:'The two ways a report is saved: one file per visual, or one large `report.json`.'},
+  {term:'RLS', meaning:'Row-level security: a role\'s DAX filter decides which rows a user sees.'},
+  {term:'Mirror', meaning:'A read-only copy of every Prod branch, refreshed by a sync service. This page is built from it.'},
+];
+RENDER.platform = () => `
+<div class="lede">
+  <span class="eyebrow">Zoom 2 · the plumbing</span>
+  <h2>Environments, workspaces and compute</h2>
+  <p>Where each piece runs, which repo holds its code, and which environment is which.</p>
+</div>
+<div class="grid" style="gap:10px">
+  <h3>Where the code lives: Azure DevOps</h3>
+  <p class="muted" style="font-size:14.5px">Every repo and branch the registry knows, with the environment each one is. Prod branches are mirrored for read-only analysis; Dev and UAT are only read on request. Links open the repo in Azure DevOps (you need access to the organisation).</p>
+  <div class="tbl"><table>
+  <thead><tr><th>Layer</th><th>Organisation / project</th><th>Repo</th><th>Branch</th><th>Environment</th><th>Deploys to</th><th>Mirrored</th></tr></thead>
+  <tbody>${D.repos.map(r => `<tr><td><b>${esc(r.layer)}</b></td><td><code>${esc(r.org)}</code> / <code>${esc(r.project)}</code></td><td>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.repo)}</a>` : esc(r.repo)}</td><td><code>${esc(r.branch)}</code></td><td>${esc(r.env === 'prod' ? 'Prod' : r.env === 'dev' ? 'Dev' : r.env === 'uat' ? 'UAT' : r.env)}</td><td>${r.catalog ? `catalog <code>${esc(r.catalog)}</code>` : r.workspace ? esc(r.workspace) : r.layer === 'ADF' ? esc((D.factories.find(f => f.env === r.env && f.default) || D.factories.find(f => f.env === r.env) || {}).name || '—') : '<span class="muted">—</span>'}</td><td>${r.mirrored ? 'yes' : '<span class="muted">no, read live</span>'}</td></tr>`).join('')}</tbody></table></div>
+  ${N.environments_note ? `<p class="muted" style="font-size:13.5px">${md(N.environments_note)}</p>` : ''}
+</div>
+<div class="grid g2">
+  ${D.factories.length ? `<div class="card"><span class="eyebrow">Azure Data Factory</span><h3>Factories</h3>
+    <div class="tbl" style="border:0"><table><thead><tr><th>Factory</th><th>Subscription</th><th>Resource group</th></tr></thead><tbody>${D.factories.map(f => `<tr><td><b>${esc(f.name)}</b>${f.default ? ' <span class="badge">default</span>' : ''}</td><td>${f.subscription ? `<code>${esc(f.subscription)}</code>` : '<span class="muted">not recorded yet</span>'}</td><td>${f.resource_group ? `<code>${esc(f.resource_group)}</code>` : '<span class="muted">not recorded yet</span>'}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+  ${D.tenants.length ? `<div class="card"><span class="eyebrow">Microsoft Entra</span><h3>${D.tenants.length === 1 ? 'Tenant' : 'Tenants'}</h3>
+    <dl class="kv">${D.tenants.map(x => `<dt>${esc(x.name)}</dt><dd>${esc(x.holds)}<br><code style="font-size:12px">${esc(x.id)}</code></dd>`).join('')}</dl>
+    ${D.tenants.length > 1 ? '<p class="muted" style="font-size:13.5px">Sign in to the right one. A token from the wrong tenant comes back as an HTML sign-in page (HTTP 203), not a 401.</p>' : ''}</div>` : ''}
+</div>
+<div class="grid g3">
+  ${D.compute.length ? `<div class="card"><span class="eyebrow">Clusters ADF uses</span>
+    <p class="muted" style="font-size:14px">ADF runs notebooks on clusters, one per Databricks linked service. The count is how many Prod pipelines use each.</p>
+    <dl class="kv">${D.compute.map(c => `<dt><code>${esc(c.ls)}</code></dt><dd>${c.pipelines} pipeline${c.pipelines===1?'':'s'}${c.desc?` · ${esc(c.desc)}`:''}</dd>`).join('')}</dl></div>` : ''}
+  ${(N.platform || []).map(p => `<div class="card"><span class="eyebrow">${esc(p.title)}</span>${p.text ? `<p class="muted" style="font-size:14px">${md(p.text)}</p>` : ''}${kv(p.items)}</div>`).join('')}
+</div>
+<div class="card"><span class="eyebrow">Glossary</span><h3>Words you will hear in the first week</h3>
+  ${kv([...(N.glossary || []), ...BASE_GLOSSARY])}</div>`;
+/* ---------- Z3 lineage explorer ---------- */
+const LS = {center:null, up:3, dn:3, hidden:new Set(), tx:{x:0, y:0, s:1}, dragged:false, bounds:null, mode:'cards', mz:1, msrc:'', mseq:0};
+const MAX_DEPTH = 14, COL_CAP = 14, CW = 216, CH = 56, CGAP = 92, RGAP = 12, TOP = 34;
+const DOWN_VIA = {starts:'started by', calls:'called by', runs:'run by', nbrun:'run by notebook', reads:'reads', writes:'written by', imports:'imports', serves:'built on'};
+const UP_VIA = {starts:'starts', calls:'calls', runs:'runs', nbrun:'runs notebook', reads:'read by', writes:'writes', imports:'imported by', serves:'serves'};
+
+RENDER.lineage = () => `
+<div class="lede">
+  <span class="eyebrow">Zoom 3 · follow any object both ways</span>
+  <h2>Lineage explorer</h2>
+  <p>Pick a report, model, table, notebook, pipeline or trigger. Columns to the left feed it (upstream); columns to the right depend on it (downstream). Click any card to re-centre on it. Drag to pan; Ctrl + scroll or the buttons to zoom.</p>
+</div>
+<div class="card lin-bar" id="lin-bar">
+  <div class="lin-row">
+    <div class="lin-search">
+      <input id="lin-q" type="search" placeholder="Search any trigger, pipeline, notebook, table, model or report" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="lin-sugg" aria-label="Search any object">
+      <div class="sugg" id="lin-sugg" role="listbox" hidden></div>
+    </div>
+    <span class="step">Upstream <button class="btn sq" data-step="up|-1" aria-label="Fewer upstream hops">−</button><output id="lin-up">${LS.up}</output><button class="btn sq" data-step="up|1" aria-label="More upstream hops">+</button></span>
+    <span class="step">Downstream <button class="btn sq" data-step="dn|-1" aria-label="Fewer downstream hops">−</button><output id="lin-dn">${LS.dn}</output><button class="btn sq" data-step="dn|1" aria-label="More downstream hops">+</button></span>
+  </div>
+  <div class="lin-row">
+    <button class="btn" data-act="whole">Whole chain</button>
+    <button class="btn" data-act="fit">Fit</button>
+    <button class="btn sq" data-act="zin" aria-label="Zoom in">+</button>
+    <button class="btn sq" data-act="zout" aria-label="Zoom out">−</button>
+    <button class="btn" data-act="clear">Clear</button>
+    <span class="seg" role="group" aria-label="Lineage view"><button class="btn" data-mode="cards" aria-pressed="${LS.mode === 'cards'}">Cards</button><button class="btn" data-mode="diagram" aria-pressed="${LS.mode === 'diagram'}">Mermaid diagram</button></span>
+    <button class="btn" data-act="copysrc"${LS.mode === 'diagram' ? '' : ' hidden'}>Copy Mermaid source</button>
+    <span class="muted" id="lin-count" style="font-size:13px"></span>
+  </div>
+  <div class="pills" id="lin-pills" aria-label="Show kinds"></div>
+</div>
+<div id="lin-graph"></div>
+<div class="grid g2" id="lin-panels"></div>`;
+
+WIRE.lineage = () => {
+  const bar = $('#lin-bar');
+  bar.addEventListener('click', e => {
+    const s = e.target.closest('[data-step]');
+    if (s) { const [w, d] = s.dataset.step.split('|'); LS[w] = Math.max(0, Math.min(MAX_DEPTH, LS[w] + +d)); $('#lin-' + w).textContent = LS[w]; if (LS.center) drawLineage(true); return; }
+    const a = e.target.closest('[data-act]');
+    if (a) {
+      const act = a.dataset.act;
+      if (act === 'whole') { LS.up = LS.dn = MAX_DEPTH; $('#lin-up').textContent = $('#lin-dn').textContent = MAX_DEPTH; if (LS.center) drawLineage(true); }
+      if (act === 'fit') LS.mode === 'diagram' ? mermaidFit() : fit();
+      if (act === 'zin' || act === 'zout') {
+        if (LS.mode === 'diagram') mermaidZoom(act === 'zin' ? 1.25 : 0.8);
+        else { const vp = $('#lin-vp'); if (vp) { const r = vp.getBoundingClientRect(); zoomAt(act === 'zin' ? 1.2 : 0.83, r.left + r.width/2, r.top + r.height/2); } }
+      }
+      if (act === 'copysrc') copyText(LS.msrc, a, 'Copy Mermaid source');
+      if (act === 'clear') { LS.center = null; $('#lin-q').value = ''; drawLineage(true); }
+      return;
+    }
+    const md = e.target.closest('[data-mode]');
+    if (md) { LS.mode = md.dataset.mode; bar.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', b === md)); $('[data-act="copysrc"]').hidden = LS.mode !== 'diagram'; if (LS.center) drawLineage(true); return; }
+    const p = e.target.closest('[data-kind]');
+    if (p) { const k = p.dataset.kind; LS.hidden.has(k) ? LS.hidden.delete(k) : LS.hidden.add(k); drawLineage(false); }
+  });
+  wireSearch($('#lin-q'), $('#lin-sugg'));
+  drawLineage(true);
+};
+
+function wireSearch(q, sg){
+  let items = [], hl = -1;
+  const close = () => { sg.hidden = true; q.setAttribute('aria-expanded', 'false'); hl = -1; };
+  const paint = () => sg.querySelectorAll('.res').forEach((el, i) => el.setAttribute('aria-selected', i === hl));
+  q.addEventListener('input', () => {
+    const s = q.value.trim().toLowerCase();
+    if (s.length < 2) { close(); return; }
+    const terms = s.split(/\s+/);
+    items = ENT.filter(e => terms.every(t => e.q.includes(t)))
+      .sort((a, b) => (b.t.toLowerCase().startsWith(terms[0]) - a.t.toLowerCase().startsWith(terms[0])) || b.deg - a.deg || a.t.length - b.t.length)
+      .slice(0, 30);
+    const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+    sg.innerHTML = items.length ? items.map((e, i) => `<button class="res" role="option" aria-selected="false" data-i="${i}" tabindex="-1"><span class="kind" style="background:${KCOL[e.k]}">${e.k.slice(0,3)}</span><span class="t">${esc(e.t).replace(re, '<mark>$1</mark>')}</span><span class="s">${esc(e.s)}</span></button>`).join('')
+      : '<div class="muted" style="padding:10px 12px;font-size:14px">Nothing matches. Try part of a name.</div>';
+    sg.hidden = false; q.setAttribute('aria-expanded', 'true'); hl = -1;
+  });
+  q.addEventListener('keydown', e => {
+    if (sg.hidden) return;
+    if (e.key === 'ArrowDown') { hl = Math.min(items.length - 1, hl + 1); paint(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); paint(); e.preventDefault(); }
+    else if (e.key === 'Enter') { const it = items[hl >= 0 ? hl : 0]; if (it) { e.preventDefault(); close(); q.value = it.t; open(it.k, it.id); } }
+    else if (e.key === 'Escape') close();
+  });
+  sg.addEventListener('mousedown', e => e.preventDefault());
+  sg.addEventListener('click', e => { const b = e.target.closest('.res'); if (!b) return; e.stopPropagation(); const it = items[+b.dataset.i]; close(); q.value = it.t; open(it.k, it.id); });
+  q.addEventListener('blur', () => setTimeout(close, 120));
+}
+
+/* Columns by hop. A hidden kind is walked through, not drawn: each drawn node links to its nearest drawn
+   ancestor, and a link that skips hidden hops is dashed. */
+function layoutLineage(){
+  const c = LS.center, up = trace(c, 'up', LS.up), dn = trace(c, 'down', LS.dn);
+  const vis = key => key === c || !LS.hidden.has(GN.get(key).k);
+  const lvl = new Map([[c, 0]]), cols = new Map([[0, [c]]]), links = new Map();
+  for (const [seen, sign] of [[up, -1], [dn, 1]]) {
+    const keys = [...seen.keys()].filter(k => k !== c).sort((a, b) => seen.get(a).d - seen.get(b).d);
+    for (const k of keys) {
+      if (!vis(k) || lvl.has(k)) continue;
+      let a = seen.get(k).via[0], hops = 1;
+      while (!vis(a)) { a = seen.get(a).via[0]; hops++; }
+      if (!lvl.has(a) || Math.sign(lvl.get(a)) === -sign) continue;
+      const L = lvl.get(a) + sign;
+      lvl.set(k, L);
+      if (!cols.has(L)) cols.set(L, []);
+      cols.get(L).push(k);
+      const [f, t] = sign > 0 ? [a, k] : [k, a];
+      links.set(f + '>' + t, {f, t, skip:hops > 1});
+    }
+  }
+  // Real edges between drawn nodes in neighbouring columns, beyond the walk's own tree.
+  lvl.forEach((L, k) => GN.get(k).out.forEach(([y]) => { if (lvl.get(y.key) === L + 1 && !links.has(k + '>' + y.key)) links.set(k + '>' + y.key, {f:k, t:y.key, skip:false}); }));
+  return {up, dn, lvl, cols, links:[...links.values()]};
+}
+
+function drawLineage(refit){
+  const host = $('#lin-graph'); if (!host) return;
+  if (!LS.center) {
+    $('#lin-pills').innerHTML = ''; $('#lin-count').textContent = ''; $('#lin-panels').innerHTML = '';
+    const hubs = ENT.filter(e => e.k !== 'notebook').sort((a, b) => b.deg - a.deg).slice(0, 14);
+    host.innerHTML = `<div class="empty"><h3>Trace anything in the platform</h3>
+      <p class="muted" style="max-width:60ch">Search above, or start from one of the most-connected objects. The number is how many direct links it has.</p>
+      <div class="hubs">${hubs.map(e => `<button class="pill" data-open="${e.k}|${esc(e.id)}"><i class="dot" style="background:${KCOL[e.k]}"></i>${esc(e.t)} <span class="n">${e.deg}</span></button>`).join('')}</div>
+      ${(() => { const s = starts(); return s.trigger || s.report ? `<p class="muted" style="font-size:14px">Good first traces: ${[s.trigger ? hit('trigger', s.trigger, s.trigger, true) + ' downstream' : '', s.report ? hit('report', s.report.id, last(s.report.path)) + ' upstream' : ''].filter(Boolean).join(', or ')}.</p>` : ''; })()}</div>`;
+    return;
+  }
+  const L = layoutLineage();
+  const levels = [...L.cols.keys()].sort((a, b) => a - b);
+  const minL = levels[0];
+  // Order each column by where its neighbours sit in the column nearer the centre, so lines cross less.
+  const pos = new Map([[LS.center, 0]]), shown = new Map(), more = new Map();
+  const nbr = new Map(); L.links.forEach(l => { (nbr.get(l.f) || nbr.set(l.f, []).get(l.f)).push(l.t); (nbr.get(l.t) || nbr.set(l.t, []).get(l.t)).push(l.f); });
+  const order = [0, ...levels.filter(x => x > 0), ...levels.filter(x => x < 0).reverse()];
+  for (const lv of order) {
+    let ids = L.cols.get(lv).slice();
+    if (lv !== 0) {
+      const inner = lv > 0 ? lv - 1 : lv + 1;
+      const score = k => { const ps = (nbr.get(k) || []).filter(n => L.lvl.get(n) === inner && pos.has(n)).map(n => pos.get(n)); return ps.length ? Math.min(...ps) : 1e9; };
+      ids.sort((a, b) => score(a) - score(b) || GN.get(b).deg - GN.get(a).deg);
+    }
+    const cut = ids.length > COL_CAP ? COL_CAP - 1 : ids.length;
+    shown.set(lv, ids.slice(0, cut)); if (ids.length > cut) more.set(lv, ids.slice(cut));
+    shown.get(lv).forEach((k, i) => pos.set(k, i));
+  }
+  const height = lv => (shown.get(lv).length + (more.has(lv) ? 1 : 0)) * (CH + RGAP);
+  const maxH = Math.max(...levels.map(height));
+  const xy = new Map();
+  levels.forEach(lv => { const off = (maxH - height(lv)) / 2; shown.get(lv).forEach((k, i) => xy.set(k, {x:(lv - minL) * (CW + CGAP), y:TOP + off + i * (CH + RGAP)})); });
+  const W = (levels[levels.length - 1] - minL) * (CW + CGAP) + CW, H = TOP + maxH;
+  LS.bounds = {w:W, h:H};
+
+  const paths = L.links.filter(l => xy.has(l.f) && xy.has(l.t)).map(l => {
+    const a = xy.get(l.f), b = xy.get(l.t), x1 = a.x + CW, y1 = a.y + CH/2, x2 = b.x, y2 = b.y + CH/2, mx = (x1 + x2) / 2;
+    return `<path class="${l.skip ? 'skip' : ''}" data-f="${esc(l.f)}" data-t="${esc(l.t)}" stroke="${ncolor(GN.get(l.f))}" d="M${x1} ${y1} C${mx} ${y1},${mx} ${y2},${x2} ${y2}"/>`;
+  }).join('');
+  const heads = levels.map(lv => `<div class="colh${lv === 0 ? ' c' : ''}" style="left:${(lv - minL) * (CW + CGAP)}px">${lv === 0 ? 'Selected' : lv < 0 ? `Upstream · ${-lv}` : `Downstream · ${lv}`}</div>`).join('');
+  const cards = [...xy].map(([k, p]) => { const n = GN.get(k);
+    return `<button class="gcard${k === LS.center ? ' center' : ''}" data-open="${n.k}|${esc(n.id)}" data-key="${esc(k)}" style="left:${p.x}px;top:${p.y}px" title="${esc(nlabel(n) + ' · ' + nsub(n))}"><i style="background:${ncolor(n)}"></i><span class="gk">${KIND_NAME[n.k]}</span><span class="gn">${esc(nlabel(n))}</span><span class="gs">↑ ${n.in.length} · ↓ ${n.out.length}</span></button>`; }).join('');
+  const mores = [...more].map(([lv, ids]) => { const off = (maxH - height(lv)) / 2;
+    return `<button class="gcard more" data-more="${lv}" style="left:${(lv - minL) * (CW + CGAP)}px;top:${TOP + off + shown.get(lv).length * (CH + RGAP)}px">+ ${ids.length} more</button>`; }).join('');
+  if (LS.mode === 'diagram') drawMermaid(L, levels, xy);
+  else {
+  const keepT = refit ? null : $('#lin-stage') && {...LS.tx};
+  host.innerHTML = `<div class="vp" id="lin-vp"><div class="gstage" id="lin-stage" style="width:${W}px;height:${H}px"><svg width="${W}" height="${H}" aria-hidden="true">${paths}</svg>${heads}${cards}${mores}</div>
+    <span class="vp-hint">Drag to pan · Ctrl + scroll to zoom</span><div id="lin-more" class="more-pop" hidden></div></div>`;
+  wireCanvas(more);
+  if (keepT) { LS.tx = keepT; applyT(); } else fit();
+  }
+
+  // pills: what is in scope, by kind, toggled to show or hide
+  const inScope = {};
+  [L.up, L.dn].forEach(s => s.forEach((v, k) => { if (k !== LS.center) { const kk = GN.get(k).k; inScope[kk] = (inScope[kk] || 0) + 1; } }));
+  $('#lin-pills').innerHTML = KIND_ORDER.map(k => `<button class="pill" data-kind="${k}" aria-pressed="${!LS.hidden.has(k)}"><i class="dot" style="background:${KCOL[k]}"></i>${KIND_NAME[k]}s <span class="n">${inScope[k] || 0}</span></button>`).join('');
+  const total = L.up.size + L.dn.size - 2;
+  $('#lin-count').textContent = `${nf(xy.size)} shown · ${nf(total)} reached within ${LS.up} up / ${LS.dn} down`;
+
+  const cn = GN.get(LS.center);
+  $('#lin-panels').innerHTML = `<div class="detail">${DETAIL[cn.k](cn.id)}</div><div class="detail">${impact(L.up, 'up')}${impact(L.dn, 'down')}</div>`;
+}
+
+function impact(seen, dir){
+  const depth = dir === 'up' ? LS.up : LS.dn;
+  const found = [...seen].filter(([, v]) => v.d > 0);
+  const byK = {}; found.forEach(([k, v]) => (byK[GN.get(k).k] ||= []).push([k, v]));
+  const title = dir === 'up' ? 'Upstream: what it depends on' : 'Downstream: what it affects';
+  const cn = GN.get(LS.center);
+  if (!found.length) return `<div class="card"><span class="eyebrow">${title}</span><p class="muted">${
+    (dir === 'up' ? !cn.in.length : !cn.out.length) ? (dir === 'up' ? 'Nothing feeds it: the chain starts here.' : 'Nothing depends on it: the chain ends here.')
+    : depth === 0 ? 'Depth is 0. Raise it to look this way.' : `Nothing within ${depth} hop${depth===1?'':'s'}.`}</p></div>`;
+  const stopped = dir === 'up' ? (byK.trigger || []).filter(([k]) => TRIG[GN.get(k).id].state !== 'Started') : [];
+  const noTrig = dir === 'up' && !(byK.trigger || []).length && depth >= 6;
+  const VIA = dir === 'up' ? UP_VIA : DOWN_VIA;
+  return `<div class="card"><span class="eyebrow">${title} · ${nf(found.length)} within ${depth} hop${depth===1?'':'s'}</span>
+    <div class="tiles-k">${KIND_ORDER.filter(k => byK[k]).map(k => `<div class="tk"><b>${nf(byK[k].length)}</b><span><i class="dot" style="background:${KCOL[k]}"></i>${KIND_NAME[k]}s</span></div>`).join('')}</div>
+    ${stopped.length ? `<p class="note"><b>Not running.</b> ${stopped.map(([k]) => `${kHit(k)} (${esc(TRIG[GN.get(k).id].state.toLowerCase())})`).join(', ')} won't start anything until someone turns ${stopped.length>1?'them':'it'} back on or extends the schedule.</p>` : ''}
+    ${noTrig ? '<p class="note"><b>No ADF trigger upstream.</b> This chain may run as a Databricks job, on demand, or from a pipeline the scan could not link.</p>' : ''}
+    ${KIND_ORDER.filter(k => byK[k]).map(k => `<details class="grp"${['trigger','report','model'].includes(k) || byK[k].length <= 8 ? ' open' : ''}><summary>${KIND_NAME[k]}s (${byK[k].length})</summary><ul class="plain">${
+      byK[k].sort((a, b) => a[1].d - b[1].d || nlabel(GN.get(a[0])).localeCompare(nlabel(GN.get(b[0])))).slice(0, 200).map(([key, v]) =>
+        `<li><span class="hop">[${v.d}]</span> ${kHit(key)} <span class="muted" style="font-size:12.5px">${VIA[v.via[1]]} ${esc(nlabel(GN.get(v.via[0])))}</span></li>`).join('')}${byK[k].length > 200 ? `<li class="muted">+${byK[k].length - 200} more</li>` : ''}</ul></details>`).join('')}</div>`;
+}
+
+/* ---------- Mermaid view of the same trace ---------- */
+const MERMAID_SRC = 'https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js';
+const MERMAID_MAX = 120;
+let mermaidLoading = null;
+function loadMermaid(){
+  if (window.mermaid) return Promise.resolve(window.mermaid);
+  return mermaidLoading ||= new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = MERMAID_SRC; s.async = true;
+    s.onload = () => window.mermaid ? resolve(window.mermaid) : reject(new Error('Mermaid loaded without its global'));
+    s.onerror = () => { mermaidLoading = null; reject(new Error('Mermaid could not be loaded')); };
+    document.head.appendChild(s);
+  });
+}
+const tok = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const varName = css => css.replace(/^var\((--[\w-]+)\)$/, '$1');
+function mermaidLabel(s){ return String(s).replace(/["`<>{}\[\]|#;]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60); }
+function edgeType(f, t){ const e = GN.get(f).out.find(([y]) => y.key === t); return e ? e[1] : ''; }
+const EDGE_WORD = {starts:'starts', calls:'calls', runs:'runs', nbrun:'runs', reads:'read by', writes:'writes', imports:'imported by', serves:'serves'};
+
+/* Mermaid source for the drawn trace: same nodes as the cards (hop order, capped), same links. */
+function mermaidSource(L, levels, xy){
+  const keys = [...levels].sort((a, b) => Math.abs(a) - Math.abs(b)).flatMap(lv => [...xy.keys()].filter(k => L.lvl.get(k) === lv)).slice(0, MERMAID_MAX);
+  const ids = new Map(keys.map((k, i) => [k, 'n' + i]));
+  const links = L.links.filter(l => ids.has(l.f) && ids.has(l.t));
+  const label = links.length <= 60;
+  const out = ['flowchart LR'];
+  const bg = tok('--bg'), ink = tok('--ink');
+  KIND_ORDER.forEach(k => out.push(`  classDef ${k} fill:${bg},stroke:${tok(varName(KCOL[k]))},stroke-width:2px,color:${ink}`));
+  out.push(`  classDef center fill:${bg},stroke:${tok('--accent')},stroke-width:4px,color:${ink}`);
+  keys.forEach(k => { const n = GN.get(k); out.push(`  ${ids.get(k)}["${KIND_NAME[n.k]}: ${mermaidLabel(nlabel(n))}"]:::${k === LS.center ? 'center' : n.k}`); });
+  links.forEach(l => { const w = label ? EDGE_WORD[edgeType(l.f, l.t)] : ''; const arrow = l.skip ? '-.->' : '-->';
+    out.push(`  ${ids.get(l.f)} ${w ? (l.skip ? `-. ${w} .->` : `-- ${w} -->`) : arrow} ${ids.get(l.t)}`); });
+  return {src: out.join('\n'), keys, dropped: xy.size - keys.length};
+}
+
+async function drawMermaid(L, levels, xy){
+  const host = $('#lin-graph');
+  const {src, keys, dropped} = mermaidSource(L, levels, xy);
+  LS.msrc = src;
+  const seq = ++LS.mseq;
+  host.innerHTML = `<div class="grid" style="gap:10px">
+    <div class="mm" id="lin-mm"><p class="muted">Drawing the diagram…</p></div>
+    <p class="muted" style="font-size:13px">Same objects and links as the card view${dropped > 0 ? `, first ${MERMAID_MAX} in hop order (${dropped} more are in the card view)` : ''}. Click a box to re-centre. Dashed arrows skip hidden kinds. Scroll inside the box to move around.</p>
+    <details class="mm-src"><summary>Mermaid source</summary><pre>${esc(src)}</pre></details></div>`;
+  try {
+    const mermaid = await loadMermaid();
+    mermaid.initialize({startOnLoad:false, securityLevel:'strict', theme:'base', maxTextSize:500000,
+      themeVariables:{background:tok('--surface'), primaryColor:tok('--bg'), primaryTextColor:tok('--ink'), primaryBorderColor:tok('--line'),
+        lineColor:tok('--muted'), textColor:tok('--ink'), edgeLabelBackground:tok('--surface'), fontFamily:tok('--f-body'), fontSize:'14px'},
+      flowchart:{htmlLabels:false, curve:'basis', nodeSpacing:24, rankSpacing:64, useMaxWidth:false}});
+    const {svg} = await mermaid.render('lin-mermaid-' + seq, src);
+    const box = $('#lin-mm');
+    if (!box || seq !== LS.mseq) return;  // the user moved on while it was drawing
+    box.innerHTML = svg;
+    const el = box.querySelector('svg');
+    LS.mw = el.viewBox.baseVal && el.viewBox.baseVal.width || el.getBBox().width;
+    el.removeAttribute('style'); el.removeAttribute('width'); el.removeAttribute('height');
+    mermaidFit(true);
+    el.querySelectorAll('g.node').forEach(g => {
+      const m = /flowchart-(n\d+)-/.exec(g.id); if (!m) return;
+      const key = keys[+m[1].slice(1)]; const n = GN.get(key);
+      g.addEventListener('click', () => open(n.k, n.id));
+      g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0'); g.setAttribute('aria-label', `${KIND_NAME[n.k]} ${nlabel(n)}: re-centre here`);
+      g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(n.k, n.id); } });
+    });
+  } catch (err) {
+    const box = $('#lin-mm');
+    if (box && seq === LS.mseq) box.innerHTML = `<p class="note"><b>The diagram didn't draw.</b> ${esc(err.message || err)}. The Mermaid source below still works: copy it into any Mermaid editor, or switch back to Cards.</p>`;
+  }
+}
+function mermaidApply(){ const el = $('#lin-mm svg'); if (el && LS.mw) el.style.width = Math.round(LS.mw * LS.mz) + 'px'; }
+/* Fit the width; a wide trace would shrink past reading size, so the first draw stops at 60% and scrolls, and Fit goes all the way. */
+function mermaidFit(readable){ const box = $('#lin-mm'); if (!box || !LS.mw) return; const f = (box.clientWidth - 26) / LS.mw; LS.mz = Math.min(1.2, Math.max(readable ? 0.6 : 0.1, f)); mermaidApply(); }
+function mermaidZoom(f){ LS.mz = Math.min(4, Math.max(0.15, LS.mz * f)); mermaidApply(); }
+
+function copyText(text, btn, label){
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = label; }, 1800); };
+  const fallback = () => { const d = $('.mm-src'); if (d) { d.open = true; const pre = d.querySelector('pre'); const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } btn.textContent = 'Selected below: press Ctrl+C'; };
+  try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+}
+
+function applyT(){ const st = $('#lin-stage'); if (st) st.style.transform = `translate(${LS.tx.x}px,${LS.tx.y}px) scale(${LS.tx.s})`; }
+function fit(){
+  const vp = $('#lin-vp'), b = LS.bounds; if (!vp || !b) return;
+  const vw = vp.clientWidth, vh = vp.clientHeight;
+  const s = Math.max(0.15, Math.min((vw - 40) / b.w, (vh - 40) / b.h, 1.05));
+  LS.tx = {x:(vw - b.w * s) / 2, y:Math.max(12, (vh - b.h * s) / 2), s};
+  applyT();
+}
+function zoomAt(f, cx, cy){
+  const vp = $('#lin-vp'); if (!vp) return;
+  const r = vp.getBoundingClientRect(), mx = cx - r.left, my = cy - r.top;
+  const s = Math.max(0.15, Math.min(2.5, LS.tx.s * f)); f = s / LS.tx.s;
+  LS.tx = {x:mx - (mx - LS.tx.x) * f, y:my - (my - LS.tx.y) * f, s};
+  applyT();
+}
+function wireCanvas(more){
+  const vp = $('#lin-vp'), st = $('#lin-stage');
+  const ptrs = new Map(); let start = null, pinch = null;
+  vp.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (e.target.closest('#lin-more')) return;
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if (ptrs.size === 1) { start = {x:e.clientX, y:e.clientY, tx:LS.tx.x, ty:LS.tx.y}; LS.dragged = false; }
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = {d:Math.hypot(a.x - b.x, a.y - b.y), s:LS.tx.s}; }
+  });
+  vp.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if (ptrs.size === 2 && pinch) { const [a, b] = [...ptrs.values()]; zoomAt(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d / LS.tx.s, (a.x + b.x) / 2, (a.y + b.y) / 2); LS.dragged = true; return; }
+    if (!start) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    if (!LS.dragged && Math.hypot(dx, dy) < 5) return;
+    if (!LS.dragged) { LS.dragged = true; vp.classList.add('grabbing'); try { vp.setPointerCapture(e.pointerId); } catch(err) {} }
+    LS.tx.x = start.tx + dx; LS.tx.y = start.ty + dy; applyT();
+  });
+  const end = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) { start = null; vp.classList.remove('grabbing'); setTimeout(() => { LS.dragged = false; }, 0); } };
+  vp.addEventListener('pointerup', end); vp.addEventListener('pointercancel', end);
+  vp.addEventListener('wheel', e => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.12 : 0.89, e.clientX, e.clientY); }, {passive:false});
+  // hover or keyboard focus: light up the card's own links and neighbours
+  const lit = key => {
+    st.classList.toggle('hl', !!key);
+    st.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+    if (!key) return;
+    st.querySelector(`.gcard[data-key="${CSS.escape(key)}"]`)?.classList.add('on');
+    st.querySelectorAll('path').forEach(p => { if (p.dataset.f === key || p.dataset.t === key) { p.classList.add('on'); [p.dataset.f, p.dataset.t].forEach(k => st.querySelector(`.gcard[data-key="${CSS.escape(k)}"]`)?.classList.add('on')); } });
+  };
+  st.addEventListener('pointerover', e => { const c = e.target.closest('.gcard[data-key]'); if (c && !LS.dragged) lit(c.dataset.key); });
+  st.addEventListener('pointerout', e => { if (e.target.closest('.gcard[data-key]')) lit(null); });
+  st.addEventListener('focusin', e => { const c = e.target.closest('.gcard[data-key]'); if (c) lit(c.dataset.key); });
+  st.addEventListener('focusout', () => lit(null));
+  // "+N more": list the rest of that column
+  const pop = $('#lin-more');
+  st.addEventListener('click', e => {
+    const m = e.target.closest('[data-more]'); if (!m || LS.dragged) return;
+    const lv = +m.dataset.more, ids = more.get(lv);
+    pop.innerHTML = `<header><span>${lv < 0 ? `Upstream · ${-lv}` : `Downstream · ${lv}`}: ${ids.length} more</span><button class="btn sq" data-close aria-label="Close">×</button></header><div class="list">${ids.map(k => { const e2 = ENT.find(x => x.key === k); return `<button class="res" data-open="${e2.k}|${esc(e2.id)}"><span class="kind" style="background:${KCOL[e2.k]}">${e2.k.slice(0,3)}</span><span class="t">${esc(e2.t)}</span><span class="s">${esc(e2.s)}</span></button>`; }).join('')}</div>`;
+    pop.hidden = false; pop.querySelector('[data-close]').focus();
+  });
+  pop.addEventListener('click', e => { if (e.target.closest('[data-close]')) pop.hidden = true; });
+  vp.addEventListener('keydown', e => { if (e.key === 'Escape') pop.hidden = true; });
+}
+
+/* ---------- Z3 inventories ---------- */
+const INV_STATE = {tab:'pipelines'};
+let INV_ROWS = null;
+function invRows(){
+  if (INV_ROWS) return INV_ROWS;
+  const pipes = D.pipelines.map(p => {
+    const trig = pipeTriggers[p.name] || [], parents = pipeParents[p.name] || [];
+    const live = trig.filter(t => TRIG[t].state === 'Started');
+    const status = live.length ? (live.some(t => TRIG[t].type === 'schedule') ? 'scheduled' : 'on file arrival') : trig.length ? 'trigger stopped' : parents.length ? 'called by another pipeline' : 'no trigger';
+    const down = trace('pipeline|' + p.name, 'down', MAX_DEPTH); const cnt = k => [...down.keys()].filter(x => GN.get(x).k === k).length;
+    return {_k:'pipeline', _id:p.name, name:p.name, folder:p.folder || '—', status, trigger:trig.join(', ') || '—', when:trig.map(t => TRIG[t].when).join('; ') || '—', parents:parents.join(', ') || '—',
+      notify:p.children.some(c => /notif/i.test(c)) ? 'yes' : 'no', notebooks:GN.get('pipeline|' + p.name).out.filter(([, t]) => t === 'runs').length, tables:cnt('table'), models:cnt('model'), reports:cnt('report')};
+  });
+  const tables = D.tables.map(t => ({_k:'table', _id:t.id, name:t.name, schema:schemaOf(t.kind), built:t.producers.length ? last(t.producers[0]) : '—', writers:t.producers.length, readers:t.nb_readers, models:t.models.length, cols:t.cols}));
+  const models = D.models.map(m => ({_k:'model', _id:m.id, name:last(m.path), tree:treeLabel(m.tree), area:m.area, tables:m.tables, gold:m.gold.length, measures:m.measures, roles:m.roles.join(', ') || '—', reports:m.reports.length}));
+  const reports = D.reports.map(r => ({_k:'report', _id:r.id, name:last(r.path), tree:treeLabel(r.tree), folder:r.path.split('/').slice(0,-1).join('/') || '(root)', model:MODEL[r.model] ? last(MODEL[r.model].path) : '—', fmt:r.fmt || '—', pages:r.pages.length, hidden:r.pages.filter(p => p[1]).length, visuals:r.pages.reduce((a, p) => a + p[2], 0)}));
+  const kpis = (D.kpis || []).map(k => ({_k:'model', _id:k.model, name:k.name, text:k.text, model:last(MODEL[k.model].path), tree:treeLabel(MODEL[k.model].tree), object:k.object, from:k.verified ? 'model description' : 'report document', ref:k.source}));
+  return INV_ROWS = {pipelines:pipes, tables, models, reports, kpis};
+}
+const INV = {
+  pipelines:{label:'Pipelines', note:'Every ADF pipeline in the Prod factory. Downstream counts follow the lineage to the end. "Notification" means it calls a notification pipeline, a sign it alerts on completion or failure.', filters:['status','folder','notify'],
+    cols:[{k:'name', l:'Pipeline', fmt:v => `<b>${esc(v)}</b>`}, {k:'status', l:'Runs', fmt:v => `<span class="badge"><i class="dot" style="background:${v==='scheduled'||v==='on file arrival'?'var(--ok)':v==='called by another pipeline'?'var(--adf)':'var(--warn)'}"></i>${esc(v)}</span>`}, {k:'trigger', l:'Trigger'}, {k:'when', l:'When (IST)'}, {k:'parents', l:'Called by'}, {k:'folder', l:'Folder'}, {k:'notify', l:'Notification'}, {k:'notebooks', l:'Notebooks', num:true}, {k:'tables', l:'Tables ↓', num:true}, {k:'models', l:'Models ↓', num:true}, {k:'reports', l:'Reports ↓', num:true}]},
+  tables:{label:'Tables', note:'Every Databricks table the code or models reference. "Built by" is the notebook most likely to run; "Writers" counts every notebook that writes it.', filters:['schema'],
+    cols:[{k:'name', l:'Table', fmt:v => `<code>${esc(v)}</code>`}, {k:'schema', l:'Schema'}, {k:'built', l:'Built by'}, {k:'writers', l:'Writers', num:true}, {k:'readers', l:'Notebooks reading', num:true}, {k:'models', l:'Models', num:true}, {k:'cols', l:'Columns used', num:true}]},
+  models:{label:'Semantic models', note:'Every semantic model in the Prod Fabric trees.', filters:['tree','area'],
+    cols:[{k:'name', l:'Model', fmt:v => `<b>${esc(v)}</b>`}, {k:'tree', l:'Repo · branch'}, {k:'area', l:'Top folder'}, {k:'tables', l:'Tables', num:true}, {k:'gold', l:'Databricks tables', num:true}, {k:'measures', l:'Measures', num:true}, {k:'roles', l:'RLS roles'}, {k:'reports', l:'Reports', num:true}]},
+  reports:{label:'Reports', note:'Every report, with the model it is bound to and its page structure.', filters:['tree','fmt'],
+    cols:[{k:'name', l:'Report', fmt:v => `<b>${esc(v)}</b>`}, {k:'tree', l:'Repo · branch'}, {k:'folder', l:'Folder'}, {k:'model', l:'Model'}, {k:'fmt', l:'Format'}, {k:'pages', l:'Pages', num:true}, {k:'hidden', l:'Hidden', num:true}, {k:'visuals', l:'Visuals', num:true}]},
+  kpis:{label:'KPIs & measures', note:'Definitions attached to model measures and columns. "Model description" is the model\'s own text; "report document" comes from the report write-ups in docs/ai/client/reports/ and is a dated snapshot.', filters:['from','tree'],
+    cols:[{k:'name', l:'KPI / measure', fmt:v => `<b>${esc(v)}</b>`}, {k:'text', l:'Definition'}, {k:'model', l:'Model'}, {k:'tree', l:'Repo · branch'}, {k:'from', l:'Source'}, {k:'ref', l:'Where', fmt:v => `<code style="font-size:11.5px">${esc(v)}</code>`}]},
+};
+RENDER.inventory = () => `
+<div class="lede">
+  <span class="eyebrow">Zoom 3 · everything, as lists</span>
+  <h2>Inventories</h2>
+  <p>Every pipeline, table, model, report and KPI definition in one sortable list each. Filter, sort by any column, copy the result as CSV, or click a row to trace it in the lineage explorer.</p>
+</div>
+<div class="grid" style="gap:12px"><div class="tabs" role="tablist">${Object.entries(INV).map(([k, v]) => `<button role="tab" data-inv="${k}" aria-selected="${INV_STATE.tab === k}">${v.label} <span class="muted">${nf(invRows()[k].length)}</span></button>`).join('')}</div>
+<div id="inv-body" class="grid" style="gap:10px"></div></div>`;
+WIRE.inventory = () => {
+  const draw = () => { const spec = INV[INV_STATE.tab]; makeTable($('#inv-body'), spec, invRows()[INV_STATE.tab], INV_STATE.tab); };
+  $('#main .tabs').addEventListener('click', e => { const b = e.target.closest('[data-inv]'); if (!b) return; INV_STATE.tab = b.dataset.inv; document.querySelectorAll('[data-inv]').forEach(x => x.setAttribute('aria-selected', x === b)); draw(); });
+  draw();
+};
+const TSTATE = {};
+function makeTable(el, spec, rows, name){
+  const st = TSTATE[name] ||= {q:'', f:{}, sort:null, dir:1, page:0};
+  const PS = 100;
+  el.innerHTML = `<p class="muted" style="font-size:14.5px">${esc(spec.note)}</p>
+    <div class="tctl"><input type="search" class="tq" id="tq-${name}" placeholder="Search ${esc(spec.label.toLowerCase())}…" aria-label="Search" value="${esc(st.q)}">
+    ${spec.filters.map(f => `<select data-f="${f}" id="tf-${name}-${f}" aria-label="Filter by ${esc((spec.cols.find(c => c.k === f) || {l:f}).l)}"><option value="">All: ${esc((spec.cols.find(c => c.k === f) || {l:f}).l)}</option>${[...new Set(rows.map(r => r[f]))].sort().map(v => `<option${st.f[f] === String(v) ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>`).join('')}
+    <span class="muted cnt" style="font-size:13px"></span><span style="flex:1"></span><button class="btn csv">Copy as CSV</button></div>
+    <div class="csvbox" hidden><p class="muted" style="font-size:13px">Copying was blocked here. The CSV is selected below; press Ctrl+C.</p><textarea readonly rows="6" style="width:100%;font:12px var(--f-mono)"></textarea></div>
+    <div class="tw"><table><thead><tr>${spec.cols.map((c, i) => `<th class="${c.num ? 'n' : ''}" aria-sort="${st.sort === i ? (st.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button data-sort="${i}">${esc(c.l)}<span aria-hidden="true">${st.sort === i ? (st.dir > 0 ? ' ▲' : ' ▼') : ''}</span></button></th>`).join('')}</tr></thead><tbody></tbody></table></div>
+    <div class="pager"><button class="btn pv">‹ Previous</button><span class="pg"></span><button class="btn nx">Next ›</button></div>`;
+  let cur = rows;
+  const body = $('tbody', el);
+  const draw = () => {
+    const terms = st.q.toLowerCase().split(/\s+/).filter(Boolean);
+    cur = rows.filter(r => spec.filters.every(f => !st.f[f] || String(r[f]) === st.f[f]) && terms.every(t => spec.cols.some(c => String(r[c.k] ?? '').toLowerCase().includes(t))));
+    if (st.sort !== null) { const c = spec.cols[st.sort]; cur = cur.slice().sort((a, b) => (c.num ? (a[c.k] - b[c.k]) : String(a[c.k]).localeCompare(String(b[c.k]))) * st.dir); }
+    const pages = Math.max(1, Math.ceil(cur.length / PS)); st.page = Math.min(st.page, pages - 1);
+    body.innerHTML = cur.slice(st.page * PS, st.page * PS + PS).map((r, i) => `<tr data-i="${st.page * PS + i}" tabindex="0">${spec.cols.map(c => `<td class="${c.num ? 'n' : ''}">${c.fmt ? c.fmt(r[c.k], r) : esc(r[c.k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${spec.cols.length}" class="muted">No rows match. Clear the search or a filter.</td></tr>`;
+    $('.cnt', el).textContent = `${nf(cur.length)} of ${nf(rows.length)}`;
+    $('.pg', el).textContent = `Page ${st.page + 1} of ${pages}`;
+    $('.pv', el).disabled = st.page === 0; $('.nx', el).disabled = st.page >= pages - 1;
+  };
+  $('.tq', el).addEventListener('input', e => { st.q = e.target.value; st.page = 0; draw(); });
+  el.querySelectorAll('select[data-f]').forEach(s => s.addEventListener('change', () => { st.f[s.dataset.f] = s.value; st.page = 0; draw(); }));
+  el.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.sort; st.dir = st.sort === i ? -st.dir : (spec.cols[i].num ? -1 : 1); st.sort = i; makeTable(el, spec, rows, name); }));
+  $('.pv', el).addEventListener('click', () => { st.page--; draw(); });
+  $('.nx', el).addEventListener('click', () => { st.page++; draw(); });
+  const rowOpen = tr => { const r = cur[+tr.dataset.i]; if (r) open(r._k, r._id); };
+  body.addEventListener('click', e => { if (e.target.closest('button')) return; const tr = e.target.closest('tr[data-i]'); if (tr) rowOpen(tr); });
+  body.addEventListener('keydown', e => { if (e.key === 'Enter') { const tr = e.target.closest('tr[data-i]'); if (tr) rowOpen(tr); } });
+  $('.csv', el).addEventListener('click', () => {
+    const csv = [spec.cols.map(c => c.l), ...cur.map(r => spec.cols.map(c => r[c.k] ?? ''))].map(a => a.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const fallback = () => { const box = $('.csvbox', el), ta = $('textarea', box); ta.value = csv; box.hidden = false; ta.focus(); ta.select(); };
+    const b = $('.csv', el);
+    try { navigator.clipboard.writeText(csv).then(() => { b.textContent = `Copied ${nf(cur.length)} rows`; setTimeout(() => { b.textContent = 'Copy as CSV'; }, 2000); }, fallback); } catch(err) { fallback(); }
+  });
+  draw();
+}
+
+function head(kind, title, sub){
+  return `<div class="card"><div class="crumbs"><span class="kind" style="background:${KCOL[kind]}">${KIND_NAME[kind]}</span>${sub}</div><h2 style="overflow-wrap:anywhere">${esc(title)}</h2></div>`;
+}
+function runBy(nb){
+  const out = [];
+  (nbPipes[nb]||[]).forEach(p => out.push(`${pHit(p)}${pipeTriggers[p]?' ← '+pipeTriggers[p].map(gHit).join(', '):''}`));
+  const g = goldSlot(nb);
+  (nbCallers[nb] || []).forEach(c => {
+    const step = RUNNER && last(c) === RUNNER.notebook && g && g.active ? ` step ${g.step+1} of ${GOLD_ORDER.length} (<code>${esc(g.folder)}</code>)` : '';
+    const up = (nbPipes[c] || []).map(p => `${pHit(p)}${pipeTriggers[p] ? ' ← ' + pipeTriggers[p].map(gHit).join(', ') : (pipeParents[p] ? ' ← ' + pipeParents[p].map(pp => pHit(pp) + (pipeTriggers[pp] ? ' ← ' + pipeTriggers[pp].map(gHit).join(', ') : '')).join(', ') : '')}`);
+    out.push(`${nHit(c)}${step}${up.length ? ' ← ' + up.join('; ') : ''}`);
+  });
+  if (g && !g.active) out.push(`<span class="muted">In <code>${esc(g.folder)}</code>, which <code>${esc(RUNNER.notebook || 'the runner')}</code> does not run.</span>`);
+  return out;
+}
+const DETAIL = {};
+DETAIL.report = id => {
+  const r = REPORT[id]; const m = MODEL[r.model];
+  const gold = m ? m.gold : [];
+  return head('report', last(r.path), `${esc(treeLabel(r.tree))} · <code>${esc(r.path)}.Report</code>`) + `
+  <div class="grid g2">
+    <div class="card"><span class="eyebrow">Lineage, top to bottom</span><div class="chain">
+      <div class="link"><span class="k" style="color:var(--fab)">Model</span><div class="v">${m ? mHit(m.id) + `<span class="muted" style="font-size:13px">${m.tables} tables · ${m.measures} measures${m.roles.length?' · RLS: '+m.roles.map(esc).join(', '):''}</span>` : esc(r.model)}</div></div>
+      <div class="link"><span class="k" style="color:var(--gold)">Tables</span><div class="v">${gold.length ? `<ul class="plain">${gold.slice(0,30).map(g => `<li>${tHit(g)}${TABLE[g] && TABLE[g].producers.length ? ` <span class="muted" style="font-size:12.5px">← ${esc(last(TABLE[g].producers[0]))}</span>`:''}</li>`).join('')}${gold.length>30?`<li class="muted">+${gold.length-30} more on the model</li>`:''}</ul>` : '<span class="muted">No Databricks table resolved for this model.</span>'}</div></div>
+    </div></div>
+    <div class="card"><span class="eyebrow">Structure · ${r.fmt === 'PBIR' ? 'PBIR layout' : 'legacy report.json'}</span><h3>${r.pages.length} page${r.pages.length===1?'':'s'}</h3>
+      <div class="pages">${r.pages.map(p => `<div class="pg${p[1]?' hidden':''}"><span>${esc(p[0]||'(unnamed)')}${p[1]?' · hidden':''}</span><span class="muted">${p[2]} visual${p[2]===1?'':'s'}</span></div>`).join('')}</div>
+      <p class="muted" style="font-size:13px">Hidden pages are off the tab bar but often reached by a button or drill-through.</p></div>
+  </div>`;
+};
+DETAIL.model = id => {
+  const m = MODEL[id];
+  const siblings = D.models.filter(x => x.id !== id && last(x.path) === last(m.path));
+  return head('model', last(m.path), `${esc(treeLabel(m.tree))} · <code>${esc(m.path)}.SemanticModel</code>`) + `
+  <div class="stats"><div class="stat"><b>${m.tables}</b><span>tables</span></div><div class="stat"><b>${nf(m.measures)}</b><span>DAX measures</span></div><div class="stat"><b>${m.roles.length}</b><span>RLS roles</span></div><div class="stat"><b>${m.reports.length}</b><span>reports bound to it</span></div></div>
+  <div class="grid g2">
+    <div class="card"><span class="eyebrow">Imports from Databricks</span><ul class="plain">${m.gold.map(g => `<li>${tHit(g)}</li>`).join('') || '<li class="muted">No Databricks table resolved.</li>'}</ul></div>
+    <div class="card"><span class="eyebrow">Reports on this model</span><ul class="plain">${m.reports.map(r => `<li>${rHit(r)} <span class="muted" style="font-size:12.5px">${esc(REPORT[r].path.split('/').slice(0,-1).join('/'))}</span></li>`).join('') || '<li class="muted">None in this tree. It may be used from another workspace.</li>'}</ul>
+      ${m.roles.length?`<span class="eyebrow" style="margin-top:8px">RLS roles</span><div>${m.roles.map(r=>`<span class="tag">${esc(r)}</span>`).join(' ')}</div>`:''}
+      ${siblings.length?`<span class="eyebrow" style="margin-top:8px">Same name in other trees</span><ul class="plain">${siblings.map(s => `<li>${hit('model', s.id, treeLabel(s.tree))}</li>`).join('')}</ul><p class="muted" style="font-size:13px">Copies can differ. Compare before assuming one change covers all.</p>`:''}</div>
+  </div>`;
+};
+DETAIL.table = id => {
+  const t = TABLE[id];
+  const ins = new Set(); t.producers.forEach(p => (D.notebooks[p]?.in||[]).forEach(i => ins.add(i)));
+  ins.delete(id);
+  return head('table', tableLabel(t), `<code>${PROD_CATALOG ? esc(PROD_CATALOG) + '.' : ''}${esc(schemaOf(t.kind))}.${esc(t.name)}</code>${t.cols?` · ${t.cols} columns used downstream`:''}`) + `
+  <div class="card"><span class="eyebrow">Lineage</span><div class="chain">
+    <div class="link"><span class="k" style="color:var(--slvr)">Inputs</span><div class="v">${ins.size ? `<ul class="plain cols2">${[...ins].slice(0,40).map(i => `<li>${tHit(i)}</li>`).join('')}</ul>${ins.size>40?`<span class="muted">+${ins.size-40} more</span>`:''}` : '<span class="muted">None resolved.</span>'}</div></div>
+    <div class="link"><span class="k" style="color:var(--brnz)">Built by</span><div class="v">${t.producers.length ? `<ul class="plain">${t.producers.map(p => `<li>${nHit(p)}</li>`).join('')}</ul>${t.producers.length>1?'<p class="muted" style="font-size:13px">More than one notebook writes this table. Some are often old copies (<code>_bkp</code>, <code>_V1</code>, dev): check which one actually runs.</p>':''}` : '<span class="muted">No notebook in the Prod repo writes this name in a way the scan recognises. It may be built by a Databricks job, a view, or config-driven code.</span>'}</div></div>
+    <div class="link"><span class="k" style="color:var(--adf)">Runs via</span><div class="v">${(() => { const r = t.producers.flatMap(runBy); return r.length ? `<ul class="plain">${[...new Set(r)].map(x=>`<li>${x}</li>`).join('')}</ul>` : '<span class="muted">No ADF pipeline found for the producing notebook. It may run as a Databricks job.</span>'; })()}</div></div>
+    <div class="link"><span class="k" style="color:var(--fab)">Read by</span><div class="v">${t.models.length ? `<ul class="plain">${t.models.map(m => `<li>${mHit(m)} <span class="muted" style="font-size:12.5px">${esc(treeLabel(MODEL[m]?.tree))}</span></li>`).join('')}</ul>` : '<span class="muted">No Power BI model imports it.</span>'}${t.nb_readers?`<div class="muted" style="font-size:13.5px">Also read by ${t.nb_readers} notebook${t.nb_readers===1?'':'s'}.</div>`:''}</div></div>
+  </div></div>`;
+};
+DETAIL.notebook = id => {
+  const nb = D.notebooks[id] || {in:[], out:[], n_in:0};
+  const rb = runBy(id);
+  return head('notebook', last(id), `<code>${esc(id)}</code>`) + `
+  <div class="grid g2">
+    <div class="card"><span class="eyebrow">Reads (${nb.n_in})</span><ul class="plain">${nb.in.slice(0,60).map(i => `<li>${tHit(i)}</li>`).join('') || '<li class="muted">None resolved.</li>'}</ul>${nb.in.length>60?`<span class="muted">+${nb.in.length-60} more</span>`:''}</div>
+    <div class="card"><span class="eyebrow">Writes (${nb.out.length})</span><ul class="plain">${nb.out.map(o => `<li>${tHit(o)}</li>`).join('') || '<li class="muted">Nothing directly.</li>'}</ul>
+      ${nb.runs ? `<span class="eyebrow" style="margin-top:8px">Runs ${nb.runs.length} notebook${nb.runs.length===1?'':'s'}</span><ul class="plain">${nb.runs.slice(0,40).map(c => `<li>${nHit(c)}</li>`).join('')}${nb.runs.length>40?`<li class="muted">+${nb.runs.length-40} more</li>`:''}</ul>` : ''}
+      <span class="eyebrow" style="margin-top:8px">Started by</span><ul class="plain">${rb.map(x => `<li>${x}</li>`).join('') || '<li class="muted">No ADF pipeline found. It may run as a Databricks job or be called by another notebook.</li>'}</ul></div>
+  </div>`;
+};
+DETAIL.pipeline = name => {
+  const p = PIPE[name];
+  const parents = pipeParents[name] || [], trig = pipeTriggers[name] || [];
+  return head('pipeline', name, `ADF${FACTORY ? ` · <code>${esc(FACTORY)}</code>` : ''}${p.folder?` · folder <code>${esc(p.folder)}</code>`:''}`) + `
+  <div class="card"><div class="chain">
+    <div class="link"><span class="k" style="color:var(--src)">Started by</span><div class="v">${[...trig.map(t => gHit(t) + ` <span class="muted" style="font-size:13px">${esc(TRIG[t].when)}${TRIG[t].state!=='Started'?' · '+esc(TRIG[t].state.toLowerCase()):''}</span>`), ...parents.map(pp => 'pipeline ' + pHit(pp))].map(x=>`<div>${x}</div>`).join('') || '<span class="muted">No trigger or parent pipeline. Run manually or by an external caller.</span>'}</div></div>
+    <div class="link"><span class="k" style="color:var(--adf)">Calls</span><div class="v">${p.children.length ? `<ul class="plain">${p.children.map(c => `<li>${pHit(c)}</li>`).join('')}</ul>` : '<span class="muted">No child pipelines.</span>'}</div></div>
+    <div class="link"><span class="k" style="color:var(--brnz)">Notebooks</span><div class="v">${p.notebooks.length ? `<ul class="plain">${p.notebooks.map(n => `<li>${nHit(n)}</li>`).join('')}</ul>` : '<span class="muted">None resolved directly.</span>'}${RUNNER && p.notebooks.some(n => last(n) === RUNNER.notebook)?`<p style="font-size:14px;margin-top:6px">Runs <code>${esc(RUNNER.notebook)}</code>, which runs every notebook in ${GOLD_ORDER.length} ordered folders.</p>`:''}</div></div>
+  </div></div>`;
+};
+DETAIL.trigger = name => {
+  const t = TRIG[name];
+  return head('trigger', name, `ADF trigger · ${esc(t.type)} · <b style="color:${t.state!=='Started'?'var(--warn)':'var(--ok)'}">${esc(t.state)}</b>`) + `${t.ended ? `<p class="note"><b>Expired.</b> ADF still shows this trigger as Started, but its schedule ended ${esc(t.ended)}, so it no longer fires.</p>` : ''}
+  <div class="card"><dl class="kv"><dt>When</dt><dd>${esc(t.when)}${t.type==='schedule' && TZ_LABEL ? ` (${esc(TZ_LABEL)})` : ''}</dd><dt>Starts</dt><dd>${t.pipelines.map(pHit).join(', ') || '<span class="muted">nothing</span>'}</dd></dl></div>`;
+};
+
+/* ---------- boot ---------- */
+$('#provenance').innerHTML = `Built from ${esc(C.display_name || 'Scotri')}'s lineage index of the Prod mirror (index built ${esc(new Date(D.built).toLocaleString(LOCALE,{dateStyle:'medium',timeStyle:'long',timeZone:TZ}))}), the ADF Prod repo and <code>docs/ai/client/</code>.`;
+/* theme toggle: overrides the viewer's theme for this page, remembered per browser */
+function setTheme(th){ if (th) document.documentElement.dataset.theme = th; const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark'; $('#theme').textContent = dark ? 'Light theme' : 'Dark theme'; }
+try { const th = localStorage.getItem('dpm.theme'); if (th) setTheme(th); } catch(e) {}
+setTheme();
+$('#theme').addEventListener('click', () => { const dark = $('#theme').textContent === 'Light theme'; setTheme(dark ? 'light' : 'dark'); try { localStorage.setItem('dpm.theme', dark ? 'light' : 'dark'); } catch(e) {} });
+let start = 'overview';
+try { const s = localStorage.getItem('dpm.view'); if (s && RENDER[s]) start = s; } catch(e) {}
+const h = (location.hash||'').slice(1); if (RENDER[h]) start = h;
+go(start, {keepScroll:true});
+})();
+</script>

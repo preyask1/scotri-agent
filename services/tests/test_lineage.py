@@ -57,10 +57,17 @@ def test_unknown_rel_is_a_warning_not_an_error():
 
 
 def test_name_with_colon_splits_only_once():
-    g = load_graph({"edges": [_edge(dst="gold_table:acme_prod.gold.visit_summary")]})
-    node = next(n for n in g.nodes if n.id == "gold_table:acme_prod.gold.visit_summary")
-    assert node.kind == "gold_table"
-    assert node.name == "acme_prod.gold.visit_summary"
+    g = load_graph({"edges": [_edge(src="notebook:dbfs:/Repos/nb.ipynb")]})
+    node = next(n for n in g.nodes if n.id == "notebook:dbfs:/Repos/nb.ipynb")
+    assert node.kind == "notebook"
+    assert node.name == "dbfs:/Repos/nb.ipynb"
+
+
+def test_qualified_gold_table_names_meet_generated_ones():
+    """`acme_prod.gold.visit_summary` (hand-written) and `visit_summary` (generated) are one node."""
+    g = load_graph({"edges": [_edge(dst="gold_table:acme_prod.gold.Visit_Summary")]})
+    assert any(n.id == "gold_table:visit_summary" for n in g.nodes)
+    assert not any("acme_prod" in n.id for n in g.nodes)
 
 
 def test_optional_nodes_placeholder_is_included():

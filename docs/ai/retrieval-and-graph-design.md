@@ -5,9 +5,11 @@ last-validated-commit: n/a — design note, not a registry; supersede it rather 
 
 # Retrieval, a lineage graph, and Jev — where each one fits
 
-**Status: proposed, nothing built.** No code, skill, credential or config in this workspace
-references any of this. Treat this as a considered opinion with its reasoning shown, not as a
-decision. See OPEN_ITEMS.md for the two items that came out of it.
+**Status (updated 2026-10-12): §1 and §2 are built; §3 (Jev) is not.** The lineage graph (§1) is
+built and now generated from the mirror end to end, with KPI definitions on measure nodes
+(OPEN_ITEMS.md #37; storage on Azure decided in #15). Retrieval (§2) is built as BM25 over
+history, learnings and `docs/ai/`, indexed one heading section at a time (#38; embeddings are #51).
+The reasoning below is the original 2026-09-27 note, kept as written.
 
 ## Start from where the cost actually is
 

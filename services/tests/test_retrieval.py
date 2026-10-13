@@ -56,3 +56,47 @@ def test_snippet_is_around_the_match():
 def test_scope_is_carried_through():
     hits = rank("sales", [_doc("a", "sales sales", scope="past-engagements")], limit=1)
     assert hits[0].scope == "past-engagements"
+
+
+# --- markdown sectioning (docs are indexed one heading section at a time) -------------------------
+
+from domain.retrieval import split_markdown  # noqa: E402
+
+
+def test_split_on_h1_h2_with_breadcrumb_and_lines():
+    md = "intro line\n# Title\nabout\n## KPIs\nkpi table\n### Detail\nsmall\n## RLS\nroles\n"
+    secs = split_markdown(md)
+    assert [s.heading for s in secs] == ["", "Title", "Title › KPIs", "Title › RLS"]
+    kpis = secs[2]
+    assert (kpis.start_line, kpis.end_line) == (4, 7)  # small ### stays inside its ## section
+    assert "### Detail" in kpis.text
+
+
+def test_oversized_section_resplits_on_h3():
+    md = "## Big\nlead\n### A\n" + "x " * 5000 + "\n### B\nb\n"
+    secs = split_markdown(md)
+    assert [s.heading for s in secs] == ["Big", "Big › A", "Big › B"]
+
+
+def test_headings_in_code_fences_are_ignored():
+    md = "## Real\n```\n# not a heading\n```\nmore\n"
+    assert [s.heading for s in split_markdown(md)] == ["Real"]
+
+
+def test_no_headings_is_one_section():
+    secs = split_markdown("just text\nmore text\n")
+    assert len(secs) == 1 and secs[0].heading == "" and (secs[0].start_line, secs[0].end_line) == (1, 2)
+
+
+def test_docs_hit_points_at_section(tmp_path):
+    from adapters.retrieval.lexical_retrieval import LexicalRetriever
+    from adapters.history.sqlite_engagement_history import SqliteEngagementHistory
+    docs = tmp_path / "docs"
+    (docs / "reports").mkdir(parents=True)
+    (docs / "reports" / "Visit-Status.md").write_text(
+        "# Visit-Status\n## Overview\nmonitors submissions\n## KPIs\nPending Visit Days uses NETWORKDAYS\n",
+        encoding="utf-8")
+    r = LexicalRetriever(SqliteEngagementHistory(tmp_path / "h.db"), docs)
+    top = r.search("NETWORKDAYS", ["docs"], None, 5)[0]
+    assert top.id == "docs:reports/Visit-Status.md#L4"
+    assert top.meta["lines"] == "4-5" and top.meta["section"] == "Visit-Status › KPIs"

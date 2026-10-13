@@ -33,6 +33,7 @@ run.
 | `failed_calls` | a non-zero exit or `"ok": false` in the result preview, rate limits excluded |
 | `whole_notebook_reads` | `mirror-read` of an `.ipynb` without `--lines` |
 | `retrieve_seen` | an `app.cli retrieve` call (a call inside a batch file can read as `false`) |
+| `cli_commands`, `graph_calls` | `app.cli` commands by name: as typed, plus each `batch`'s items, read from the `batch: N item(s): …` line it prints to stderr first (so a truncated step preview still has it). `graph_calls` (the report's Graph column) counts `lineage-trace`, `lineage-coverage` and `kpi-lookup`. Results before 2026-10-13 predate that line, so their batched graph use reads as 0 |
 | `jira_writes` | any `jira-comment`/`-edit-comment`/`-create-bug`/`jira-attach` call; must be 0 |
 | `verdict`, `confidence`, `learning_recorded` | `/v1/learnings/{job_id}` |
 | `diagrams`, `unchecked_mentions`, `not_executed_mentions` | the result |

@@ -74,6 +74,8 @@ The fields that matter most:
 | `databricks.catalogs` | the prod catalog is the agent's default for every query; dev only when someone names Dev |
 | `databricks.secondary_workspace` | optional: a workspace the agent may reach only when tracing a pipeline failure |
 | `repos` | every repo the agent reads, with its branches; only `mirrored: true` (Prod) branches are copied locally |
+| `repos[].legacy` | optional: marks an older structure kept live beside a newer one (shown as such on the platform map) |
+| `fabric.workspaces`, `fabric.tenant_id`, `adf.tenant_id` | which workspace each Fabric branch syncs to, and the Entra tenants; the agent and the platform map use them |
 
 ## 4. Generate config and docs: `render`
 
@@ -85,8 +87,9 @@ python -m app.setup render            # --dry-run --diff to preview
   `adf_factories.yaml`, `model_registry.yaml`, `client.yaml`, and `docs/ai/client/client.md`,
   `repo-registry.md`, `repo-map.md`.
 - **Skeletons** (created once, never overwritten): `docs/ai/client/databricks-architecture.md`,
-  `fabric-architecture.md`, `fabric-conventions.md`, `lineage-map.md`, `lineage-graph.yaml`. These
-  hold the client's domain knowledge; see step 7.
+  `fabric-architecture.md`, `fabric-conventions.md`, `lineage-map.md`, `lineage-graph.yaml`,
+  `platform-map-notes.json` and `reports/sources.yaml`. These hold the client's domain knowledge; see
+  step 7.
 
 Change the profile any time and re-run `render`.
 
@@ -138,9 +141,19 @@ RLS, known traps. Fill in every **TODO**; the Acme versions in
 [`examples/acme-retail/docs/ai/client/`](examples/acme-retail/docs/ai/client/) show the level of detail
 that helps. Time spent here pays back on every investigation.
 
-The lineage map and graph start empty. Seed them with the chains you know; after that, the agent
-extends `lineage-map.md` itself during impact analyses, and `lineage-coverage` lists what nobody has
-verified yet.
+Lineage needs no seeding: every sync generates it from the mirror (ADF trigger → pipeline → notebook
+→ table → Fabric model → measure / RLS role → report). `lineage-graph.yaml` is only for legs the
+mirror can't show, such as a Databricks job outside ADF or a notebook a pipeline picks by parameter;
+`lineage-coverage --unresolved` lists what the generator couldn't resolve.
+
+Two optional files make the agent and the onboarding page better:
+
+- `reports/`: report documents (purpose, KPI definitions, RLS), one folder per tree, listed in
+  `reports/sources.yaml`. Their KPI definitions are attached to the matching measures, so
+  `kpi-lookup` can say what a KPI means as well as how it's computed.
+- `platform-map-notes.json`: the prose of the platform map at `/platform-map` (source systems,
+  consuming apps, the main scheduled run, glossary). Without it the page shows only what the mirror
+  and the profile give it. The keys are listed in [`tools/platform_map/README.md`](tools/platform_map/README.md).
 
 ## 8. First sync and start: `bootstrap`
 

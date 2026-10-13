@@ -117,6 +117,7 @@ def validate_profile(raw: dict | None) -> dict:
         _required(errors, repo, path, "ado_org")
         _required(errors, repo, path, "ado_project")
         repo["note"] = repo.get("note") or ""
+        repo["legacy"] = bool(repo.get("legacy", False))  # an older structure kept live beside a newer one
         envs = repo.get("environments") or []
         if not envs:
             errors.append(f"{path}.environments needs at least one entry")

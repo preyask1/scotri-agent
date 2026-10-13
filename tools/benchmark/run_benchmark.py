@@ -44,6 +44,10 @@ REFUSED = ("Denied by Scotri's tool scope", "<tool_use_error>")
 RATE_LIMITED = "rate limit reached"
 WHOLE_NOTEBOOK = re.compile(r"mirror-read\b(?!.*--lines).*\.ipynb", re.S)
 RETRIEVE = re.compile(r'app\.cli\s+retrieve\b|"command":\s*"retrieve"')
+CLI_COMMAND = re.compile(r"app\.cli\s+([a-z][\w-]+)")
+GRAPH_COMMANDS = ("lineage-trace", "lineage-coverage", "kpi-lookup")
+# `batch` prints "batch: N item(s): cmd, cmd, ..." to stderr first, so a truncated preview still shows it.
+BATCH_LINE = re.compile(r"batch: \d+ item\(s\): ([a-z0-9, -]+)")
 
 
 # --- HTTP ------------------------------------------------------------------------------------------
@@ -185,6 +189,11 @@ def _metrics(case: dict, job_id: str, poll: dict, steps: list, learning: dict | 
         "whole_notebook_reads": sum(bool(WHOLE_NOTEBOOK.search(i)) for i in inputs),
         "jira_writes": sum(bool(JIRA_WRITE.search(i)) for i in inputs),
         "retrieve_seen": any(RETRIEVE.search(i) or RETRIEVE.search(p) for i, p in zip(inputs, previews)),
+        # app.cli commands by name: as typed, plus each batch's items from the line batch prints first.
+        "cli_commands": dict(sorted(_count(
+            [c for i in inputs for c in CLI_COMMAND.findall(i)]
+            + [c.strip() for p in previews for line in BATCH_LINE.findall(p) for c in line.split(",") if c.strip()]
+        ).items())),
         "verdict": (learning or {}).get("verdict"),
         "confidence": (learning or {}).get("confidence"),
         "learning_recorded": learning is not None,
@@ -194,9 +203,17 @@ def _metrics(case: dict, job_id: str, poll: dict, steps: list, learning: dict | 
         "result_chars": len(result),
         "error": poll.get("error"),
     }
+    m["graph_calls"] = sum(m["cli_commands"].get(c, 0) for c in GRAPH_COMMANDS)
     m["checks"] = _checks(case.get("checks", {}), m, result)
     m["passed"] = all(c["passed"] for c in m["checks"])
     return m
+
+
+def _count(items) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for item in items:
+        out[item] = out.get(item, 0) + 1
+    return out
 
 
 def _checks(spec: dict, m: dict, result: str) -> list[dict]:
@@ -243,8 +260,8 @@ def report(run: dict, baseline: dict | None) -> str:
         f"Commit `{run['commit']}`, API `{run['api']}`"
         + (f", compared with `{baseline['file']}` (commit `{baseline['commit']}`)" if baseline else ", no baseline"),
         "",
-        "| Case | Status | Run s | Tool calls | Refused | Failed | Whole nb | retrieve | Verdict | Unchecked | Checks |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        "| Case | Status | Run s | Tool calls | Refused | Failed | Whole nb | retrieve | Graph | Verdict | Unchecked | Checks |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for c in run["cases"]:
         p = prev.get(c["id"], {})
@@ -253,14 +270,17 @@ def report(run: dict, baseline: dict | None) -> str:
             f"| {c['id']} | {c.get('status')} | {_delta(c.get('run_seconds'), p.get('run_seconds'))} "
             f"| {_delta(c.get('tool_calls'), p.get('tool_calls'))} | {_delta(c.get('refused_calls'), p.get('refused_calls'))} "
             f"| {_delta(c.get('failed_calls'), p.get('failed_calls'))} | {_delta(c.get('whole_notebook_reads'), p.get('whole_notebook_reads'))} "
-            f"| {'yes' if c.get('retrieve_seen') else 'no'} | {c.get('verdict') or '–'} "
+            f"| {'yes' if c.get('retrieve_seen') else 'no'} | {c.get('graph_calls', '–')} | {c.get('verdict') or '–'} "
             f"| {_delta(c.get('unchecked_mentions'), p.get('unchecked_mentions'))} "
             f"| {'pass' if c.get('passed') else 'FAIL: ' + ', '.join(failed or [c.get('error') or '?'])}"
             f"{' · RATE-LIMITED x' + str(c['rate_limited_calls']) + ', not comparable' if c.get('rate_limited_calls') else ''} |")
     total = [c.get("run_seconds") or 0 for c in run["cases"]]
     lines += ["", f"Total run time {sum(total)} s; {sum(c.get('passed', False) for c in run['cases'])}"
               f"/{len(run['cases'])} cases passed.",
-              "", "`retrieve` is detected from command text and previews, so a call hidden inside a batch "
+              "", "Graph counts `lineage-trace`, `lineage-coverage` and `kpi-lookup` calls, typed directly or run "
+              "inside a `batch` (from the item line batch prints; per-command counts are `cli_commands` in "
+              "the JSON). Runs before 2026-10-13 can't see batch items, so their Graph reads low. "
+              "`retrieve` is detected from command text and previews, so a call hidden inside a batch "
               "file can read as `no`. A case marked RATE-LIMITED lost governed reads to the per-user "
               "rate limit (every case runs as the same user), so its numbers aren't comparable: re-run it "
               "once the window resets. Run seconds are from leaving the queue to the final answer. Ticket cases run "

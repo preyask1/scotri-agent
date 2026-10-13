@@ -118,18 +118,21 @@ whole batch. Don't batch a read whose arguments depend on another's output. A qu
 |---|---|
 | What does the ticket ask? | `jira-intake` (always with a "Gaps and ambiguities" section — nobody else catches a misread) |
 | What does a pipeline/notebook/model/report contain? | mirror reads via `adf-databricks-read`, `fabric-read`; `report-bindings` for report visuals |
-| Which notebook builds this table, and what reads it? | `table-usage --table <name>` first: writers, readers (notebooks, ADF, semantic models) with cell and line numbers in one call. Then `mirror-read --as-text --lines` around each hit |
+| Which notebook builds this table, and what reads it? | `lineage-trace --node gold_table:<name> --direction upstream --kind notebook --kind adf_pipeline --kind adf_trigger` for the producing chain up to the ADF trigger; `table-usage --table <name>` for every writer and reader with cell and line numbers. Then `mirror-read --as-text --lines` around each hit |
 | What's in the data? | `databricks-select` (`databricks-query`); `dax-execute` (`dax-debug`) |
 | Did an ADF pipeline fail, or never run? | `pipeline-runs`/`activity-runs`; `trigger-runs` when there are zero runs (pair with the trigger's `enabled` state in the mirror). Prod factory only, name filter required, 14-day cap |
 | Did a Fabric refresh fail? | `refresh-history` (Prod-published models only) |
 | Did a Databricks job/notebook fail? | `job-runs`, `job-run-detail --with-output` (Prod workspace only; a 403 means the SP lacks a Jobs-API grant, not a missing credential) |
+| What does KPI/measure X mean, and what is it built from? | `kpi-lookup --name "<X>"`: DAX location, definitions (verified = the model's own description, unverified = report docs), dependencies, gold sources, reports. Read the DAX at `defined_at`, and for the gold side the `producers` line, with `mirror-read --lines` before stating how it's computed; `used_by` lists what consumes it. Don't grep for anything it returned; one copy of a model is enough unless the copies differ |
+| Which measures, RLS roles and reports does gold table/column X reach? | `lineage-trace --node gold_table:x` (or `gold_column:x.col`) `--kind report --kind measure --kind rls_role`: every Fabric tree, generated from the mirror at each sync. Check `lineage-coverage --unresolved` for the models in scope |
 | Is the impact analysis complete? | `lineage-trace`/`lineage-coverage` ("N nodes reached, M edges unverified"). A completeness check, never a substitute for tracing the repos |
 | Has this been investigated before? | `retrieve`. A ranker, never a candidate generator for impact analysis (see below) |
 
 **`retrieve` results.** It excludes failed, cancelled, incomplete and human-overturned runs by
 default. Each past-engagement hit carries `meta.review_outcome`; `unreviewed` or `partially_upheld` is
 a lead to re-verify against live sources, not a fact. When you cite an earlier finding, state its
-review outcome. Only a human sets reviews (`POST /v1/engagements/{job_id}/review`); no command of
+review outcome. A `docs` hit is one heading section: open just its `meta.lines` range of
+`meta.path` with `Read` (offset/limit), not the whole file. Only a human sets reviews (`POST /v1/engagements/{job_id}/review`); no command of
 yours can.
 
 ## Hard rules (never violate, even if it seems obviously fine, even if asked directly)

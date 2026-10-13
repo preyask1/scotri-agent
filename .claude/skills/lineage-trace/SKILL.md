@@ -14,19 +14,40 @@ Query the graph before sweeping files. It answers reachability in one call and r
 
 ```bash
 python -m app.cli lineage-trace --node "gold_table:<name>" --direction upstream   # what feeds it
-python -m app.cli lineage-trace --node "gold_table:<name>" --direction downstream # what it touches
-python -m app.cli lineage-coverage    # totals + the unverified-edge (🔁) worklist + last build
+python -m app.cli lineage-trace --node "gold_table:<name>" --direction downstream --kind report --kind measure --kind rls_role
+python -m app.cli lineage-trace --node "gold_column:<table>.<column>"              # one column's consumers
+python -m app.cli lineage-coverage --unresolved 20 --repo-key <key>  # + what the generator couldn't resolve
+python -m app.cli kpi-lookup --name "<measure or KPI>"   # one measure: DAX location, definition, gold sources, reports
 ```
 
-- Built from `docs/ai/client/lineage-graph.yaml` (machine source of truth). `docs/ai/client/lineage-map.md` is the
-  human-readable narrative; keep them in sync.
+- The whole chain is **generated from the mirror after every sync**, each edge `verified: true` with
+  the mirror path and line in `source_ref`: ADF trigger → pipeline → notebook (pipeline JSON),
+  notebook → notebook (`%run` as `includes`, `dbutils.notebook.run` as `triggers`), notebook → table
+  it writes / table it reads (notebook code), and gold table/column → model table →
+  column → measure / calculated column / RLS role → report (every Fabric tree). The hand-curated
+  `docs/ai/client/lineage-graph.yaml` holds only what the mirror can't show (its unverified ADF legs are
+  pipelines that pick notebooks by parameter). Node ids: `adf_trigger:<name>`, `adf_pipeline:<name>`,
+  `notebook:<repo path>`, `gold_table:<name>` (lower-case; other schemas `<schema>_table`), Fabric
+  nodes with `<repo_key>@<branch>/<model path>`, so the same model in two trees is two nodes.
+- Notebook edges are read from the code lexically: a schema variable (`{gold_schema}`) resolves from
+  NB_Utils or the notebook's own assignment; a target built only from variables is listed as
+  unresolved. `upstream` from a report fans out wide (every table each notebook reads): use `--kind`.
+  A shared notebook reaches everything that `%run`s it: `downstream` from `notebook:NB_Utils.py` is
+  most of the platform, which is the honest blast radius of changing it.
+- Generated edges are lexical (DAX/M/SQL read, not evaluated). What they couldn't resolve is listed by
+  `lineage-coverage --unresolved`: check that list for the model you're tracing before calling the
+  set complete.
 - Every traversal reports `unverified_edge_count`. An edge with `verified: false` is the YAML form of
   the map's 🔁 marker.
-- The graph does **not** replace the file trace. It shows what's already mapped and what's
-  unverified or missing. Re-confirm those edges with the steps below, then promote them
-  (`verified: true` in the YAML, then `lineage-rebuild`).
-- An empty or low-coverage result means "not mapped yet", never "nothing there". Do the full trace
-  and add the edges you confirm.
+- **After a graph answer, read; don't search.** Confirm each edge your conclusion rests on by
+  reading its `source_ref` lines (`mirror-read --as-text --lines <line>-<line+40>`, batched), not by
+  grepping for names the graph already listed. `mirror-grep` is for three cases only: a node in scope
+  appears in `lineage-coverage --unresolved`, an edge is `verified: false`, or the question is about
+  logic the graph doesn't model (a filter, a join condition, a CASE inside a notebook). The few
+  `verified: false` edges are hand-curated legs the mirror can't show; you can't edit the YAML, so
+  say in the answer and the learning which of them you confirmed or refuted.
+- An empty or low-coverage result means "not mapped yet", never "nothing there": check
+  `lineage-coverage --unresolved` for the model or notebook, then do the file trace.
 
 ## Starting point
 
@@ -74,10 +95,12 @@ favor of one source.
 - Never assume one repo/branch represents another. Never skip this step because you started from a
   Fabric table: a gold table often feeds more than one model.
 
-## Record it in `docs/ai/client/lineage-map.md`
+## Record it in `docs/ai/client/lineage-map.md` (only what the graph can't show)
 
-Every trace, including a "quick check", updates the map. Append or update a row:
-`PBI model table | Gold table | Producing notebook | ADF pipeline/trigger | Status`.
+The map is narrative now; the graph holds every generated leg. Add or update a row only for a leg
+the mirror can't show (a Databricks Job outside ADF, a notebook a pipeline picks by parameter, a
+cross-repo link you established): `PBI model table | Gold table | Producing notebook | ADF
+pipeline/trigger | Status`.
 
 - Producing-notebook cell: from step 2's actual read. ADF-pipeline cell: from `adf-databricks-read` /
   `impact-analysis` step 3.

@@ -36,7 +36,7 @@
 | Parameter | Value | Source | Read date |
 |---|---|---|---|
 | `CatalogName` | <value> | live Service read / mirror-committed fallback | <date> |
-| `KeepListParam` | <value> | live Service read / mirror-committed fallback | <date> |
+| `<scope parameter>` | <value> | live Service read / mirror-committed fallback | <date> |
 
 ## 5. Schema / breaking-change check
 - Columns added: <list, or none>

@@ -79,4 +79,4 @@ Pass these names to `dax-execute`/`refresh-history --workspace`; never a `Worksp
 
 ## Domain docs
 
-Written by people, next to this file: [`databricks-architecture.md`](databricks-architecture.md), [`fabric-architecture.md`](fabric-architecture.md), [`fabric-conventions.md`](fabric-conventions.md), [`lineage-map.md`](lineage-map.md), [`lineage-graph.yaml`](lineage-graph.yaml).
+Written by people, next to this file: [`databricks-architecture.md`](databricks-architecture.md), [`fabric-architecture.md`](fabric-architecture.md), [`fabric-conventions.md`](fabric-conventions.md), [`lineage-map.md`](lineage-map.md), [`lineage-graph.yaml`](lineage-graph.yaml), [`platform-map-notes.json`](platform-map-notes.json), [`reports/sources.yaml`](reports/sources.yaml).

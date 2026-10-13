@@ -37,7 +37,8 @@ means a wrong tenant, **not** an empty result (see `docs/ai/client/repo-map.md`)
 
 ## Procedure
 
-1. **Resolve the model**: via `impact-analysis`/`lineage-trace`, know its repo + branch + workspace
+1. **Resolve the model**: via `kpi-lookup --name "<measure>"` (model, DAX location, gold sources) or
+   `impact-analysis`/`lineage-trace`, know its repo + branch + workspace
    (per the table above, never the TMDL literal).
 2. **Run `dax-execute`** with that workspace, the model name and a plain `EVALUATE` /
    `EVALUATE {[<Measure>]}` query; add `--role` for an RLS/effective-identity check.

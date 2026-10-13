@@ -27,7 +27,7 @@ NOW = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
 ISSUE = {
     "key": "ACME-2085",
     "fields": {
-        "summary": "Blank JOINTWORK_WITHREP in Region 7",
+        "summary": "Blank SHELFCHECK_WITHREP in Region 7",
         "issuetype": {"name": "Story"}, "status": {"name": "In Dev"}, "priority": {"name": "Medium"},
         "labels": [],
         "description": {"type": "doc", "content": [

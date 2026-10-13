@@ -17,6 +17,8 @@ makes dozens of CLI calls, so that was minutes of pure startup per investigation
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import logging
 
 from datetime import datetime, timezone
@@ -125,8 +127,8 @@ class Container:
     @cached_property
     def lineage_graph(self) -> SqliteLineageGraph:
         """The queryable lineage graph index (OPEN_ITEMS.md item #37). A derived, rebuildable SQLite
-        index built from docs/ai/client/lineage-graph.yaml (lineage_source_path) via `lineage-rebuild` — not
-        a system of record, so an ephemeral file rebuilt on startup is fine even on AKS."""
+        index built from the generated lineage plus docs/ai/client/lineage-graph.yaml (`rebuild_lineage_index`)
+        — not a system of record, so a local file rebuilt on start-up is fine on Azure (#15)."""
         from adapters.lineage.sqlite_lineage_graph import SqliteLineageGraph
 
         db_path = self.path_setting("LINEAGE_DB_PATH", SERVICES_ROOT / "data" / "lineage.db")
@@ -524,6 +526,275 @@ class Container:
             index = ensure_index(self.mirror_text_cache, self.mirror_reader, ref.repo, ref.branch, pool.map)
         logging.getLogger(__name__).info("sync: %s@%s search cache %s", ref.repo, ref.branch,
                                          f"ready ({len(index['paths'])} files)" if index else "skipped (no manifest)")
+
+    def after_mirror_swap(self, ref) -> None:
+        """Everything derived from a tree, rebuilt right after the sync swaps it in: the mirror-grep
+        cache, then the tree's generated lineage and the lineage index. Each step is best-effort on
+        its own, so a lineage failure never costs the search cache, and the reverse."""
+        log = logging.getLogger(__name__)
+        for step in (self.rebuild_mirror_text_cache, self._refresh_tree_lineage):
+            try:
+                step(ref)
+            except Exception:  # noqa: BLE001
+                log.exception("sync: %s@%s post-swap step %s failed", ref.repo, ref.branch, step.__name__)
+
+    def _refresh_tree_lineage(self, ref) -> None:
+        # Wait for a start-up catch-up in another process rather than skip: skipping here would
+        # leave this freshly synced tree's lineage stale until the next restart.
+        with self.lineage_lock(wait_seconds=600) as held:
+            if not held:
+                logging.getLogger(__name__).warning(
+                    "sync: %s@%s lineage not refreshed: the lineage lock stayed taken; the next start-up "
+                    "check catches up", ref.repo, ref.branch)
+                return
+            stats = self.generate_tree_lineage(ref)
+            self.rebuild_lineage_index()  # every tree kind: Fabric, databricks and adf alike
+        logging.getLogger(__name__).info("sync: %s@%s lineage %s", ref.repo, ref.branch, stats)
+
+    def after_mirror_sync(self, outcomes) -> None:
+        """Once per sync run, after every swapped tree's lineage is in the index: work that reads all
+        trees together. Today that is the platform map page."""
+        self.rebuild_platform_map(f"{sum(o.ok for o in outcomes)} of {len(outcomes)} tree(s) synced")
+
+    def rebuild_platform_map(self, reason: str = "") -> None:
+        """Regenerate the onboarding page (tools/platform_map) from the lineage index.
+        A separate process, so the tool stays a plain script with no import into services/; skipped
+        when a deployment doesn't ship tools/."""
+        import subprocess
+        import sys
+
+        log = logging.getLogger(__name__)
+        script = SERVICES_ROOT.parent / "tools" / "platform_map" / "gen_platform_map.py"
+        if not script.is_file():
+            log.info("sync: platform map skipped (%s not deployed)", script)
+            return
+        out = self.path_setting("PLATFORM_MAP_PATH", SERVICES_ROOT / "data" / "platform-map.html")
+        lineage_db = self.path_setting("LINEAGE_DB_PATH", SERVICES_ROOT / "data" / "lineage.db")
+        done = subprocess.run(
+            [sys.executable, str(script), "--out", str(out), "--lineage-db", str(lineage_db),
+             "--mirror-root", str(self.mirror_root)],
+            capture_output=True, text=True, timeout=300, check=False)
+        if done.returncode != 0:
+            raise RuntimeError(f"platform map generator exited {done.returncode}: {done.stderr[-500:] or done.stdout[-500:]}")
+        log.info("sync: platform map rebuilt (%s) %s", reason, done.stdout.strip()[-300:])
+
+    @contextmanager
+    def lineage_lock(self, wait_seconds: float = 0, stale_seconds: float = 1800):
+        """One lineage writer at a time across processes on this host (API, MCP server, sync
+        service): a lock file beside the generated trees, created exclusively. Yields True when
+        held, False when another process kept it past `wait_seconds`. A lock older than
+        `stale_seconds` (its process died) is taken over."""
+        import os
+        import time
+
+        root = self.path_setting("LINEAGE_GENERATED_DIR", SERVICES_ROOT / "data" / "lineage-generated")
+        root.mkdir(parents=True, exist_ok=True)
+        path = root / ".lock"
+        deadline = time.monotonic() + wait_seconds
+        held = False
+        while True:
+            try:
+                fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, f"{os.getpid()} {time.time():.0f}".encode())
+                os.close(fd)
+                held = True
+                break
+            except FileExistsError:
+                try:
+                    if time.time() - path.stat().st_mtime > stale_seconds:
+                        path.unlink(missing_ok=True)
+                        continue
+                except OSError:
+                    continue
+                if time.monotonic() >= deadline:
+                    break
+                time.sleep(2)
+        try:
+            yield held
+        finally:
+            if held:
+                path.unlink(missing_ok=True)
+
+    @cached_property
+    def lineage_generated_store(self):
+        """Mirror-generated lineage edges, one file per tree (adapters/lineage/generated_store.py):
+        LINEAGE_GENERATED_DIR, default services/data/lineage-generated (gitignored)."""
+        from adapters.lineage.generated_store import GeneratedLineageStore
+
+        return GeneratedLineageStore(self.path_setting("LINEAGE_GENERATED_DIR", SERVICES_ROOT / "data" / "lineage-generated"))
+
+    def tree_label(self, ref) -> str:
+        """`<repo_key>@<branch>` for a mirrored ref: the key the agent passes to --repo-key."""
+        for key in self.registry.all_repo_keys():
+            if any(r.repo == ref.repo and r.branch == ref.branch for r in self.registry.get(key)):
+                return f"{key}@{ref.branch}"
+        return f"{ref.repo}@{ref.branch}"
+
+    def generate_tree_lineage(self, ref) -> dict:
+        """Regenerate one tree's lineage from the mirror and store it. Returns its stats. The
+        generator follows the repo's kind (config/client.yaml `repo_kinds`): Databricks notebooks
+        (notebook -> table), ADF pipelines and triggers (trigger -> pipeline -> notebook, resolved
+        against the Databricks tree), and every other tree as Fabric models and reports
+        (table -> model -> report)."""
+        from concurrent.futures import ThreadPoolExecutor
+        from datetime import datetime, timezone
+
+        from domain.code_lineage import NOTEBOOK_EXTS, generate_adf_tree, generate_databricks_tree
+        from domain.model_lineage import generate_tree, model_folders
+        from domain.report_bindings import definition_files, report_folders
+
+        reader = self.mirror_reader
+        label = self.tree_label(ref)
+        kind = self.client_config.kind_of(label.split("@", 1)[0])
+        files, _source = reader.list_files(ref.repo, ref.branch)
+        if kind == "databricks":
+            wanted = [p for p in files if p.endswith(NOTEBOOK_EXTS)]
+        elif kind == "adf":
+            wanted = [p for p in files if p.endswith(".json") and p.startswith(("pipeline/", "trigger/"))]
+        else:
+            wanted = [p for ps in model_folders(files).values() for p in ps]
+            wanted += [p for r, ps in report_folders(files).items() for p in definition_files(r, ps)]
+
+        def read(path):
+            data = reader.read_bytes_capped(ref.repo, ref.branch, path, 16 * 1024 * 1024)
+            return path, None if data is None else data.decode("utf-8", errors="replace")
+
+        with ThreadPoolExecutor(max_workers=8) as pool:  # Windows small-file opens dominate (#46)
+            contents = dict(pool.map(read, wanted))
+        catalogs = self.grounding_catalogs
+        if kind == "databricks":
+            graph = generate_databricks_tree(label, files, contents.get, catalogs)
+        elif kind == "adf":
+            graph = generate_adf_tree(label, files, contents.get, self._databricks_notebook_paths())
+        else:
+            graph = generate_tree(label, files, contents.get, catalogs)
+        self.lineage_generated_store.save(graph, reader.manifest_token(ref.repo, ref.branch),
+                                          datetime.now(timezone.utc).isoformat())
+        return graph.stats
+
+    def _databricks_notebook_paths(self) -> list[str]:
+        """The mirrored Databricks tree's file list, which ADF notebook activities resolve against."""
+        key = self.client_config.repo_of_kind("databricks")
+        for ref in (self.registry.get(key) if key else []):
+            if ref.mirrored and self.mirror_reader.has_branch(ref.repo, ref.branch):
+                return self.mirror_reader.list_files(ref.repo, ref.branch)[0]
+        return []
+
+    def ensure_lineage_current(self) -> dict:
+        """Bring generated lineage up to date without a sync: regenerate each mirrored tree whose
+        stored lineage is missing, from an older sync (manifest token changed) or from an older
+        generator (GENERATOR_VERSION), then rebuild the
+        index if anything was regenerated or the index doesn't match the stored trees. Covers a
+        fresh deployment, a restored mirror, a post-swap step that failed, and an index file lost
+        on restart. Cheap when nothing changed: one manifest stat per tree. Returns
+        {"regenerated": {tree: stats}, "skipped": [...], "rebuilt": bool}. Skips the whole check
+        when another process holds the lineage lock: that process is already doing the work."""
+        with self.lineage_lock() as held:
+            if not held:
+                logging.getLogger(__name__).info("lineage: check skipped, another process holds the lineage lock")
+                return {"regenerated": {}, "skipped": ["another process is updating lineage"], "rebuilt": False}
+            return self._ensure_lineage_current()
+
+    def _ensure_lineage_current(self) -> dict:
+        log = logging.getLogger(__name__)
+        store = self.lineage_generated_store
+        regenerated, skipped = {}, []
+        seen = set()
+        for key in self.registry.all_repo_keys():
+            for ref in self.registry.get(key):
+                pair = (ref.repo, ref.branch)
+                if not ref.mirrored or pair in seen or not self.mirror_reader.has_branch(*pair):
+                    continue
+                seen.add(pair)
+                label = self.tree_label(ref)
+                stored = store.load(label)
+                token = self.mirror_reader.manifest_token(*pair)
+                if stored is not None and stored.current and (token is None or stored.manifest_token == token):
+                    continue
+                try:
+                    if self.maintenance_flag.status(ref.repo).active:
+                        skipped.append(f"{label}: repo sync in progress")
+                        continue
+                    regenerated[label] = self.generate_tree_lineage(ref)
+                except Exception as e:  # noqa: BLE001 — one tree must not stop the rest
+                    log.exception("lineage: %s could not be regenerated", label)
+                    skipped.append(f"{label}: {e}")
+        indexed = self.lineage_graph.coverage().generated
+        current = {t.tree: t.generated_at for t in store.load_all()}
+        rebuilt = bool(regenerated) or {k: v.get("generated_at") for k, v in indexed.items()} != current
+        if rebuilt:
+            self.rebuild_lineage_index()
+        if regenerated or skipped or rebuilt:
+            log.info("lineage: regenerated %s, skipped %s, index rebuilt: %s", sorted(regenerated), skipped, rebuilt)
+        return {"regenerated": regenerated, "skipped": skipped, "rebuilt": rebuilt}
+
+    def ensure_lineage_current_in_background(self) -> None:
+        """ensure_lineage_current on a daemon thread, for process startup: a fresh deployment takes
+        ~1.5 min to generate every tree, which must not hold up serving requests."""
+        import threading
+
+        def run():
+            try:
+                self.ensure_lineage_current()
+            except Exception:  # noqa: BLE001
+                logging.getLogger(__name__).exception("lineage: startup check failed")
+
+        threading.Thread(target=run, name="lineage-startup-check", daemon=True).start()
+
+    def rebuild_lineage_index(self):
+        """Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml plus every stored
+        generated tree. Returns the merged LoadedGraph (its warnings come from the YAML)."""
+        import yaml
+
+        from domain.lineage import NodeNote, load_graph, merge
+
+        with open(self.lineage_source_path, encoding="utf-8") as fh:
+            curated = load_graph(yaml.safe_load(fh))
+        trees = self.lineage_generated_store.load_all()
+        merged = merge(curated, [e for t in trees for e in t.edges])
+        generated = {t.tree: {**t.stats, "generated_at": t.generated_at} for t in trees}
+        notes = [NodeNote(node, "defined_at", "", where, where, True)
+                 for t in trees for node, where in t.locations.items()]
+        # The model's own `///` descriptions: from the deployed files, so verified, unlike report docs.
+        notes += [NodeNote(node, "kpi_definition", node.rsplit("[", 1)[-1].rstrip("]"), desc,
+                           t.locations.get(node, t.tree), True)
+                  for t in trees for node, desc in t.descriptions.items()]
+        kpi_notes, kpi_stats = self._kpi_notes({n.id for n in merged.nodes})
+        self.lineage_graph.rebuild(merged.nodes, merged.edges, source_file=str(self.lineage_source_path),
+                                   generated=generated, notes=notes + kpi_notes, meta={"kpi": kpi_stats})
+        return merged
+
+    def _kpi_notes(self, node_ids: set[str]):
+        """KPI definitions from docs/ai/client/reports/<folder>/*-Document.md for each folder listed in
+        docs/ai/client/reports/sources.yaml, attached to that tree's measure/column nodes (unverified)."""
+        import yaml
+
+        from domain.kpi_docs import attach
+        from domain.lineage import NodeNote
+
+        reports_root = self.lineage_source_path.parent / "reports"
+        try:
+            sources = yaml.safe_load((reports_root / "sources.yaml").read_text(encoding="utf-8")) or {}
+        except OSError:
+            return [], {}
+        notes, stats = [], {"definitions": 0, "nodes": 0, "unmatched": []}
+        for folder, cfg in sources.items():
+            primary = cfg["tree"]
+            for doc in sorted((reports_root / folder).glob("*-Document.md")):
+                try:
+                    rel = doc.resolve().relative_to(SERVICES_ROOT.parent.resolve()).as_posix()
+                except ValueError:  # reports kept outside the workspace: name them as configured
+                    rel = doc.as_posix()
+                text = doc.read_text(encoding="utf-8")
+                for tree in [primary, *(cfg.get("also_trees") or [])]:
+                    result = attach(rel, text, tree, node_ids)
+                    copy = "" if tree == primary else f" (doc describes {primary}; applied to this copy)"
+                    notes += [NodeNote(n.node_id, "kpi_definition", n.kpi, n.definition, n.source_ref + copy, False)
+                              for n in result.notes]
+                    stats["unmatched"] += [{**u, "tree": tree} for u in result.unmatched]
+        stats["definitions"] = len(notes)
+        stats["nodes"] = len({n.node_id for n in notes})
+        return notes, stats
 
     @cached_property
     def trace_reader(self) -> ClaudeTranscriptReader:

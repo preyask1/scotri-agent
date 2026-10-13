@@ -625,7 +625,7 @@ sync is a human admin's action: an engagement holds no admin token, so the agent
 | `GET /v1/admin/me` | `{subject, display_name, platform, roles, is_admin}` for the caller. Any authenticated principal; not audited. Lets a frontend show or hide its admin link. |
 | `GET /v1/admin/queue` | The engagement queue (OPEN_ITEMS.md #32): `limits`, `waiting` in start order (`position`, owner, prompt preview, `waited_seconds`) and `running` (`lease_seconds_left`). The page's **Queue** tab shows it, refreshed every 5 s. |
 | `POST /v1/admin/queue/{job_id}/cancel` | Take anyone's waiting job out of the queue. Waiting jobs only (`409` otherwise, `404` if unknown); the owner sees `cancel_reason: "admin"` and can send the prompt again. Audited with the owner's subject. |
-| `GET /v1/admin/overview` | One debugging snapshot: `redis`, `governor` (in-flight count and cap per backend), `active_jobs`, `queue` (as `GET /v1/admin/queue`), `mirror` (freshness and maintenance flag per mirrored branch), `config` (which settings are set, as booleans, and the role lists). Each section carries its own `ok`/`error`, so a Redis outage shows up as one failed section rather than a `500`. |
+| `GET /v1/admin/overview` | One debugging snapshot: `redis`, `governor` (in-flight count and cap per backend), `active_jobs`, `queue` (as `GET /v1/admin/queue`), `mirror` (freshness, maintenance flag and `lineage` state per mirrored branch: `current`, `stale` (older than the branch's last sync), `old_generator` or `missing`, with `generated_at`), `process` (`started_at`, `commit_at_start`, `commit_now`, `restart_needed`: a process keeps the code it started with, so after a pull it needs a restart before **Sync now** and the start-up checks run the new code; `SCOTRI_BUILD_COMMIT` names the commit where the image has no `.git`), `config` (which settings are set, as booleans, and the role lists). Each section carries its own `ok`/`error`, so a Redis outage shows up as one failed section rather than a `500`. |
 | `GET /v1/admin/engagements?limit=&subject=&status=` | Every caller's engagements from history, newest first (`limit` max 500). A 200-character `prompt_preview`, never the full prompt or result. |
 | `GET /v1/admin/engagements/{job_id}/steps` | The steps of anyone's job, same shape as `GET …/steps` plus `owner`. The owner-only rule on `…/steps` is widened here for admins only, and each read is audited with the job id. |
 | `GET /v1/admin/logs` | The log files the view can open (`api`, `cli`, `mcp`, `sync`) with size and modified time. |
@@ -635,7 +635,33 @@ sync is a human admin's action: an engagement holds no admin token, so the agent
 | `PUT /v1/admin/apps/{app_id}` | Register or update one app: `{"name", "kind": "interactive" \| "service", "owner"?, "notes"?}`. `422` if a field looks like it carries a credential. |
 | `DELETE /v1/admin/apps/{app_id}` | Remove Scotri's record of an app. The app's tokens stay valid: Entra issues them, not Scotri. |
 | `POST /v1/admin/mirror/sync` | Refresh mirrored Prod repos now, exactly as the scheduled sync does. No body syncs every mirrored repo/branch; `{"repo_key", "branch"?}` syncs one key (or one branch of it). A one-repo run merges its row into `status.json`: the other rows keep their own `checked_at`, `last_run_at` stays the last full run's, and the run's time goes in `last_partial_run_at`. Returns `202` at once with the state below; the run continues on a background thread. `404` if nothing mirrored matches; `409` if any sync holds the shared sync lock (another click, the schedule, or `sync-run-once`), with the holder's name in `detail`. Audited twice, with the scope as target for a one-repo run: `sync_mirror` when it starts, `mirror_sync_finished` when it ends (`checked=N failed=M`, or `lock held`). |
-| `GET /v1/admin/mirror/sync` | The latest manual sync started from this API process: `{running, started_at, finished_at, started_by, scope, checked, failed, failures: [{repo, branch, category, message}], repos: [{repo_key, repo, branch, phase, percent, ok, message}], lock_holder}`. `scope` is `all`, a key, or `key@branch`. Each `repos` row is one bar: `phase` is `queued`, `fetching`, `swapping`, `done`, `failed` or `skipped`, and `percent` (0-100, never moving backwards) comes from git's own `--progress` (receiving 2-70, resolving 70-85, checkout 85-93, file index 93-96, swap 96-100). Only the stage and the number are read from git's output. `lock_holder` names whoever holds the shared lock now (`sync-service`, `cli:sync-run-once`, `admin:<subject>`, or `admin:<subject> (<scope>)`), or `null`. |
+| `GET /v1/admin/mirror/sync` | The latest manual sync started from this API process: `{running, started_at, finished_at, started_by, scope, checked, failed, failures: [{repo, branch, category, message}], repos: [{repo_key, repo, branch, phase, percent, ok, message}], lock_holder}`. `scope` is `all`, a key, or `key@branch`. Each `repos` row is one bar: `phase` is `queued`, `fetching`, `swapping`, `caching`, `done`, `failed` or `skipped`, and `percent` (0-100, never moving backwards) comes from git's own `--progress` (receiving 2-70, resolving 70-85, checkout 85-93, file index 93-96, swap 96-98) and then the post-swap step (`caching`, 98-100: the tree's search cache, then its generated lineage, see below). Only the stage and the number are read from git's output. `lock_holder` names whoever holds the shared lock now (`sync-service`, `cli:sync-run-once`, `admin:<subject>`, or `admin:<subject> (<scope>)`), or `null`. |
+
+**After each swap: search cache and lineage.** Every way of starting a sync runs one post-swap step
+per tree (`after_mirror_swap`): it rebuilds that tree's `mirror-grep` cache, then regenerates the
+tree's lineage from the mirror and rebuilds the lineage index the agent's `lineage-trace`,
+`lineage-coverage` and `kpi-lookup` read. Which generator runs follows the repo's kind in the profile: Fabric repos give
+table → model → column / measure / RLS role → report edges, the Databricks repo gives notebook → table, the ADF repo
+gives trigger → pipeline → notebook. Each step is best-effort: the tree is already live, so a failure
+is logged and never fails the sync. On a fresh tree this adds roughly 10-30 s per Fabric tree, 10 s
+for Databricks and under a second for ADF.
+
+**At API start-up: lineage catch-up.** The API process (and the MCP server and the sync service) also
+checks, on a background thread, every mirrored tree whose generated lineage is missing, from an older sync or from
+an older generator version, and regenerates just those. A fresh deployment takes about 1.5 minutes,
+during which `lineage-trace` answers from whatever is already there; when nothing changed the check is
+one manifest read per tree. It needs no endpoint and no admin action; `lineage-generate --stale-only`
+does the same from the CLI. A lock file beside the generated lineage (`.lock`) keeps it to one
+writer per host: a start-up check that finds it taken skips, a post-sync refresh waits for it (up to
+10 minutes), and a lock left by a dead process is taken over after 30 minutes.
+
+**Once per run: the platform map.** At the end of a sync run that swapped at least one tree, still
+under the sync lock, the onboarding page (`tools/platform_map`) is rebuilt from the lineage index, the
+registry, `config/client.yaml` and the optional `docs/ai/client/platform-map-notes.json`.
+`GET /v1/platform-map` returns it to any authenticated caller as one `text/html` page
+(`X-Platform-Map-Built` says when it was built); `GET /platform-map` is an unauthenticated sign-in
+shell that fetches it with the caller's token. It names internal workspaces, factories and tenants but
+no data rows or credentials.
 
 **The sync lock.** Every way of starting a sync (the sync service's schedule, `sync-run-once` and the
 button above) takes one Redis lock, `mirror:sync-lock`, for the whole run, so two runs can never

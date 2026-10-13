@@ -1,0 +1,15 @@
+# Report documents for $name: which mirrored tree each folder under docs/ai/client/reports/ describes.
+# Optional. The lineage index rebuild reads every *-Document.md in a listed folder, takes the KPI
+# tables in its section 2 ("Business Requirements & KPI Definitions"), and attaches each definition
+# to the matching measure or column node of that tree (domain/kpi_docs.py), unverified: the docs are
+# a dated snapshot, the mirror is the authority on what is deployed. `kpi-lookup` shows them.
+#
+# Each document names its model on a line `**Semantic model:** `<Area>/<Name>.SemanticModel``.
+#
+#   <folder>:
+#     tree: <repo_key>@<branch>       # the tree the documents were written against
+#     also_trees:                     # optional: other trees holding copies of the same models at
+#       - <repo_key>@<branch>         # the same paths (definitions are attached there too)
+#
+# Fabric repos in this deployment: $fabric_repos
+{}

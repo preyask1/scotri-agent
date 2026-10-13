@@ -24,6 +24,10 @@ The specific reported value, the filter/date/division/role context it was seen u
 value if the reporter gave one. A vague restatement produces a vague trace.
 
 ### 2. Trace hop by hop, recording what's found at each
+Start with one call that maps the chain: `kpi-lookup --name "<measure or KPI>"` (the measure's DAX
+location, its report-doc definition, what it depends on, its gold tables/columns and the reports
+showing it), or `lineage-trace --node <report/measure/gold node> --direction upstream`. Then read
+each hop at the lines it returns; the lookup tells you where to look, the files decide.
 1. **Report visual → measure** — `fabric-read`, the report's `report.json`/`.pbir`.
 2. **Measure → model table → gold table name** — `fabric-read`, the model's TMDL/M partition.
 3. **Gold table → live schema/data** — `databricks-query`: does live data support the reported value?
@@ -57,6 +61,12 @@ failures".
 5. **Check the child, not just the parent.** A green parent doesn't clear its child. Query the named
    child with `pipeline-runs`; mark it "unchecked" only if that genuinely can't be done (e.g. beyond
    the 14-day cap).
+5b. **A green gold build doesn't clear a gold notebook.** A runner notebook that runs others (a
+   `triggers` edge in `lineage-trace`, e.g. a folder runner) may catch each child's exception and
+   carry on, leaving the ADF run green. Read the runner's loop: if it swallows failures, find where it
+   logs them (often a run-log table; `docs/ai/client/databricks-architecture.md` names it when known)
+   and query that log with `databricks-select` for the producing notebook on the date in question
+   before calling a stale gold table "not refreshed".
 6. **Note where the trail goes cold** — a Databricks job in a workspace this deployment doesn't cover,
    or a permission wall (401/403 on `pipeline-runs`/`activity-runs` = the SP's role grant is missing,
    not run history unavailable; report it as that). Report job name/ID/host/task and stop there.

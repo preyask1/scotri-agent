@@ -28,6 +28,10 @@ def run_forever(cron_expression: str) -> None:
     schedule = croniter(cron_expression, start_time=time.time())
 
     logger.info("sync service starting — schedule: '%s'", cron_expression)
+    try:  # catch up on lineage the post-swap step missed (e.g. a mirror restored or synced elsewhere)
+        container.ensure_lineage_current()
+    except Exception:  # noqa: BLE001
+        logger.exception("lineage startup check failed; the next sync's post-swap step retries it")
     while True:
         next_run = schedule.get_next(float)
         sleep_seconds = max(0.0, next_run - time.time())
@@ -38,7 +42,8 @@ def run_forever(cron_expression: str) -> None:
             outcomes = refresh_registry_once(container.registry, container.mirror_sync,
                                              container.maintenance_flag, container.sync_lock,
                                              holder="sync-service",
-                                             after_swap=getattr(container, "rebuild_mirror_text_cache", None))
+                                             after_swap=getattr(container, "after_mirror_swap", None),
+                                             after_run=getattr(container, "after_mirror_sync", None))
         except SyncInProgressError as e:
             logger.warning("scheduled sync skipped: %s", e.user_message)
             continue

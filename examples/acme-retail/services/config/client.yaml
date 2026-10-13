@@ -12,3 +12,35 @@ catalogs:
   dev: acme_dev
 jira_projects:
 - ACME
+repo_kinds:
+  databricks: databricks
+  adf: adf
+  fabric_core: fabric
+  fabric_secondary: fabric
+  fabric_hq: fabric
+  fabric_stores: fabric
+  fabric_regional: fabric
+legacy_repos:
+- fabric_core
+- fabric_secondary
+fabric_workspaces:
+- name: ACME-Fabric-Prod
+  repo_key: fabric_core
+  branch: main
+- name: ACME-Fabric-HO-Prod
+  repo_key: fabric_core
+  branch: hq_live
+- name: ACME-Fabric-Prod-2
+  repo_key: fabric_secondary
+  branch: regional_main
+- name: ACME-HQ-Prod
+  repo_key: fabric_hq
+  branch: main
+- name: ACME-Field-Prod
+  repo_key: fabric_stores
+  branch: main
+- name: ACME-Regional-Prod
+  repo_key: fabric_regional
+  branch: main
+fabric_tenant_id: ''
+adf_tenant_id: ''

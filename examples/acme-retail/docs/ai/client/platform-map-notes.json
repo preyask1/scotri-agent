@@ -1,0 +1,60 @@
+{
+  "_about": "Curated notes for the platform map (tools/platform_map/README.md, 'Curated notes'). Every key is optional; fill in what helps a new joiner at Acme Retail. Text is plain, `backticks` become code.",
+  "tagline": "How data moves from Acme's store, ERP and e-commerce systems through Azure Data Factory and Databricks into Power BI and the Insights app. Start with the big picture, then zoom into any layer, report, table, notebook or pipeline.",
+  "locale": "en-GB",
+  "timezone": "Europe/London",
+  "timezone_label": "UTC",
+  "sources": [
+    {"name": "Store POS", "short": "till transactions", "what": "Every till transaction from the stores, landed nightly.", "linked_service": "LS_POS_Prod", "type": "SqlServer", "ir": "ACME-IR-Stores", "pipelines": ["PL_POS_Daily_Ingest"], "gold_folder": "Gold_Notebooks/POS"},
+    {"name": "ERP", "short": "products, suppliers, finance", "what": "Product, supplier and finance masters.", "linked_service": "LS_ERP_Prod", "type": "Oracle", "ir": "ACME-IR-Stores", "pipelines": [], "gold_folder": "Gold_Notebooks/ERP"},
+    {"name": "E-commerce", "short": "web orders", "what": "Online orders and returns, delivered as files.", "linked_service": "LS_adls_Prod", "type": "AzureBlobFS", "ir": "Azure", "pipelines": [], "gold_folder": "Gold_Notebooks/WEB"},
+    {"name": "Insights app", "short": "store visits", "what": "The field team's store-visit app: visits, shelf checks, stores.", "linked_service": "LS_Insights_Prod", "type": "AzureMySql", "ir": "Azure", "pipelines": [], "gold_folder": "Gold_Notebooks/STORES"}
+  ],
+  "ingestion": "Every source reaches the lake the same way: an ADF Copy activity reads it through a linked service and writes files to ADLS Gen2. ADF then runs the Databricks notebooks that load `brnz`, then `slvr`, then `gold`. Store systems go through the self-hosted integration runtime `ACME-IR-Stores`.",
+  "main_run_title": "What happens each night",
+  "main_run": [
+    {"step": "Ingest", "text": "The POS load copies the day's tills into the lake:", "pipelines": ["PL_POS_Daily_Ingest"]},
+    {"step": "Gold", "text": "`NB_Gold_Runner` runs the `Gold_Notebooks/<SOURCE>/Wave<N>/` folders one after another. A notebook's folder is its place in the queue."}
+  ],
+  "adf_naming": [
+    {"term": "`PL_*`", "meaning": "A pipeline."},
+    {"term": "`TR_*`", "meaning": "A trigger."},
+    {"term": "`LS_*`", "meaning": "A linked service."}
+  ],
+  "layers": "Gold tables are SCD Type 2: `IS_CURRENT_FLAG`, `VALID_FROM`, `VALID_TO`, `CHECK_SUM`.",
+  "schemas": [
+    {"term": "`insights`", "meaning": "Tables the Insights app reads directly."},
+    {"term": "`admin`", "meaning": "Mappings, audit and run logs."}
+  ],
+  "repo_layout": [
+    {"term": "`NB_Bronze_*`, `NB_Silver_*`", "meaning": "Generic bronze and silver loaders."},
+    {"term": "`NB_Gold_Runner.ipynb`", "meaning": "The gold orchestrator."},
+    {"term": "`Gold_Notebooks/<SOURCE>/Wave<N>/`", "meaning": "One `USP_*` notebook per gold table or family."},
+    {"term": "`NB_Utils*.py`", "meaning": "Shared helpers most notebooks `%run`."}
+  ],
+  "gold_runner": {
+    "notebook": "NB_Gold_Runner.ipynb",
+    "folder_pattern": "^Gold_Notebooks/([^/]+/Wave[0-9A-Z]+)/",
+    "order": ["POS/Wave1", "POS/Wave2", "ERP/Wave1", "WEB/Wave1", "STORES/Wave1", "STORES/Wave2"]
+  },
+  "powerbi_note": "Two legacy repos (`Acme-PowerBIReports`, `AcmeFabricReports`) still run alongside the three new ones (head office, field, regions). The same model can exist in more than one tree and the copies can differ: always say which repo and branch you mean.",
+  "powerbi_patterns": [
+    {"term": "Regional copies", "meaning": "One logical report cloned per region, each with its own model. Check every copy."},
+    {"term": "Catalog parameter", "meaning": "The `CatalogName` parameter in `expressions.tmdl` decides the catalog, and in Prod it is `acme_prod`."}
+  ],
+  "consumers": [
+    {"name": "Insights app", "short": "reads acme_prod.insights.*", "how": "Reads the `acme_prod.insights.*` tables directly, with no serving copy in between."}
+  ],
+  "environments_note": "ADF's Dev and Prod are two different repos, not two branches. There is no UAT for ADF or Databricks.",
+  "platform": [
+    {"title": "Storage and networking", "items": [
+      {"term": "ADLS Gen2", "meaning": "The landing zone for every Copy."},
+      {"term": "Self-hosted IR", "meaning": "`ACME-IR-Stores`, for the store and ERP databases."}
+    ]}
+  ],
+  "glossary": [
+    {"term": "`USP_*`", "meaning": "A gold-building notebook, named after the stored procedures the platform was migrated from."},
+    {"term": "Wave", "meaning": "One step of the gold runner's queue."}
+  ],
+  "start_here": {"trigger": "", "report": "", "extra": []}
+}

@@ -8,6 +8,8 @@ Assembles a corpus on demand from three sources and ranks it with domain.retriev
   not done here: it needs the still-open "relevant users" access decision (OPEN_ITEMS.md #19 dec. 1),
   and reading everyone's full results by default would pre-empt that decision.
 - "docs": the committed docs/ai/ corpus (*.md, *.yaml) — non-sensitive, so global, no subject.
+  Markdown is indexed one heading section at a time (domain.retrieval.split_markdown); each hit
+  carries `meta.lines` so the reader opens that range rather than the whole file.
 
 No credential, no external call, no governor — this is a local rank over already-accessible content.
 When Azure AI Foundry is available, a hybrid embeddings adapter replaces this behind the same port.
@@ -21,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from domain.errors import PolicyError
-from domain.retrieval import Document, RetrievalHit, rank
+from domain.retrieval import Document, RetrievalHit, rank, split_markdown
 from domain.verdict_review import UNREVIEWED, apply_review_weights, is_retrievable
 from ports.engagement_history import EngagementHistory
 
@@ -137,7 +139,18 @@ class LexicalRetriever:
                 except (OSError, UnicodeDecodeError):
                     continue
                 rel = path.relative_to(self._docs_root).as_posix()
-                docs.append(Document(
-                    id=f"docs:{rel}", scope="docs", title=rel, text=text, meta={"path": str(path)},
-                ))
+                if path.suffix != ".md":
+                    docs.append(Document(
+                        id=f"docs:{rel}", scope="docs", title=rel, text=text, meta={"path": str(path)},
+                    ))
+                    continue
+                # One Document per heading section: a hit names the section and its line range, so
+                # the reader opens those lines, not the whole file.
+                for s in split_markdown(text):
+                    docs.append(Document(
+                        id=f"docs:{rel}#L{s.start_line}", scope="docs",
+                        title=f"{rel} › {s.heading}" if s.heading else rel, text=s.text,
+                        meta={"path": str(path), "section": s.heading,
+                              "lines": f"{s.start_line}-{s.end_line}"},
+                    ))
         return docs

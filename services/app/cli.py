@@ -136,7 +136,8 @@ def cmd_sync_run_once(args: argparse.Namespace) -> int:
     # SyncInProgressError, which main() prints as a categorized JSON error.
     outcomes = refresh_registry_once(container.registry, container.mirror_sync, container.maintenance_flag,
                                      container.sync_lock, holder="cli:sync-run-once",
-                                     after_swap=getattr(container, "rebuild_mirror_text_cache", None))
+                                     after_swap=getattr(container, "after_mirror_swap", None),
+                                     after_run=getattr(container, "after_mirror_sync", None))
     write_status(container.mirror_root / "status.json", build_status_report(outcomes))
 
     failures = [o for o in outcomes if not o.ok]
@@ -583,41 +584,84 @@ def cmd_job_run_detail(args: argparse.Namespace) -> int:
 
 
 def cmd_lineage_rebuild(args: argparse.Namespace) -> int:
-    """Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml (OPEN_ITEMS.md item #37).
-    Local/offline — no governor, no credential (the graph is a derived index, not an external call).
-    Intended to be run after the source YAML changes, and callable from sync_service later."""
-    import yaml
-
-    from domain.lineage import load_graph
-
+    """Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml plus the edges already
+    generated from the mirror (OPEN_ITEMS.md item #37). Local/offline: no governor, no credential,
+    and it doesn't re-read the mirror (that's `lineage-generate`, which the sync runs per tree)."""
     container = build_container()
-    source = container.lineage_source_path
     try:
-        with open(source, encoding="utf-8") as fh:
-            raw = yaml.safe_load(fh)
-        loaded = load_graph(raw)
-        container.lineage_graph.rebuild(loaded.nodes, loaded.edges, source_file=str(source))
+        loaded = container.rebuild_lineage_index()
     except FileNotFoundError:
-        _print_error(ErrorCategory.CONFIGURATION.value, f"lineage source not found: {source}")
+        _print_error(ErrorCategory.CONFIGURATION.value, f"lineage source not found: {container.lineage_source_path}")
         return 1
     except ScotriError as e:
         _print_error(e.category.value, e.user_message, extra=_governor_extra(e))
         return 1
     cov = container.lineage_graph.coverage()
     print(_redact_dumps({
-        "ok": True, "source": str(source),
+        "ok": True, "source": str(container.lineage_source_path),
         "node_count": cov.node_count, "edge_count": cov.edge_count,
         "verified_edge_count": cov.verified_edge_count,
         "unverified_edge_count": len(cov.unverified_edges),
+        "generated_trees": cov.generated,
         "warnings": loaded.warnings,
     }))
     return 0
 
 
+def cmd_lineage_generate(args: argparse.Namespace) -> int:
+    """Regenerate model/report lineage from the mirror (domain/model_lineage.py) for one tree or
+    every mirrored tree, then rebuild the index. The sync does this after each swap; this is the
+    by-hand route (ops only: minutes, and it rewrites services/data/lineage-generated/)."""
+    container = build_container()
+    if args.stale_only:
+        result = container.ensure_lineage_current()
+        cov = container.lineage_graph.coverage()
+        print(_redact_dumps({"ok": True, "trees": result["regenerated"], "skipped": result["skipped"],
+                             "index_rebuilt": result["rebuilt"],
+                             "node_count": cov.node_count, "edge_count": cov.edge_count}))
+        return 0
+    refs = _mirror_search_refs(container, args)
+    if refs is None:
+        return 1
+    reg = {(r.repo, r.branch): r for k in container.registry.all_repo_keys() for r in container.registry.get(k)}
+    trees, skipped = {}, []
+    with container.lineage_lock(wait_seconds=600) as held:  # an API/MCP/sync process may be mid-update
+        if not held:
+            _print_error(ErrorCategory.TRANSIENT.value,
+                         "another process kept the lineage lock for 10 minutes; try again later")
+            return 1
+        for repo, branch in refs:
+            if container.maintenance_flag.status(repo).active:
+                skipped.append(f"{repo}@{branch}: repo sync in progress")
+                continue
+            try:
+                stats = container.generate_tree_lineage(reg[(repo, branch)])
+            except Exception as e:  # noqa: BLE001 — one tree failing must not hide the others
+                skipped.append(f"{repo}@{branch}: {e}")
+                continue
+            trees[container.tree_label(reg[(repo, branch)])] = stats
+        try:
+            container.rebuild_lineage_index()
+        except (FileNotFoundError, ScotriError) as e:
+            _print_error(ErrorCategory.CONFIGURATION.value, f"generated, but the index rebuild failed: {e}")
+            return 1
+    cov = container.lineage_graph.coverage()
+    print(_redact_dumps({"ok": True, "trees": trees, "skipped": skipped,
+                         "node_count": cov.node_count, "edge_count": cov.edge_count}))
+    return 0
+
+
+_TRACE_LIST_CAP = 300
+_DETAIL_KINDS = ("column", "gold_column")
+
+
 def cmd_lineage_trace(args: argparse.Namespace) -> int:
-    """Blast radius from a node (OPEN_ITEMS.md item #37) — `downstream` (what a change to it touches)
-    or `upstream` (what feeds it), within --max-hops. Reports its own unverified-edge count so a
-    traversal that crossed a 🔁 edge is never silently treated as fully confirmed."""
+    """Blast radius from a node (OPEN_ITEMS.md item #37) in data-flow direction: `downstream`
+    (what a change to it touches) or `upstream` (what feeds it), within --max-hops. Reports its own
+    unverified-edge count so a traversal that crossed a 🔁 edge is never silently treated as fully
+    confirmed. A generated subgraph can run to thousands of nodes, so beyond _TRACE_LIST_CAP the
+    column-level nodes and the edge list are left out unless asked for (--kind / --full); the
+    counts per kind are always complete."""
     container = build_container()
     try:
         t = container.lineage_graph.blast_radius(args.node, args.direction, args.max_hops)
@@ -627,31 +671,168 @@ def cmd_lineage_trace(args: argparse.Namespace) -> int:
     except ScotriError as e:
         _print_error(e.category.value, e.user_message, extra=_governor_extra(e))
         return 1
-    print(_redact_dumps({
+    kinds = set(args.kind or [])
+    nodes = [n for n in t.nodes if not kinds or n.split(":", 1)[0] in kinds]
+    notes = []
+    if len(t.nodes) == 1:
+        notes.append("nothing reached: check the node id (kind:name, e.g. gold_table:visit_summary) "
+                     "with lineage-coverage, or try the other --direction")
+    if not args.full and not kinds and len(nodes) > _TRACE_LIST_CAP:
+        nodes = [n for n in nodes if n.split(":", 1)[0] not in _DETAIL_KINDS]
+        notes.append(f"{len(t.nodes)} nodes: column-level nodes left out; pass --kind column or --full")
+    out = {
         "ok": True, "root": t.root, "direction": t.direction, "max_hops": t.max_hops,
-        "node_count": len(t.nodes), "nodes": t.nodes,
-        "edge_count": len(t.edges),
-        "edges": [{"src": e.src, "dst": e.dst, "rel": e.rel, "verified": e.verified,
-                   "source_ref": e.source_ref} for e in t.edges],
-        "unverified_edge_count": t.unverified_edge_count,
-    }))
+        "node_count": len(t.nodes), "nodes_by_kind": t.nodes_by_kind(), "nodes": nodes,
+        "edge_count": len(t.edges), "unverified_edge_count": t.unverified_edge_count,
+    }
+    if args.full or len(t.edges) <= _TRACE_LIST_CAP:
+        out["edges"] = [{"src": e.src, "dst": e.dst, "rel": e.rel, "verified": e.verified,
+                         "source_ref": e.source_ref} for e in t.edges]
+    else:
+        notes.append(f"{len(t.edges)} edges: edge list left out; pass --full for it")
+    if notes:
+        out["notes"] = notes
+    print(_redact_dumps(out))
+    return 0
+
+
+_GOLD_KINDS = ("gold_table", "gold_column", "silver_table", "bronze_table")
+
+
+def _location(where: str) -> dict:
+    """"<repo_key>@<branch>:<path>:<line>" as the arguments mirror-read takes."""
+    tree, _, rest = where.partition(":")
+    path, _, line = rest.rpartition(":")
+    key, _, branch = tree.partition("@")
+    out = {"repo_key": key, "branch": branch, "path": path or rest}
+    if line.isdigit():
+        out["line"] = int(line)
+    return out
+
+
+def _direct_gold(graph, node: str, max_hops: int) -> set[str]:
+    """The gold tables/columns a measure or column reads directly: walk upstream and stop at the first
+    gold node on each path. A plain upstream traversal goes on through the producing notebook into
+    every table *it* reads, which is the gold layer's neighbourhood, not this KPI's source."""
+    found, frontier, seen = set(), {node}, {node}
+    for _ in range(max_hops):
+        nxt = set()
+        for n in frontier:
+            for e in graph.neighbors(n, "upstream"):
+                other = e.dst if e.src == n else e.src
+                if other in seen:
+                    continue
+                seen.add(other)
+                if other.split(":", 1)[0] in _GOLD_KINDS:
+                    found.add(other)
+                else:
+                    nxt.add(other)
+        frontier = nxt
+        if not frontier:
+            break
+    return found
+
+
+def cmd_kpi_lookup(args: argparse.Namespace) -> int:
+    """What a KPI means and how it's built, in one call: each matching measure (or column) with
+    where its DAX lives in the mirror, its business definition from the report docs (unverified, a
+    dated snapshot), what it depends on directly, the gold tables/columns behind it and the reports
+    that use it. Local: the lineage index, no governor."""
+    container = build_container()
+    graph = container.lineage_graph
+    kinds = [args.kind] if args.kind else ["measure", "column"]
+    nodes: list[str] = []
+    for kind in kinds:
+        found = graph.find_nodes(kind, args.name, 200)
+        if args.repo_key:
+            found = [n for n in found if f":{args.repo_key.lower()}@" in n.lower()]
+        if args.model:
+            found = [n for n in found if args.model.lower() in n.split("::", 1)[0].lower()]
+        nodes = found
+        if nodes:
+            break
+    total = len(nodes)
+    nodes = nodes[:args.limit]
+    notes = graph.notes_for(nodes)
+    results = []
+    for node in nodes:
+        kind, _, rest = node.partition(":")
+        model, _, name = rest.partition("::")
+        mine = [n for n in notes if n.node_id == node]
+        where = next((n.text for n in mine if n.kind == "defined_at"), None)
+        downstream = graph.blast_radius(node, "downstream", args.max_hops)
+        gold = sorted(_direct_gold(graph, node, args.max_hops))
+        gold_tables = {g if g.startswith("gold_table:") else "gold_table:" + g.split(":", 1)[1].split(".", 1)[0]
+                       for g in gold}
+        # Where each gold source is written: the producing notebook and the line of the write, so the
+        # column's logic is a line read, not a search (the kpi-meaning transcripts grepped for it).
+        producers = sorted({(e.src, e.dst, e.source_ref) for t in gold_tables for e in graph.neighbors(t, "upstream")
+                            if e.rel == "produces" and e.src.startswith("notebook:")})
+        # What uses this measure directly (other measures, columns, roles), with where each is defined.
+        dependents = sorted(e.src if e.dst == node else e.dst for e in graph.neighbors(node, "downstream")
+                            if not (e.src if e.dst == node else e.dst).startswith("report:"))
+        dep_where = {n.node_id: n.text for n in graph.notes_for(dependents) if n.kind == "defined_at"}
+        definitions: dict[tuple[str, str, bool], list[str]] = {}  # the same KPI repeats across sibling docs
+        for n in mine:
+            if n.kind == "kpi_definition":
+                definitions.setdefault((n.title, n.text, n.verified), []).append(n.source_ref)
+        results.append({
+            "node": node, "kind": kind, "model": model, "name": name,
+            "defined_at": _location(where) if where else None,
+            "definitions": [{"kpi": k, "definition": d, "sources": sorted(refs), "verified": v}
+                            for (k, d, v), refs in sorted(definitions.items(), key=lambda kv: not kv[0][2])],
+            "depends_on": sorted(e.dst if e.src == node else e.src for e in graph.neighbors(node, "upstream")),
+            "gold_sources": gold,
+            "producers": [{"notebook": nb.split(":", 1)[1], "gold_table": table, "at": _location(ref)}
+                          for nb, table, ref in producers],
+            "used_by": [{"node": d, "defined_at": _location(dep_where[d]) if d in dep_where else None}
+                        for d in dependents],
+            "reports": sorted(n for n in downstream.nodes if n.startswith("report:")),
+        })
+    out = {"ok": True, "query": args.name, "match_count": total, "results": results}
+    if total > len(results):
+        out["note"] = f"{total} matches, {len(results)} shown: narrow with --repo-key/--model or raise --limit"
+    if not results:
+        out["note"] = ("no measure or column of that name in the lineage index; try a shorter --name, "
+                       "or retrieve --query for the report docs")
+    elif any(r["definitions"] for r in results):
+        out["definitions_note"] = ("verified definitions are the model's own descriptions (TMDL `///`); "
+                                   "unverified ones come from the report docs (docs/ai/client/reports/), a dated "
+                                   "snapshot. Either way the DAX at defined_at is what is deployed")
+    print(_redact_dumps(out))
     return 0
 
 
 def cmd_lineage_coverage(args: argparse.Namespace) -> int:
-    """Coverage + the full unverified-edge (🔁) worklist + when/from-what the graph was last built —
-    the numbers impact-analysis quotes to state completeness rather than imply it (OPEN_ITEMS.md #37)."""
+    """Coverage + the full unverified-edge (🔁) worklist + when/from-what the graph was last built,
+    plus per-tree stats of the mirror-generated edges and, with --unresolved N, up to N references
+    the generator could not pin to a model object or Databricks table (OPEN_ITEMS.md #37). The
+    numbers impact-analysis quotes to state completeness rather than imply it."""
     container = build_container()
     cov = container.lineage_graph.coverage()
-    print(_redact_dumps({
+    out = {
         "ok": True,
         "node_count": cov.node_count, "edge_count": cov.edge_count,
         "verified_edge_count": cov.verified_edge_count,
         "unverified_edge_count": len(cov.unverified_edges),
         "unverified_edges": [{"src": e.src, "dst": e.dst, "rel": e.rel, "source_ref": e.source_ref}
                              for e in cov.unverified_edges],
+        "generated_trees": cov.generated,
+        "kpi_definitions": {"definitions": cov.kpi.get("definitions", 0), "nodes": cov.kpi.get("nodes", 0),
+                            "unmatched": len(cov.kpi.get("unmatched", []))},
         "last_build_at": cov.last_build_at, "source_file": cov.source_file,
-    }))
+    }
+    if args.unresolved:
+        out["kpi_unmatched"] = cov.kpi.get("unmatched", [])[:args.unresolved]
+        want = (args.repo_key or "").lower()
+        items = [{"tree": t.tree, **u} for t in container.lineage_generated_store.load_all()
+                 if not want or t.tree.lower().startswith(want + "@") for u in t.unresolved]
+        needle = (args.match or "").lower()
+        if needle:
+            items = [u for u in items if needle in (u["node"] + " " + u["reason"]).lower()]
+        out["unresolved_total"] = len(items)
+        out["unresolved"] = items[:args.unresolved]
+    print(_redact_dumps(out))
     return 0
 
 
@@ -1529,7 +1710,7 @@ def cmd_jira_attach(args: argparse.Namespace) -> int:
 BATCHABLE_COMMANDS = frozenset({
     "governor-check", "presence-check", "presence-heartbeat", "job-trace", "registry-resolve",
     "databricks-select", "dax-execute", "pipeline-runs", "activity-runs", "trigger-runs",
-    "job-runs", "job-run-detail", "lineage-trace", "lineage-coverage", "retrieve", "diagram-lint",
+    "job-runs", "job-run-detail", "lineage-trace", "lineage-coverage", "kpi-lookup", "retrieve", "diagram-lint",
     "verdict-review-stats", "refresh-history", "mirror-list", "mirror-read", "mirror-find", "mirror-grep",
     "report-bindings", "table-usage",
     "live-list", "live-read",
@@ -1676,6 +1857,11 @@ def cmd_batch(args: argparse.Namespace) -> int:
                          f"item {index}: invalid arguments for '{argv[0]}': {err.getvalue().strip()[-300:]}. "
                          f"Nothing in this batch was run.")
             return 1
+
+    # One short line naming the items, on stderr before anything runs: a transcript's step preview
+    # is cut at a few hundred characters and starts with stderr, so this is what shows which commands
+    # a batch ran (the benchmark counts graph-tool use from it). Never arguments: they can be long.
+    print(f"batch: {len(items)} item(s): {', '.join(argv[0] for argv in items)}", file=sys.stderr, flush=True)
 
     workers = max(1, min(args.workers, BATCH_MAX_WORKERS))
     shared = build_container()
@@ -1877,24 +2063,64 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_lrebuild = sub.add_parser(
         "lineage-rebuild",
-        help="Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml. OPEN_ITEMS.md #37.",
+        help="Rebuild the SQLite lineage index from docs/ai/client/lineage-graph.yaml plus the stored "
+             "mirror-generated edges (no mirror read). OPEN_ITEMS.md #37.",
     )
     p_lrebuild.set_defaults(func=cmd_lineage_rebuild)
 
+    p_lgen = sub.add_parser(
+        "lineage-generate",
+        help="Ops only: regenerate model/report lineage from the mirror for one tree (--repo-key) or "
+             "every tree, then rebuild the index. The sync does this after each swap.",
+    )
+    p_lgen.add_argument("--repo-key", dest="repo_key")
+    p_lgen.add_argument("--environment")
+    p_lgen.add_argument("--branch")
+    p_lgen.add_argument("--stale-only", dest="stale_only", action="store_true",
+                        help="Only trees whose generated lineage is missing or older than their last sync "
+                             "(what API and sync-service startup run).")
+    p_lgen.set_defaults(func=cmd_lineage_generate)
+
     p_ltrace = sub.add_parser(
         "lineage-trace",
-        help="Blast radius from a node (downstream/upstream), from the lineage index. OPEN_ITEMS.md #37.",
+        help="Blast radius from a node in data-flow direction (downstream = what it touches, upstream = "
+             "what feeds it), from the lineage index. OPEN_ITEMS.md #37.",
     )
-    p_ltrace.add_argument("--node", required=True, help="A node id, 'kind:name' (e.g. gold_table:<prod_catalog>.gold.visit_summary).")
+    p_ltrace.add_argument("--node", required=True,
+                          help="A node id, 'kind:name': gold_table:visit_summary, "
+                               "measure:<repo_key>@<branch>/<model path>::[<measure>], ...")
     p_ltrace.add_argument("--direction", choices=["downstream", "upstream"], default="downstream")
     p_ltrace.add_argument("--max-hops", dest="max_hops", type=int, default=5)
+    p_ltrace.add_argument("--kind", action="append",
+                          help="List only nodes of this kind (repeatable): report, measure, column, ...")
+    p_ltrace.add_argument("--full", action="store_true", help="Every node and edge, however many.")
     p_ltrace.set_defaults(func=cmd_lineage_trace)
 
     p_lcov = sub.add_parser(
         "lineage-coverage",
-        help="Graph totals + the unverified-edge worklist + last build time. OPEN_ITEMS.md #37.",
+        help="Graph totals + the unverified-edge worklist + per-tree generated stats + last build time. "
+             "OPEN_ITEMS.md #37.",
     )
+    p_lcov.add_argument("--unresolved", type=int, default=0,
+                        help="Also list up to N references the generator could not resolve.")
+    p_lcov.add_argument("--repo-key", dest="repo_key", help="With --unresolved: one tree's only.")
+    p_lcov.add_argument("--match", help="With --unresolved: only items whose node or reason contains this.")
     p_lcov.set_defaults(func=cmd_lineage_coverage)
+
+    p_kpi = sub.add_parser(
+        "kpi-lookup",
+        help="What a KPI means and how it's built: matching measures (or columns) with their DAX location, "
+             "definitions, dependencies, what uses them, gold sources with the notebook line that writes "
+             "each, and reports. From the lineage index.",
+    )
+    p_kpi.add_argument("--name", required=True, help="Measure, column or KPI name, or part of one.")
+    p_kpi.add_argument("--kind", choices=["measure", "column"],
+                       help="Default: measures, falling back to columns when no measure matches.")
+    p_kpi.add_argument("--repo-key", dest="repo_key", help="Only this tree (e.g. fabric_secondary).")
+    p_kpi.add_argument("--model", help="Only models whose path contains this.")
+    p_kpi.add_argument("--limit", type=int, default=5)
+    p_kpi.add_argument("--max-hops", dest="max_hops", type=int, default=8)
+    p_kpi.set_defaults(func=cmd_kpi_lookup)
 
     p_dlint = sub.add_parser(
         "diagram-lint",

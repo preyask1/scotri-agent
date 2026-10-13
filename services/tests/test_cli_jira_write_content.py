@@ -24,7 +24,7 @@ class _Writer:
 
     def create_bug(self, project, summary, description):
         self.calls.append(("bug", summary, description))
-        return "DP-9"
+        return "ACME-9"
 
 
 @pytest.fixture
@@ -43,25 +43,25 @@ def _ns(**kw):
 
 
 def test_comment_body_is_redacted(writer, capsys):
-    assert cli.cmd_jira_comment(_ns(key="DP-1", body="found it: password=hunter2xyz")) == 0
+    assert cli.cmd_jira_comment(_ns(key="ACME-1", body="found it: password=hunter2xyz")) == 0
     assert "hunter2xyz" not in writer.calls[0][2]
 
 
 def test_comment_body_file_from_scratch_is_posted_redacted(writer, tmp_path, capsys):
     (tmp_path / "scratch" / "c.md").write_text("verdict; AccountKey=Zm9vYmFyYmF6", encoding="utf-8")
-    assert cli.cmd_jira_comment(_ns(key="DP-1", body_file=str(tmp_path / "scratch" / "c.md"))) == 0
+    assert cli.cmd_jira_comment(_ns(key="ACME-1", body_file=str(tmp_path / "scratch" / "c.md"))) == 0
     assert writer.calls[0][2].startswith("verdict") and "Zm9vYmFyYmF6" not in writer.calls[0][2]
 
 
 def test_comment_body_file_outside_the_output_folders_is_refused(writer, tmp_path, capsys):
     (tmp_path / "services" / "notes.md").write_text("JIRA_API_TOKEN=abc", encoding="utf-8")
-    assert cli.cmd_jira_comment(_ns(key="DP-1", body_file=str(tmp_path / "services" / "notes.md"))) == 1
+    assert cli.cmd_jira_comment(_ns(key="ACME-1", body_file=str(tmp_path / "services" / "notes.md"))) == 1
     assert writer.calls == []
     assert json.loads(capsys.readouterr().out)["category"] == "policy"
 
 
 def test_edit_and_bug_text_are_redacted(writer, capsys):
-    cli.cmd_jira_edit_comment(_ns(key="DP-1", comment_id="1", body="token=abcd1234efgh"))
+    cli.cmd_jira_edit_comment(_ns(key="ACME-1", comment_id="1", body="token=abcd1234efgh"))
     cli.cmd_jira_create_bug(_ns(project="DP", summary="s", description="client_secret: s3cr3tvalue"))
     assert "abcd1234efgh" not in writer.calls[0][2]
     assert "s3cr3tvalue" not in writer.calls[1][2]
